@@ -16,7 +16,7 @@ import java.net.UnknownHostException;
  */
 public class UDPHelper {
 
-    private static final int PORT = 6000;
+    private static final int PORT = 2048;
     private static final int PACKETLENGTH = 12;
     private Handler handler;
     private boolean life = true;
