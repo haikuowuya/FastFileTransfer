@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,7 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import vis.net.UDPHelper;
+import vis.net.protocol.FFTP;
 import vis.net.wifi.ReceiveWifiManager;
 
 
@@ -25,7 +24,7 @@ public class ReceiveActivity extends Activity {
     private boolean isConnected = false;
     private NetworkStateChangeReceiver nscr;
     private ScanResultsAvailableReceiver srar;
-    private UDPHelper mUDPHelper;
+//    private UDPHelper mUDPHelper;
 
     private String ssid;
     public Handler handler = new Handler() {
@@ -45,30 +44,47 @@ public class ReceiveActivity extends Activity {
         setContentView(R.layout.activity_receive);
 
         mReceiveWifiManager = new ReceiveWifiManager(this);
-        mUDPHelper = new UDPHelper(handler);
+//        mUDPHelper = new UDPHelper(handler);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        wscr = new WifiStateChangedReceiver();
+        registerReceiver(wscr, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+        mReceiveWifiManager.setWifiEnabled(true);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        wscr = new WifiStateChangedReceiver();
-        registerReceiver(wscr, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
-        mReceiveWifiManager.setWifiEnabled(true);
-//        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (isConnected) {      //连接状态
-            isConnected = false;
-            mReceiveWifiManager.disableNetwork();
+//        if (isConnected) {      //连接状态
+//            isConnected = false;
+//            mReceiveWifiManager.disableNetwork();
 //            mUDPHelper.setLife(false);
 //            mUDPHelper.send("byebye".getBytes());
-            Log.d("isConnected", String.valueOf(isConnected));
-        }
+//            Log.d("isConnected", String.valueOf(isConnected));
+//        }
         if (nscr != null) {     //网络状态监听不为空
-            unregisterReceiver(nscr);
+            FFTP.sendLogout();
+//            mUDPHelper.send("byebye".getBytes());
+//            mUDPHelper.setLife(false);
+        } else {
+//            mUDPHelper.enableReceiver();
+        }
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (nscr != null) {     //网络状态监听不为空
+            mReceiveWifiManager.disableNetwork();
         }
         if (wscr != null) {
             unregisterReceiver(wscr);
@@ -162,25 +178,21 @@ public class ReceiveActivity extends Activity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+//            Log.d("hi", mReceiveWifiManager.getSSID());
             NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-            if (NetworkInfo.State.CONNECTED == info.getState()) {
-                WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-                Log.d(wifiInfo.getSSID(), String.valueOf(info.getState()));
-                if (!isConnected) {
-                    isConnected = true;
-                    Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
-                    Log.d(wifiInfo.getSSID(), String.valueOf(isConnected));
-//                    mUDPHelper.setLife(true);
-//                    mUDPHelper.send(android.os.Build.MODEL.getBytes());
-                }
-            } else if (NetworkInfo.State.DISCONNECTED == info.getState()) {
-                if (isConnected) {
-                    isConnected = false;
-                    unregisterReceiver(this);
-                    nscr = null;
-                    Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
-//                    Log.d(wifiInfo.getSSID(), String.valueOf(isConnected));
-                }
+            Log.d(mReceiveWifiManager.getSSID(), String.valueOf(info.getState()));
+            if (!isConnected && NetworkInfo.State.CONNECTED == info.getState() && ssid.equals(mReceiveWifiManager.getSSID())) {
+                isConnected = true;
+                Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
+//                mUDPHelper.send(android.os.Build.MODEL.getBytes());
+//                mUDPHelper.setLife(true);
+                FFTP.sendLogin();
+            } else if (isConnected && NetworkInfo.State.DISCONNECTED == info.getState()) {
+                isConnected = false;
+                unregisterReceiver(this);
+                nscr = null;
+                Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
+                mReceiveWifiManager.recoveryNetwork();
             }
         }
     }

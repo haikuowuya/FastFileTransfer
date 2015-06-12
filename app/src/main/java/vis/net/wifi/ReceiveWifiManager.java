@@ -74,6 +74,7 @@ public class ReceiveWifiManager {
      * 登入网络
      */
     public void addNetworkWithoutPasswork(String ssid) {
+        mWifiManager.disconnect();
         targetConfig = new WifiConfiguration();
         targetConfig.SSID = "\"" + ssid + "\"";
         targetConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
@@ -89,14 +90,16 @@ public class ReceiveWifiManager {
      * 断开指定ID的网络
      */
     public void disableNetwork() {
-        mWifiManager.disableNetwork(targetNetID);
         mWifiManager.disconnect();
+        mWifiManager.disableNetwork(targetNetID);
+        mWifiManager.reconnect();
+    }
 
+    public void recoveryNetwork() {
         mWifiManager.enableNetwork(localNetworkID, true);
     }
 
-//    public String getSSID() {
-//        return mWifiManager.getConnectionInfo().getSSID();
-////        mWifiManager.
-//    }
+    public String getSSID() {
+        return mWifiManager.getConnectionInfo().getSSID();
+    }
 }

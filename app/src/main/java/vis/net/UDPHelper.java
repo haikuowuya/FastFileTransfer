@@ -111,9 +111,6 @@ public class UDPHelper {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (!life) {
-                closeSocket();
-            }
         }
     }
 
