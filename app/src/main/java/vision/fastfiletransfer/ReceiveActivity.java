@@ -24,18 +24,8 @@ public class ReceiveActivity extends Activity {
     private boolean isConnected = false;
     private NetworkStateChangeReceiver nscr;
     private ScanResultsAvailableReceiver srar;
-//    private UDPHelper mUDPHelper;
-
+    private FFTP fftp;
     private String ssid;
-    public Handler handler = new Handler() {
-        public void handleMessage(Message msg) {
-//            switch (msg.what) {
-//
-//            }
-            Toast.makeText(ReceiveActivity.this, String.valueOf(msg.what), Toast.LENGTH_SHORT).show();
-        }
-
-    };
     private WifiStateChangedReceiver wscr;
 
     @Override
@@ -44,7 +34,7 @@ public class ReceiveActivity extends Activity {
         setContentView(R.layout.activity_receive);
 
         mReceiveWifiManager = new ReceiveWifiManager(this);
-//        mUDPHelper = new UDPHelper(handler);
+        fftp = new FFTP();
     }
 
     @Override
@@ -63,21 +53,9 @@ public class ReceiveActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-//        if (isConnected) {      //连接状态
-//            isConnected = false;
-//            mReceiveWifiManager.disableNetwork();
-//            mUDPHelper.setLife(false);
-//            mUDPHelper.send("byebye".getBytes());
-//            Log.d("isConnected", String.valueOf(isConnected));
-//        }
         if (nscr != null) {     //网络状态监听不为空
-            FFTP.sendLogout();
-//            mUDPHelper.send("byebye".getBytes());
-//            mUDPHelper.setLife(false);
-        } else {
-//            mUDPHelper.enableReceiver();
+            fftp.sendLogout();
         }
-
     }
 
     @Override
@@ -137,11 +115,12 @@ public class ReceiveActivity extends Activity {
                 mReceiveWifiManager.addNetworkWithoutPasswork(ssid);
             } else {
                 Log.d("noFindCount", String.valueOf(noFindCount));
-                if (++noFindCount >= 3) {
+                if (++noFindCount >= 30) {
                     Toast.makeText(ReceiveActivity.this, "没有发现AP", Toast.LENGTH_SHORT).show();
                     srar = null;
                     unregisterReceiver(this);
                 }
+                mReceiveWifiManager.startScan();
             }
 
         }
@@ -178,15 +157,12 @@ public class ReceiveActivity extends Activity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-//            Log.d("hi", mReceiveWifiManager.getSSID());
             NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
             Log.d(mReceiveWifiManager.getSSID(), String.valueOf(info.getState()));
             if (!isConnected && NetworkInfo.State.CONNECTED == info.getState() && ssid.equals(mReceiveWifiManager.getSSID())) {
                 isConnected = true;
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
-//                mUDPHelper.send(android.os.Build.MODEL.getBytes());
-//                mUDPHelper.setLife(true);
-                FFTP.sendLogin();
+                fftp.sendLogin();
             } else if (isConnected && NetworkInfo.State.DISCONNECTED == info.getState()) {
                 isConnected = false;
                 unregisterReceiver(this);

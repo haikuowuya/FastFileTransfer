@@ -9,19 +9,14 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import vis.net.UDPHelper;
+import vis.net.protocol.FFTP;
+import vis.net.protocol.SwapPackage;
 import vis.net.wifi.ShareWifiManager;
 
 
 public class ShareActivity extends Activity {
     private ShareWifiManager mShareWifiManager;
-    private UDPHelper mUDPHelper;
-    public Handler handler = new Handler() {
-        public void handleMessage(Message msg) {
-            Toast.makeText(ShareActivity.this, new String((byte[]) msg.obj).trim(), Toast.LENGTH_LONG).show();
-        }
-
-    };
-
+    private FFTP fftp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,25 +24,39 @@ public class ShareActivity extends Activity {
         setContentView(R.layout.activity_share);
 
         mShareWifiManager = new ShareWifiManager(this);
-        mUDPHelper = new UDPHelper(handler);
+        fftp = new FFTP();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-//        if (!mShareWifiManager.isApEnabled())
         if (mShareWifiManager.setWifiApEnabled(true))
             Toast.makeText(ShareActivity.this, "热点开启", Toast.LENGTH_SHORT).show();
-        mUDPHelper.enableReceiver();
+        fftp.setOnDataReceivedListener(new FFTP.OnDataReceivedListener() {
+            @Override
+            public void onDataReceived(SwapPackage sp) {
+
+            }
+
+            @Override
+            public void onLogin(String name) {
+                Toast.makeText(ShareActivity.this, name + "登入", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onLogout(String name) {
+                Toast.makeText(ShareActivity.this, name + "登出", Toast.LENGTH_SHORT).show();
+            }
+
+        });
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-//        if (mShareWifiManager.isApEnabled())
         if (mShareWifiManager.setWifiApEnabled(false))
             Toast.makeText(ShareActivity.this, "热点关闭", Toast.LENGTH_SHORT).show();
-        mUDPHelper.setLife(false);
+        fftp.setOnDataReceivedListener(null);
     }
 
     @Override

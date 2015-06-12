@@ -13,19 +13,28 @@ import java.net.UnknownHostException;
 
 /**
  * Created by Vision on 15/6/9.
+ * Email:Vision.lsm.2012@gmail.com
  */
 public class UDPHelper {
 
     private static final int PORT = 2048;
-    private static final int PACKETLENGTH = 12;
-    private Handler handler;
+    private static final int RECEIVEPACKETLENGTH = 64;
     private boolean life = true;
     private DatagramSocket mDatagramSocket = null;
     private DatagramPacket sendPacket;
+    private OnDataReceivedListener mOnDataReceivedListener;
 
-    public UDPHelper(Handler handler) {
-        this.handler = handler;
-        byte[] sendData = new byte[PACKETLENGTH];
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            byte[] data = (byte[]) msg.obj;
+            mOnDataReceivedListener.onDataReceived(data);
+        }
+    };
+
+    public UDPHelper() {
+        byte[] sendData = new byte[RECEIVEPACKETLENGTH];
         sendPacket = new DatagramPacket(sendData, sendData.length);
     }
 
@@ -80,13 +89,31 @@ public class UDPHelper {
     }
 
     /**
-     * 开启接收器
+     * 开启接收器,setListener之后自动开启
      */
-    public void enableReceiver() {
+    private void startReceiver() {
 //        ExecutorService exec = Executors.newCachedThreadPool();
 //        Receiver server = new Receiver();
 //        exec.execute(server);
         new Thread(new Receiver()).start();
+    }
+
+    private void stopReceiver() {
+        life = false;
+    }
+
+    public void setDateReceivedListener(OnDataReceivedListener listener) {
+        this.mOnDataReceivedListener = listener;
+        if (null == listener) {
+            stopReceiver();
+        } else {
+            startReceiver();
+        }
+
+    }
+
+    public interface OnDataReceivedListener {
+        void onDataReceived(byte[] data);
     }
 
     class Sender implements Runnable {
@@ -122,7 +149,7 @@ public class UDPHelper {
 
         @Override
         public void run() {
-            byte[] receiveBuf = new byte[PACKETLENGTH];
+            byte[] receiveBuf = new byte[RECEIVEPACKETLENGTH];
             DatagramPacket receivePacket = new DatagramPacket(receiveBuf, receiveBuf.length);
             while (life) {
                 try {
@@ -130,7 +157,7 @@ public class UDPHelper {
                     byte[] recData = receivePacket.getData();
                     msg = Message.obtain();
                     msg.obj = recData;
-                    handler.sendMessage(msg);
+                    mHandler.sendMessage(msg);
                     Log.i("msg sever received", new String(recData).trim() + "," + String.valueOf(recData.length));
                 } catch (IOException e) {
                     Log.d("", "I am receiving!");
