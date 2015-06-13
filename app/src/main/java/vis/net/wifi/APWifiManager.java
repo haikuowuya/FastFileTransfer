@@ -183,12 +183,4 @@ public class APWifiManager {
         return state;
     }
 
-    /**
-     * 管理结束
-     */
-    public void finish() {
-        //恢复原来的wifi状态
-        mWifiManager.setWifiEnabled(this.isLocalWifiEnabled);
-    }
-
 }
