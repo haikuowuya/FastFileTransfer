@@ -1,21 +1,41 @@
 package vis.net.protocol;
 
-import android.util.Log;
-
 /**
- * Created by verg on 15/5/24.
+ * 通讯服务信息包
+ * Created by Vision on 15/5/24.
  * Email:Vision.lsm.2012@gmail.com
  */
 public class SwapPackage {
-
+    //命令代码
+    /**
+     * 登入
+     */
     public final static byte LOGIN = 0x01;
+    /**
+     * 登出
+     */
     public final static byte LOGOUT = 0x02;
+
+    /**
+     * 本地机型名
+     */
     public final static byte[] LOCALNAME = android.os.Build.MODEL.getBytes();
 
-
+    /**
+     * 头部编码
+     */
     protected final byte[] header = new byte[]{'$'};
+    /**
+     * 数据
+     */
     protected byte[] data;
+    /**
+     * 命令
+     */
     protected byte cmd;
+    /**
+     * 临时存放字节串
+     */
     protected byte[] temp;
 
     /**
@@ -39,6 +59,9 @@ public class SwapPackage {
         setString(string);
     }
 
+    /**
+     * 建造字节串
+     */
     protected void buildString() {
         byte checkSum = 0;
         int i;
@@ -50,18 +73,27 @@ public class SwapPackage {
         checkSum ^= temp[i++];
         temp[i] = cmd;
         checkSum ^= temp[i++];
-        for (int j = 0; j < data.length; j++) {
-            temp[i] = data[j];
+        for (byte aData : data) {
+            temp[i] = aData;
             checkSum ^= temp[i++];
         }
         // temp[i++] = getChecksum();
         temp[i] = checkSum;
     }
 
+    /**
+     * 获取字节串
+     * @return 本对象的字节串
+     */
     public byte[] getString() {
         return temp;
     }
 
+    /**
+     * 设置字节串
+     * @param string 字节串
+     * @return 如果校验成功返回true
+     */
     public boolean setString(byte[] string) {
         byte checkSum = 0;
         int dataLength = string[1];
@@ -73,10 +105,6 @@ public class SwapPackage {
             data[i] = string[3 + i];
             checkSum ^= data[i];
         }
-//        Log.d("setString", "data=" + new String(data));
-//        Log.d("setString", "dataLength=" + dataLength);
-//        Log.d("setString", "cmd=" + String.valueOf(cmd));
-//        Log.d("setString", "checkSum=" + String.valueOf(string[3 + dataLength]) + "," + String.valueOf(checkSum));
         if (checkSum == string[3 + dataLength]) {
             this.data = data;
             this.cmd = cmd;
@@ -93,6 +121,10 @@ public class SwapPackage {
         buildString();
     }
 
+    /**
+     * 获取数据
+     * @return 数据字节串
+     */
     public byte[] getData() {
         return this.data;
     }
@@ -102,8 +134,16 @@ public class SwapPackage {
         buildString();
     }
 
-    public byte getCmd() {
+    /**
+     * 获取命令
+     * @return 命令 byte 类型
+     */
+    public byte getCmdByByte() {
         return cmd;
+    }
+
+    public int getCmdByInt() {
+        return cmd & 0xff;
     }
 
     /**

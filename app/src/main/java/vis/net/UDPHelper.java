@@ -12,14 +12,32 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 /**
- * Created by Vision on 15/6/9.
+ * UDP助手，<br>
+ * 使用前必须先调用enable使能，使用完毕必须再调用disable失能；
+ * 发送直接调用 {@code send()} ；
+ * 接收只需要设置好监听 {@code setDateReceivedListener()} 就能开启，设置为Null即关闭<br>
+ * <p/>
+ * <br>
+ * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
 public class UDPHelper {
 
-    private static final int PORT = 2048;
+    //    private static final int PORT = 2048;
     private static final int RECEIVEPACKETLENGTH = 64;
-    private boolean life = true;
+    /**
+     * 是否使能UDP
+     */
+    private boolean isEnable = false;
+    /**
+     * 是否使能接收
+     */
+    private boolean isReceive = false;
+
+    /**
+     * 接收监听端口
+     */
+    private int recvPort;
     private DatagramSocket mDatagramSocket = null;
     private DatagramPacket sendPacket;
     private OnDataReceivedListener mOnDataReceivedListener;
@@ -34,8 +52,37 @@ public class UDPHelper {
     };
 
     public UDPHelper() {
+        //默认接收端口为2048
+        this(2048);
+    }
+
+    public UDPHelper(int recvPort) {
         byte[] sendData = new byte[RECEIVEPACKETLENGTH];
         sendPacket = new DatagramPacket(sendData, sendData.length);
+        this.recvPort = recvPort;
+    }
+
+    /**
+     * 使能UDP
+     */
+    public void enable() {
+        this.isEnable = true;
+    }
+
+    /**
+     * @return the isEnable
+     */
+    public boolean isEnable() {
+        return isEnable;
+    }
+
+    /**
+     * 失能UDP
+     */
+    public void disable() {
+        this.isReceive = false;
+        this.isEnable = false;
+        closeSocket();
     }
 
     /**
@@ -46,7 +93,7 @@ public class UDPHelper {
     private DatagramSocket getSocket() {
         if (this.mDatagramSocket == null) {
             try {
-                mDatagramSocket = new DatagramSocket(PORT);
+                mDatagramSocket = new DatagramSocket(recvPort);
                 mDatagramSocket.setSoTimeout(5000);
             } catch (SocketException e) {
                 e.printStackTrace();
@@ -71,37 +118,41 @@ public class UDPHelper {
     }
 
     /**
-     * @param life the life to set
+     * 发送
+     *
+     * @param msg 信息字节数组
      */
-    public void setLife(final boolean life) {
-        this.life = life;
+    public void send(byte[] msg, String address, int port) {
+        if (isEnable) {
+            new Thread(new Sender(msg, address, port)).start();
+        }
     }
 
     /**
-     * @return the life
-     */
-    public boolean isLife() {
-        return life;
-    }
-
-    public void send(byte[] msg) {
-        new Thread(new Sender(msg)).start();
-    }
-
-    /**
-     * 开启接收器,setListener之后自动开启
+     * 开启接收器
      */
     private void startReceiver() {
 //        ExecutorService exec = Executors.newCachedThreadPool();
 //        Receiver server = new Receiver();
 //        exec.execute(server);
-        new Thread(new Receiver()).start();
+        if (isEnable && !isReceive) {
+            isReceive = true;
+            new Thread(new Receiver()).start();
+        }
     }
 
+    /**
+     * 停止接收
+     */
     private void stopReceiver() {
-        life = false;
+        isReceive = false;
     }
 
+    /**
+     * 设置数据接收监听
+     *
+     * @param listener 监听器
+     */
     public void setDateReceivedListener(OnDataReceivedListener listener) {
         this.mOnDataReceivedListener = listener;
         if (null == listener) {
@@ -112,24 +163,34 @@ public class UDPHelper {
 
     }
 
+    /**
+     * 监听接口
+     */
     public interface OnDataReceivedListener {
         void onDataReceived(byte[] data);
     }
 
+    /**
+     * 发送线程
+     */
     class Sender implements Runnable {
 
         private final byte[] msg;
         private final String TAG = Sender.class.getName();
+        private final String address;
+        private final int port;
 
-        public Sender(byte[] msg) {
+        public Sender(byte[] msg, String address, int port) {
+            this.address = address;
+            this.port = port;
             this.msg = msg;
         }
 
         @Override
         public void run() {
-            try {
-                sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getByName("255.255.255.255"),
-                        PORT);
+            try {//InetAddress.getByName("255.255.255.255")
+                sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getByName(address),
+                        port);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
@@ -141,17 +202,17 @@ public class UDPHelper {
         }
     }
 
+    /**
+     * 接收线程
+     */
     class Receiver implements Runnable {
         private Message msg;
-
-        public Receiver() {
-        }
 
         @Override
         public void run() {
             byte[] receiveBuf = new byte[RECEIVEPACKETLENGTH];
             DatagramPacket receivePacket = new DatagramPacket(receiveBuf, receiveBuf.length);
-            while (life) {
+            while (isEnable && isReceive) {
                 try {
                     getSocket().receive(receivePacket);
                     byte[] recData = receivePacket.getData();
@@ -163,7 +224,7 @@ public class UDPHelper {
                     Log.d("", "I am receiving!");
                 }
             }
-            closeSocket();
+            isReceive = false;
         }
     }
 

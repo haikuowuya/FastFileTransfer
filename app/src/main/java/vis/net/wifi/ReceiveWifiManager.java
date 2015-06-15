@@ -1,6 +1,7 @@
 package vis.net.wifi;
 
 import android.content.Context;
+import android.net.DhcpInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
@@ -10,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by Vision on 15/6/9.
+ * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
 public class ReceiveWifiManager {
@@ -34,7 +35,6 @@ public class ReceiveWifiManager {
     public ReceiveWifiManager(Context context) {
         //取得WifiManager对象
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-
     }
 
     /**
@@ -53,8 +53,8 @@ public class ReceiveWifiManager {
     /**
      * 匹配SSID
      *
-     * @param pattern
-     * @return
+     * @param pattern 正则表达式
+     * @return 如果匹配成功返回SSID，如果不成功返回Null
      */
     public String findSSID(String pattern) {
         String foundSSID = null;
@@ -91,11 +91,15 @@ public class ReceiveWifiManager {
      * 断开指定ID的网络
      */
     public void disableNetwork() {
-        mWifiManager.disconnect();
-        mWifiManager.disableNetwork(targetNetID);
-        mWifiManager.reconnect();
+        mWifiManager.removeNetwork(targetNetID);
+//        mWifiManager.disconnect();
+//        mWifiManager.disableNetwork(targetNetID);
+//        mWifiManager.reconnect();
     }
 
+    /**
+     * 恢复原来的网络
+     */
     public void recoveryNetwork() {
         mWifiManager.enableNetwork(localNetworkID, true);
     }
@@ -103,4 +107,21 @@ public class ReceiveWifiManager {
     public String getSSID() {
         return mWifiManager.getConnectionInfo().getSSID();
     }
+
+    public DhcpInfo getDhcpInfo() {
+        return mWifiManager.getDhcpInfo();
+    }
+
+    public int getServerAddressByInt() {
+        return getDhcpInfo().serverAddress;
+    }
+
+    public String getServerAddressByStr() {
+        return intToIp(getServerAddressByInt());
+    }
+    private String intToIp(int i) {
+        return (i & 0xFF) + "." + ((i >> 8) & 0xFF) + "." + ((i >> 16) & 0xFF) + "."
+                + ((i >> 24) & 0xFF);
+    }
+
 }

@@ -185,3 +185,17 @@ public class APWifiManager {
     }
 
 }
+/*
+    设计方案
+    AP  <---------->    Child
+                        连接热点，获取AP.IP
+                        开启TCP监听
+                        往IP发送名称
+    显示名称，从包里获得IP
+    TCP连接IP
+    传送文件
+
+
+ */
+
+
