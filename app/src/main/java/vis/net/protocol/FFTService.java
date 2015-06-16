@@ -2,6 +2,9 @@ package vis.net.protocol;
 
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import vis.net.UDPHelper;
 
 /**
@@ -25,28 +28,28 @@ public class FFTService {
      */
     private int recvPort = 2048;
 
-    public FFTService() {
-    }
+    /**
+     * 发送列表，设备连接列表，key为IP，value为设备名
+     */
+    private Map<String, String> mConnectedDevices;
 
-    private UDPHelper getUDPHelper() {
-        if (mUDPHelper == null) {
-            mUDPHelper = new UDPHelper(recvPort);
-        }
-        return mUDPHelper;
+    public FFTService() {
+        mConnectedDevices = new HashMap<String, String>();
+        mUDPHelper = new UDPHelper(recvPort);
     }
 
     /**
      * 使能传输
      */
     public void enableTransmission() {
-        getUDPHelper().enable();
+        mUDPHelper.enable();
     }
 
     /**
      * 失能传输
      */
     public void disableTransmission() {
-        getUDPHelper().disable();
+        mUDPHelper.disable();
     }
 
 
@@ -55,7 +58,7 @@ public class FFTService {
      */
     public void sendLogin() {
         SwapPackage sp = new SwapPackage(SwapPackage.LOGIN, SwapPackage.LOCALNAME);
-        getUDPHelper().send(sp.getString(), address, recvPort);
+        mUDPHelper.send(sp.getString(), address, recvPort);
     }
 
     /**
@@ -63,7 +66,7 @@ public class FFTService {
      */
     public void sendLogout() {
         SwapPackage sp = new SwapPackage(SwapPackage.LOGOUT, SwapPackage.LOCALNAME);
-        getUDPHelper().send(sp.getString(), address, recvPort);
+        mUDPHelper.send(sp.getString(), address, recvPort);
     }
 
     /**
@@ -74,20 +77,6 @@ public class FFTService {
     }
 
     /**
-     * 合并数组
-     *
-     * @param byte_1 数组一
-     * @param byte_2 数组二
-     * @return 合并之后的数组
-     */
-    public byte[] byteMerger(byte[] byte_1, byte[] byte_2) {
-        byte[] byte_3 = new byte[byte_1.length + byte_2.length];
-        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
-        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
-        return byte_3;
-    }
-
-    /**
      * 设置接收到数据时的监听器<br>
      *
      * @param listener 监听器
@@ -95,22 +84,24 @@ public class FFTService {
     public void setOnDataReceivedListener(OnDataReceivedListener listener) {
         this.mOnDataReceivedListener = listener;
         if (listener == null) {
-            getUDPHelper().setDateReceivedListener(null);
+            mUDPHelper.setDateReceivedListener(null);
         } else {
-            getUDPHelper().setDateReceivedListener(new UDPHelper.OnDataReceivedListener() {
+            mUDPHelper.setDateReceivedListener(new UDPHelper.OnDataReceivedListener() {
 
                 @Override
-                public void onDataReceived(byte[] data) {
+                public void onDataReceived(String address, byte[] data) {
                     SwapPackage sp = new SwapPackage(data);
 //                    Log.d("SwapPackage", sp.getString().toString());
                     if (sp.getCmdByByte() == SwapPackage.LOGIN) {
-                        Log.d("Login", new String(sp.getData()));
-                        mOnDataReceivedListener.onLogin(new String(sp.getData()));
+                        addDevice(address, new String(sp.getData()));
+                        Log.d("Login", address + "->" + new String(sp.getData()));
+//                        mOnDataReceivedListener.onLogin(address, new String(sp.getData()));
+                    } else if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
+                        removeDevice(address);
+                        Log.d("Logout", address + "->" + new String(sp.getData()));
+//                        mOnDataReceivedListener.onLogout(address, new String(sp.getData()));
                     }
-                    if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
-                        Log.d("Logout", new String(sp.getData()));
-                        mOnDataReceivedListener.onLogout(new String(sp.getData()));
-                    }
+                    mOnDataReceivedListener.onDataReceived(mConnectedDevices);
                 }
             });
 
@@ -135,10 +126,53 @@ public class FFTService {
      * 接收到数据时的监听接口
      */
     public interface OnDataReceivedListener {
-        void onDataReceived(SwapPackage sp);
 
-        void onLogin(String name);
+        /**
+         * 有数据时回调
+         * @param devicesList 设备连接集合
+         */
+        void onDataReceived(Map<String, String> devicesList);
 
-        void onLogout(String name);
+//        void onLogin(String address, String name);
+
+//        void onLogout(String address, String name);
     }
+
+    /**
+     * 添加设备进列表中
+     *
+     * @param address IP地址，作为key
+     * @param name    设备名称，作为value
+     * @return 如果添加成功返回value，即为name;如果不成功返回null
+     */
+    private String addDevice(String address, String name) {
+        return mConnectedDevices.put(address, name);
+    }
+
+    /**
+     * 在列表中除移设备
+     *
+     * @param address IP地址，作为key
+     * @return 如果添加成功返回对应的value，即为对应的name;如果不成功返回null
+     */
+    private String removeDevice(String address) {
+        return mConnectedDevices.remove(address);
+    }
+
+
+    /**
+     * 合并数组
+     *
+     * @param byte_1 数组一
+     * @param byte_2 数组二
+     * @return 合并之后的数组
+     */
+    public byte[] byteMerger(byte[] byte_1, byte[] byte_2) {
+        byte[] byte_3 = new byte[byte_1.length + byte_2.length];
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
+        return byte_3;
+    }
+
+
 }

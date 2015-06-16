@@ -10,6 +10,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * UDP助手，<br>
@@ -38,10 +41,6 @@ public class UDPHelper {
      * 接收监听端口
      */
     private int recvPort;
-    /**
-     * 接收来源的IP地址
-     */
-    private String sourceIP;
     private DatagramSocket mDatagramSocket = null;
     private DatagramPacket sendPacket;
     private OnDataReceivedListener mOnDataReceivedListener;
@@ -50,11 +49,8 @@ public class UDPHelper {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-
-            byte[] data = (byte[]) msg.obj;
-            mOnDataReceivedListener.onDataReceived(data);
-
-
+            Object[] objects = (Object[]) msg.obj;
+            mOnDataReceivedListener.onDataReceived(((String)(objects[0])), ((byte[]) objects[1]));
         }
     };
 
@@ -171,19 +167,10 @@ public class UDPHelper {
     }
 
     /**
-     * 获取接收来源IP
-     *
-     * @return 接收来源IP
-     */
-    public String getSourceAddress() {
-        return this.sourceIP;
-    }
-
-    /**
      * 监听接口
      */
     public interface OnDataReceivedListener {
-        void onDataReceived(byte[] data);
+        void onDataReceived(String sourceAddress, byte[] data);
     }
 
     /**
@@ -232,12 +219,14 @@ public class UDPHelper {
             while (isEnable && isReceive) {
                 try {
                     getSocket().receive(receivePacket);
+                    Object[] objects = new Object[2];
                     byte[] address = receivePacket.getAddress().getAddress();
-                    sourceIP = (address[0] & 0xff) + "." + (address[1] & 0xff) + "." + (address[2] & 0xff) + "." + (address[3] & 0xff);
+                    objects[0] = (address[0] & 0xff) + "." + (address[1] & 0xff) + "." + (address[2] & 0xff) + "." + (address[3] & 0xff);
+                    objects[1] = receivePacket.getData();
                     msg = Message.obtain();
-                    msg.obj = receivePacket.getData();
+                    msg.obj = objects;
                     mHandler.sendMessage(msg);
-                    Log.i("received", sourceIP + "->" + new String(receivePacket.getData()).trim());
+                    Log.i("received", objects[0] + "->" + new String(receivePacket.getData()).trim());
                 } catch (IOException e) {
                     Log.d("", "I am receiving!");
                 }
