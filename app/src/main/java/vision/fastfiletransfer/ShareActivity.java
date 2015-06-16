@@ -10,8 +10,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import vis.net.protocol.FFTService;
 import vis.net.protocol.SwapPackage;
@@ -24,11 +30,16 @@ public class ShareActivity extends Activity {
 
     private ShareWifiManager mShareWifiManager;
     private FFTService mFFTService;
+    /**
+     * 连接列表
+     */
     private ListView lvConnectedDevices;
     private TextView tvFileName;
     private Button btnSelectFile;
     private Button btnSend;
     private TextView tvTips;
+    private List<Map<String, String>> mData;
+    private SimpleAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,28 +144,48 @@ public class ShareActivity extends Activity {
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ShareActivity.this,"send to which connected devices",Toast.LENGTH_SHORT).show();
+                Toast.makeText(ShareActivity.this, "send to which connected devices", Toast.LENGTH_SHORT).show();
             }
         });
         mFFTService.enableTransmission();
         mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
             @Override
-            public void onDataReceived(SwapPackage sp) {
-
+            public void onDataReceived(Map<String, String> devicesList) {
+                devicesListIsChanged(devicesList);
             }
 
-            @Override
-            public void onLogin(String name) {
-                Toast.makeText(ShareActivity.this, name + "登入", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onLogout(String name) {
-                Toast.makeText(ShareActivity.this, name + "登出", Toast.LENGTH_SHORT).show();
-            }
+//            @Override
+//            public void onLogin(String address, String name) {
+////                addDevice(address, name);
+//                Toast.makeText(ShareActivity.this, name + "登入", Toast.LENGTH_SHORT).show();
+//                devicesListIsChanged(mFFTService.getConnectedDevices());
+//            }
+//
+//            @Override
+//            public void onLogout(String address, String name) {
+////                removeDevice(address,name);
+//                Toast.makeText(ShareActivity.this, name + "登出", Toast.LENGTH_SHORT).show();
+//                devicesListIsChanged(mFFTService.getConnectedDevices());
+//            }
 
         });
 
+        mData = new ArrayList<Map<String, String>>();
+        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
+                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
+        lvConnectedDevices.setAdapter(adapter);
+    }
+
+    private void devicesListIsChanged(Map<String, String> data) {
+        //TODO 这里的效率有待优化
+        mData.clear();
+        for (Map.Entry<String, String> entry : data.entrySet()) {
+            Map<String, String> map = new HashMap<String, String>();
+            map.put("title", entry.getValue());
+            map.put("text", entry.getKey());
+            mData.add(map);
+        }
+        adapter.notifyDataSetChanged();
     }
 
     /**
@@ -170,7 +201,6 @@ public class ShareActivity extends Activity {
             Toast.makeText(this, "Please install a File Manager.", Toast.LENGTH_SHORT).show();
         }
     }
-
 
 
 }

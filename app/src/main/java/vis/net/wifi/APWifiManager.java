@@ -9,7 +9,7 @@ import android.util.Log;
 import java.lang.reflect.Method;
 
 /**
- * Created by Vision on 15/6/9.
+ * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
 public class APWifiManager {
@@ -187,15 +187,18 @@ public class APWifiManager {
 }
 /*
     设计方案
-    AP  <---------->    Child
+    AP      <---------->    Child
+    开启热点
+    建立发送列表，最好可以直接传给ListView做数据源
                         连接热点，获取AP.IP
-                        开启TCP监听
+                        TODO 开启TCP监听
                         往IP发送登入命令+设备名称
     从包里获得IP，登记在发送列表，显示名称
-    TCP连接IP，如果连接无效，抛出异常，并在发送列表中删除无效项
-    传送文件
+    TODO TCP连接IP，如果连接无效，抛出异常，并在发送列表中删除无效项
+    TODO 传送文件
                         往IP发送登出命令+设备名称
     从包里获得IP，读取名称，在发送列表匹配，如果存在则删除，删除显示名称
+    FIXME这里有点问题
 
  */
 

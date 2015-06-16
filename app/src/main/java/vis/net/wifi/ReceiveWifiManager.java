@@ -95,7 +95,7 @@ public class ReceiveWifiManager {
         mWifiManager.removeNetwork(targetNetID);
 //        mWifiManager.disconnect();
 //        mWifiManager.disableNetwork(targetNetID);
-//        mWifiManager.reconnect();
+        mWifiManager.reconnect();
     }
 
     /**
@@ -120,6 +120,12 @@ public class ReceiveWifiManager {
     public String getServerAddressByStr() {
         return intToIp(getServerAddressByInt());
     }
+
+    /**
+     * 把IP地址从int转换成String
+     * @param i int 型的IP地址
+     * @return String 型的IP地址，如255.255.255.255
+     */
     private String intToIp(int i) {
         return (i & 0xFF) + "." + ((i >> 8) & 0xFF) + "." + ((i >> 16) & 0xFF) + "."
                 + ((i >> 24) & 0xFF);
