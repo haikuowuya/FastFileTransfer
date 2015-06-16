@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * wifi控制类<br>
  * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
  */

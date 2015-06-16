@@ -1,13 +1,10 @@
 package vision.fastfiletransfer;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,7 +23,7 @@ public class ShareActivity extends Activity {
     private static final int FILE_SELECT_CODE = 55;
 
     private ShareWifiManager mShareWifiManager;
-    private FFTService FFTService;
+    private FFTService mFFTService;
     private ListView lvConnectedDevices;
     private TextView tvFileName;
     private Button btnSelectFile;
@@ -39,7 +36,7 @@ public class ShareActivity extends Activity {
         setContentView(R.layout.activity_share);
 
         mShareWifiManager = new ShareWifiManager(this);
-        FFTService = new FFTService();
+        mFFTService = new FFTService();
 
         tvTips = (TextView) findViewById(R.id.tvTips);
         lvConnectedDevices = (ListView) findViewById(R.id.lvConnectedDevices);
@@ -96,7 +93,8 @@ public class ShareActivity extends Activity {
         super.onDestroy();
         if (mShareWifiManager.setWifiApEnabled(false))
             Toast.makeText(ShareActivity.this, "热点关闭", Toast.LENGTH_SHORT).show();
-        FFTService.setOnDataReceivedListener(null);
+        mFFTService.disableTransmission();
+        mFFTService.setOnDataReceivedListener(null);
     }
 
     @Override
@@ -138,8 +136,8 @@ public class ShareActivity extends Activity {
                 Toast.makeText(ShareActivity.this,"send to which connected devices",Toast.LENGTH_SHORT).show();
             }
         });
-
-        FFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
+        mFFTService.enableTransmission();
+        mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
             @Override
             public void onDataReceived(SwapPackage sp) {
 

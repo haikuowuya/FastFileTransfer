@@ -5,9 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.DhcpInfo;
 import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,7 +23,7 @@ public class ReceiveActivity extends Activity {
     private boolean isConnected = false;
     private NetworkStateChangeReceiver nscr;
     private ScanResultsAvailableReceiver srar;
-    private FFTService FFTService;
+    private FFTService mFFTService;
     private String ssid;
     private WifiStateChangedReceiver wscr;
     private TextView tvTips;
@@ -36,7 +34,7 @@ public class ReceiveActivity extends Activity {
         setContentView(R.layout.activity_receive);
 
         mReceiveWifiManager = new ReceiveWifiManager(this);
-        FFTService = new FFTService();
+        mFFTService = new FFTService();
 
         tvTips = (TextView) findViewById(R.id.tvTips);
     }
@@ -59,7 +57,7 @@ public class ReceiveActivity extends Activity {
     protected void onPause() {
         super.onPause();
         if (nscr != null) {     //网络状态监听不为空
-            FFTService.sendLogout();
+            mFFTService.sendLogout();
         }
     }
 
@@ -68,6 +66,7 @@ public class ReceiveActivity extends Activity {
         super.onStop();
         if (nscr != null) {     //网络状态监听不为空
             unregisterReceiver(nscr);
+            mFFTService.disableTransmission();
             mReceiveWifiManager.disableNetwork();
         }
         if (wscr != null) {
@@ -122,13 +121,15 @@ public class ReceiveActivity extends Activity {
                 mReceiveWifiManager.addNetworkWithoutPasswork(ssid);
             } else {
                 Log.d("noFindCount", String.valueOf(noFindCount));
-                tvTips.setText("第" + noFindCount + 1 + "次扫描没有发现，开始第" + noFindCount + 2 + "次扫描……");
-                if (++noFindCount >= 30) {
+                if (++noFindCount < 30) {
+                    tvTips.setText("第" + (noFindCount + 1) + "次扫描没有发现，开始第" + (noFindCount + 2) + "次扫描……");
+                    mReceiveWifiManager.startScan();
+                } else {
+                    tvTips.setText("扫描了30次，没有发现可以连接的热点。");
                     Toast.makeText(ReceiveActivity.this, "没有发现AP", Toast.LENGTH_SHORT).show();
                     srar = null;
                     unregisterReceiver(this);
                 }
-                mReceiveWifiManager.startScan();
             }
 
         }
@@ -172,8 +173,9 @@ public class ReceiveActivity extends Activity {
                 isConnected = true;
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
                 tvTips.setText("已连接:" + ssid);
-                FFTService.setTarget(mReceiveWifiManager.getServerAddressByStr());
-                FFTService.sendLogin();
+                mFFTService.enableTransmission();
+                mFFTService.setTarget(mReceiveWifiManager.getServerAddressByStr());
+                mFFTService.sendLogin();
             } else if (isConnected && NetworkInfo.State.DISCONNECTED == info.getState()) {
 //                isConnected = false;
 //                unregisterReceiver(this);

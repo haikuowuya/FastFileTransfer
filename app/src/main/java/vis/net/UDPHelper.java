@@ -196,6 +196,7 @@ public class UDPHelper {
             }
             try {
                 getSocket().send(sendPacket);
+                Log.d("send",new String(msg));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -219,7 +220,7 @@ public class UDPHelper {
                     msg = Message.obtain();
                     msg.obj = recData;
                     mHandler.sendMessage(msg);
-                    Log.i("msg sever received", new String(recData).trim() + "," + String.valueOf(recData.length));
+                    Log.i("received", new String(recData));
                 } catch (IOException e) {
                     Log.d("", "I am receiving!");
                 }
