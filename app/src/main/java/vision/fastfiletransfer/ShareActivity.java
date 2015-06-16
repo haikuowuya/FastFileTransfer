@@ -24,6 +24,9 @@ public class ShareActivity extends Activity {
 
     private ShareWifiManager mShareWifiManager;
     private FFTService mFFTService;
+    /**
+     * 连接列表
+     */
     private ListView lvConnectedDevices;
     private TextView tvFileName;
     private Button btnSelectFile;

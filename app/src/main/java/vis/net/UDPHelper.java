@@ -38,6 +38,10 @@ public class UDPHelper {
      * 接收监听端口
      */
     private int recvPort;
+    /**
+     * 接收来源的IP地址
+     */
+    private String sourceIP;
     private DatagramSocket mDatagramSocket = null;
     private DatagramPacket sendPacket;
     private OnDataReceivedListener mOnDataReceivedListener;
@@ -46,8 +50,11 @@ public class UDPHelper {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+
             byte[] data = (byte[]) msg.obj;
             mOnDataReceivedListener.onDataReceived(data);
+
+
         }
     };
 
@@ -164,6 +171,15 @@ public class UDPHelper {
     }
 
     /**
+     * 获取接收来源IP
+     *
+     * @return 接收来源IP
+     */
+    public String getSourceAddress() {
+        return this.sourceIP;
+    }
+
+    /**
      * 监听接口
      */
     public interface OnDataReceivedListener {
@@ -196,7 +212,7 @@ public class UDPHelper {
             }
             try {
                 getSocket().send(sendPacket);
-                Log.d("send",new String(msg));
+                Log.d("send", new String(msg));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -216,11 +232,12 @@ public class UDPHelper {
             while (isEnable && isReceive) {
                 try {
                     getSocket().receive(receivePacket);
-                    byte[] recData = receivePacket.getData();
+                    byte[] address = receivePacket.getAddress().getAddress();
+                    sourceIP = (address[0] & 0xff) + "." + (address[1] & 0xff) + "." + (address[2] & 0xff) + "." + (address[3] & 0xff);
                     msg = Message.obtain();
-                    msg.obj = recData;
+                    msg.obj = receivePacket.getData();
                     mHandler.sendMessage(msg);
-                    Log.i("received", new String(recData));
+                    Log.i("received", sourceIP + "->" + new String(receivePacket.getData()).trim());
                 } catch (IOException e) {
                     Log.d("", "I am receiving!");
                 }

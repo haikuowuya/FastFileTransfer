@@ -9,7 +9,7 @@ import android.util.Log;
 import java.lang.reflect.Method;
 
 /**
- * Created by Vision on 15/6/9.
+ * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
 public class APWifiManager {
@@ -187,7 +187,7 @@ public class APWifiManager {
 }
 /*
     设计方案
-    AP  <---------->    Child
+    AP      <---------->    Child
                         连接热点，获取AP.IP
                         开启TCP监听
                         往IP发送登入命令+设备名称
