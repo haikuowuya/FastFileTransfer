@@ -20,52 +20,60 @@ public class ShareWifiManager {
     private WifiManager mWifiManager;
 
     /**
-     * 本地原来是否开启了wifi
+     * 备份本地原来的wifi状态
      */
-    private boolean isLocalWifiEnabled;
+    private boolean backupStatus;
 
     /**
-     * 本地原来的WiFi AP信息
+     * 备份本地原来的WiFi AP信息
      */
-    private WifiConfiguration localWifiConfiguration;
+    private WifiConfiguration backupCfg;
 
 
     public ShareWifiManager(Context context) {
         //取得WifiManager对象
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
+
     /**
      * 设置开启或关闭AP
      *
-     * @param enabled
-     * @return
+     * @param enabled 设置开启或关闭
+     * @return 如果开启成功返回true
      */
     public boolean setWifiApEnabled(boolean enabled) {
         if (enabled) { // disable WiFi in any case
             //记录原来的wifi状态
-            this.isLocalWifiEnabled = mWifiManager.isWifiEnabled();
-            //关闭wifi
-            mWifiManager.setWifiEnabled(false);
+            this.backupStatus = mWifiManager.isWifiEnabled();
             //备份本地原来的Wifi AP设置
-            this.localWifiConfiguration = getWifiApConfiguration();
+            this.backupCfg = getWifiApConfiguration();
+            //关闭wifi // disable WiFi in any case
+            mWifiManager.setWifiEnabled(false);
         } else {
             //恢复原来的wifi状态//失效
 //            mWifiManager.setWifiEnabled(true);
             //恢复本地原来的Wifi AP设置
-            setWifiApConfiguration(this.localWifiConfiguration);
+            setWifiApConfiguration(this.backupCfg);
         }
+
+        boolean success = false;
+
         try {
             WifiConfiguration apConfig = new WifiConfiguration();
             apConfig.SSID = "YDZS_" + Build.MODEL + "00";
             apConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
 //            apConfig.preSharedKey = "abcdefgh";
             Method method = mWifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, Boolean.TYPE);
-            boolean open = (Boolean) method.invoke(mWifiManager, apConfig, enabled);
-            return open;
+            success = (boolean) (Boolean) method.invoke(mWifiManager, apConfig, enabled);
         } catch (Exception e) {
             Log.e(TAG, "Cannot set WiFi AP state", e);
-            return false;
+            success = false;
         }
+        if (!enabled) {
+            //恢复原来的wifi状态
+            mWifiManager.setWifiEnabled(this.backupStatus);
+        }
+        return success;
     }
 
     public WifiConfiguration getWifiApConfiguration() {
@@ -90,12 +98,5 @@ public class ShareWifiManager {
         }
     }
 
-    /**
-     * 管理结束
-     */
-    public void finish() {
-        //恢复原来的wifi状态
-        mWifiManager.setWifiEnabled(this.isLocalWifiEnabled);
-    }
 
 }

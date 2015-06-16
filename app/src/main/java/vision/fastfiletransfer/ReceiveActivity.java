@@ -8,14 +8,13 @@ import android.content.IntentFilter;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import vis.net.protocol.FFTP;
+import vis.net.protocol.FFTService;
 import vis.net.wifi.ReceiveWifiManager;
 
 
@@ -24,9 +23,10 @@ public class ReceiveActivity extends Activity {
     private boolean isConnected = false;
     private NetworkStateChangeReceiver nscr;
     private ScanResultsAvailableReceiver srar;
-    private FFTP fftp;
+    private FFTService mFFTService;
     private String ssid;
     private WifiStateChangedReceiver wscr;
+    private TextView tvTips;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +34,9 @@ public class ReceiveActivity extends Activity {
         setContentView(R.layout.activity_receive);
 
         mReceiveWifiManager = new ReceiveWifiManager(this);
-        fftp = new FFTP();
+        mFFTService = new FFTService();
+
+        tvTips = (TextView) findViewById(R.id.tvTips);
     }
 
     @Override
@@ -43,6 +45,7 @@ public class ReceiveActivity extends Activity {
         wscr = new WifiStateChangedReceiver();
         registerReceiver(wscr, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
         mReceiveWifiManager.setWifiEnabled(true);
+        tvTips.setText("正在打开wifi……");
     }
 
     @Override
@@ -54,7 +57,7 @@ public class ReceiveActivity extends Activity {
     protected void onPause() {
         super.onPause();
         if (nscr != null) {     //网络状态监听不为空
-            fftp.sendLogout();
+            mFFTService.sendLogout();
         }
     }
 
@@ -62,6 +65,8 @@ public class ReceiveActivity extends Activity {
     protected void onStop() {
         super.onStop();
         if (nscr != null) {     //网络状态监听不为空
+            unregisterReceiver(nscr);
+            mFFTService.disableTransmission();
             mReceiveWifiManager.disableNetwork();
         }
         if (wscr != null) {
@@ -107,6 +112,7 @@ public class ReceiveActivity extends Activity {
             if (ssid != null) {
                 Toast.makeText(ReceiveActivity.this, "找到AP了！", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, ssid);
+                tvTips.setText("找到IP了，尝试连接" + ssid);
                 unregisterReceiver(this);
                 srar = null;
                 //注册接收网络变化
@@ -115,12 +121,15 @@ public class ReceiveActivity extends Activity {
                 mReceiveWifiManager.addNetworkWithoutPasswork(ssid);
             } else {
                 Log.d("noFindCount", String.valueOf(noFindCount));
-                if (++noFindCount >= 30) {
+                if (++noFindCount < 30) {
+                    tvTips.setText("第" + (noFindCount + 1) + "次扫描没有发现，开始第" + (noFindCount + 2) + "次扫描……");
+                    mReceiveWifiManager.startScan();
+                } else {
+                    tvTips.setText("扫描了30次，没有发现可以连接的热点。");
                     Toast.makeText(ReceiveActivity.this, "没有发现AP", Toast.LENGTH_SHORT).show();
                     srar = null;
                     unregisterReceiver(this);
                 }
-                mReceiveWifiManager.startScan();
             }
 
         }
@@ -146,6 +155,7 @@ public class ReceiveActivity extends Activity {
                             new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
                     Toast.makeText(ReceiveActivity.this, "正在扫描附近AP", Toast.LENGTH_SHORT).show();
                     mReceiveWifiManager.startScan();
+                    tvTips.setText("正在扫描附近热点……");
                     break;
                 case WifiManager.WIFI_STATE_UNKNOWN:
                     break;
@@ -162,13 +172,17 @@ public class ReceiveActivity extends Activity {
             if (!isConnected && NetworkInfo.State.CONNECTED == info.getState() && ssid.equals(mReceiveWifiManager.getSSID())) {
                 isConnected = true;
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
-                fftp.sendLogin();
+                tvTips.setText("已连接:" + ssid);
+                mFFTService.enableTransmission();
+                mFFTService.setTarget(mReceiveWifiManager.getServerAddressByStr());
+                mFFTService.sendLogin();
             } else if (isConnected && NetworkInfo.State.DISCONNECTED == info.getState()) {
-                isConnected = false;
-                unregisterReceiver(this);
-                nscr = null;
-                Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
-                mReceiveWifiManager.recoveryNetwork();
+//                isConnected = false;
+//                unregisterReceiver(this);
+//                nscr = null;
+//                Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
+//                tvTips.setText("断开了");
+//                mReceiveWifiManager.recoveryNetwork();
             }
         }
     }
