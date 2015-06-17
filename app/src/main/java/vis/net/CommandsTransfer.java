@@ -10,12 +10,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 /**
- * UDP助手，<br>
+ * 命令传输类，<br>
  * 使用前必须先调用enable使能，使用完毕必须再调用disable失能；
  * 发送直接调用 {@code send()} ；
  * 接收只需要设置好监听 {@code setDateReceivedListener()} 就能开启，设置为Null即关闭<br>
@@ -24,7 +21,7 @@ import java.util.Objects;
  * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class UDPHelper {
+public class CommandsTransfer {
 
     //    private static final int PORT = 2048;
     private static final int RECEIVEPACKETLENGTH = 64;
@@ -54,12 +51,12 @@ public class UDPHelper {
         }
     };
 
-    public UDPHelper() {
+    public CommandsTransfer() {
         //默认接收端口为2048
         this(2048);
     }
 
-    public UDPHelper(int recvPort) {
+    public CommandsTransfer(int recvPort) {
         byte[] sendData = new byte[RECEIVEPACKETLENGTH];
         sendPacket = new DatagramPacket(sendData, sendData.length);
         this.recvPort = recvPort;

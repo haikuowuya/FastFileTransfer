@@ -5,7 +5,7 @@ import android.util.Log;
 import java.util.HashMap;
 import java.util.Map;
 
-import vis.net.UDPHelper;
+import vis.net.CommandsTransfer;
 
 /**
  * FastFileTransfer 通讯服务<br>
@@ -15,9 +15,9 @@ import vis.net.UDPHelper;
  */
 public class FFTService {
     /**
-     * 请不要直接调用这个类
+     * UDP类，用来发送命令
      */
-    private UDPHelper mUDPHelper;
+    private CommandsTransfer mCommandsTransfer;
     private OnDataReceivedListener mOnDataReceivedListener;
     /**
      * 目标IP地址
@@ -35,21 +35,21 @@ public class FFTService {
 
     public FFTService() {
         mConnectedDevices = new HashMap<String, String>();
-        mUDPHelper = new UDPHelper(recvPort);
+        mCommandsTransfer = new CommandsTransfer(recvPort);
     }
 
     /**
      * 使能传输
      */
     public void enableTransmission() {
-        mUDPHelper.enable();
+        mCommandsTransfer.enable();
     }
 
     /**
      * 失能传输
      */
     public void disableTransmission() {
-        mUDPHelper.disable();
+        mCommandsTransfer.disable();
     }
 
 
@@ -58,7 +58,7 @@ public class FFTService {
      */
     public void sendLogin() {
         SwapPackage sp = new SwapPackage(SwapPackage.LOGIN, SwapPackage.LOCALNAME);
-        mUDPHelper.send(sp.getString(), address, recvPort);
+        mCommandsTransfer.send(sp.getString(), address, recvPort);
     }
 
     /**
@@ -66,7 +66,7 @@ public class FFTService {
      */
     public void sendLogout() {
         SwapPackage sp = new SwapPackage(SwapPackage.LOGOUT, SwapPackage.LOCALNAME);
-        mUDPHelper.send(sp.getString(), address, recvPort);
+        mCommandsTransfer.send(sp.getString(), address, recvPort);
     }
 
     /**
@@ -84,9 +84,9 @@ public class FFTService {
     public void setOnDataReceivedListener(OnDataReceivedListener listener) {
         this.mOnDataReceivedListener = listener;
         if (listener == null) {
-            mUDPHelper.setDateReceivedListener(null);
+            mCommandsTransfer.setDateReceivedListener(null);
         } else {
-            mUDPHelper.setDateReceivedListener(new UDPHelper.OnDataReceivedListener() {
+            mCommandsTransfer.setDateReceivedListener(new CommandsTransfer.OnDataReceivedListener() {
 
                 @Override
                 public void onDataReceived(String address, byte[] data) {
@@ -126,15 +126,13 @@ public class FFTService {
      * 接收到数据时的监听接口
      */
     public interface OnDataReceivedListener {
-
         /**
          * 有数据时回调
+         *
          * @param devicesList 设备连接集合
          */
         void onDataReceived(Map<String, String> devicesList);
-
 //        void onLogin(String address, String name);
-
 //        void onLogout(String address, String name);
     }
 

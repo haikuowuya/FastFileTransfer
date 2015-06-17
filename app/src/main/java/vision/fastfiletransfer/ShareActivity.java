@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import vis.net.protocol.FFTService;
 import vis.net.protocol.SwapPackage;
@@ -57,7 +58,7 @@ public class ShareActivity extends Activity {
 
         if (mShareWifiManager.setWifiApEnabled(true)) {
             Toast.makeText(ShareActivity.this, "热点开启", Toast.LENGTH_SHORT).show();
-            tvTips.setText(Build.MODEL + "00");
+            tvTips.setText(mShareWifiManager.getSSID());
         } else {
             tvTips.setText("打开热点失败");
         }
@@ -134,6 +135,12 @@ public class ShareActivity extends Activity {
      * set好所有的东西
      */
     private void setAllTheThing() {
+
+        mData = new ArrayList<Map<String, String>>();
+        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
+                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
+        lvConnectedDevices.setAdapter(adapter);
+
         btnSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -154,6 +161,7 @@ public class ShareActivity extends Activity {
                 devicesListIsChanged(devicesList);
             }
 
+
 //            @Override
 //            public void onLogin(String address, String name) {
 ////                addDevice(address, name);
@@ -170,14 +178,10 @@ public class ShareActivity extends Activity {
 
         });
 
-        mData = new ArrayList<Map<String, String>>();
-        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
-                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
-        lvConnectedDevices.setAdapter(adapter);
     }
 
     private void devicesListIsChanged(Map<String, String> data) {
-        //TODO 这里的效率有待优化
+        //这里的效率有待考究
         mData.clear();
         for (Map.Entry<String, String> entry : data.entrySet()) {
             Map<String, String> map = new HashMap<String, String>();

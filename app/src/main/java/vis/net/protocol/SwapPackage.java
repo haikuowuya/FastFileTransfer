@@ -1,5 +1,7 @@
 package vis.net.protocol;
 
+import java.util.UUID;
+
 /**
  * 通讯服务信息包
  * Created by Vision on 15/5/24.
@@ -19,7 +21,7 @@ public class SwapPackage {
     /**
      * 本地机型名
      */
-    public final static byte[] LOCALNAME = android.os.Build.MODEL.getBytes();
+    public final static byte[] LOCALNAME = (android.os.Build.MODEL.replaceAll("\\s|-", "") + UUID.randomUUID().toString().substring(0, 4)).getBytes();
 
     /**
      * 头部编码
@@ -83,6 +85,7 @@ public class SwapPackage {
 
     /**
      * 获取字节串
+     *
      * @return 本对象的字节串
      */
     public byte[] getString() {
@@ -91,6 +94,7 @@ public class SwapPackage {
 
     /**
      * 设置字节串
+     *
      * @param string 字节串
      * @return 如果校验成功返回true
      */
@@ -123,6 +127,7 @@ public class SwapPackage {
 
     /**
      * 获取数据
+     *
      * @return 数据字节串
      */
     public byte[] getData() {
@@ -136,6 +141,7 @@ public class SwapPackage {
 
     /**
      * 获取命令
+     *
      * @return 命令 byte 类型
      */
     public byte getCmdByByte() {

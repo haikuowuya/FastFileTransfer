@@ -169,7 +169,7 @@ public class ReceiveActivity extends Activity {
         public void onReceive(Context context, Intent intent) {
             NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
             Log.d(mReceiveWifiManager.getSSID(), String.valueOf(info.getState()));
-            if (!isConnected && NetworkInfo.State.CONNECTED == info.getState() && ssid.equals(mReceiveWifiManager.getSSID())) {
+            if (NetworkInfo.State.CONNECTED == info.getState() && ssid.equals(mReceiveWifiManager.getSSID())) {
                 isConnected = true;
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
                 tvTips.setText("已连接:" + ssid);

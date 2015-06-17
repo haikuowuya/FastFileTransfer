@@ -7,6 +7,7 @@ import android.os.Build;
 import android.util.Log;
 
 import java.lang.reflect.Method;
+import java.util.UUID;
 
 /**
  * Created by Vision on 15/6/11.
@@ -15,6 +16,7 @@ import java.lang.reflect.Method;
 public class ShareWifiManager {
 
     private static final String TAG = APWifiManager.class.getName();
+    private static final String SSID = "YDZS_" + Build.MODEL.replaceAll("\\s|-", "") + "00" + UUID.randomUUID().toString().substring(0, 4);
 
     //定义WifiManager对象
     private WifiManager mWifiManager;
@@ -60,7 +62,7 @@ public class ShareWifiManager {
 
         try {
             WifiConfiguration apConfig = new WifiConfiguration();
-            apConfig.SSID = "YDZS_" + Build.MODEL + "00";
+            apConfig.SSID = SSID;
             apConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
 //            apConfig.preSharedKey = "abcdefgh";
             Method method = mWifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, Boolean.TYPE);
@@ -96,6 +98,10 @@ public class ShareWifiManager {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public String getSSID() {
+        return SSID;
     }
 
 
