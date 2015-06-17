@@ -1,5 +1,8 @@
 package vis.net;
 
+import android.os.Environment;
+import android.util.Log;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -18,13 +21,12 @@ import java.net.Socket;
 public class FilesTransfer {
     private ServerSocket mServerSocket;
     private Socket mSocket;
+    /**
+     * 是否在接收模式
+     */
+    private boolean isReceiving = false;
 
     public FilesTransfer() {
-    }
-
-
-    public void startAccept(int port) {
-        new Thread(new Accept(port));
     }
 
     /**
@@ -38,27 +40,34 @@ public class FilesTransfer {
         new Thread(new Sender(file, address, port)).start();
     }
 
-    public void receiveFile() {
-        new Thread(new Receiver());
+    /**
+     * 接收文件
+     *
+     * @param dirName 文件存放位置，文件夹名
+     */
+    public void receiveFile(int port, String dirName) {
+        if (Environment.getExternalStorageState().equals(
+                Environment.MEDIA_MOUNTED)) {
+//            Log.d(this.getClass().getName(), Environment.getExternalStorageState());
+            File dir = new File(Environment.getExternalStorageDirectory().getPath());
+            //FIXME 总是没有发现目录
+            if (dir.exists()) {
+                if (dir.canWrite()) {
+                    Log.d(this.getClass().getName(), "the dir is OK!");
+                    new Thread(new Receiver(port, dir));
+                } else {
+                    Log.e(this.getClass().getName(), "the dir can not write");
+                }
+            } else {
+                Log.d(this.getClass().getName(), "没有这个目录");
+            }
+        } else {
+            Log.e(this.getClass().getName(), "请检查SD卡是否正确安装");
+        }
     }
 
-
-    class Accept implements Runnable {
-        private int port;
-
-        public Accept(int port) {
-            this.port = port;
-        }
-
-        @Override
-        public void run() {
-            try {
-                mServerSocket = new ServerSocket(port);
-                mSocket = mServerSocket.accept();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    public boolean isReceiving() {
+        return this.isReceiving;
     }
 
     class Receiver implements Runnable {
@@ -66,46 +75,55 @@ public class FilesTransfer {
         private FileOutputStream fout;
         private int length = 0;
         private byte[] inputByte = null;
+        private int port;
+        private File dir;
 
-        public Receiver() {
-
+        public Receiver(int port, File dir) {
+            this.port = port;
+            this.dir = dir;
         }
 
         @Override
         public void run() {
-            if (mSocket != null) {
-                inputByte = new byte[1024];
-                try {
-                    din = new DataInputStream(mSocket.getInputStream());
-                    fout = new FileOutputStream(new File("E:\\" + din.readUTF()));
-                    while (true) {
-                        if (din != null) {
-                            length = din.read(inputByte, 0, inputByte.length);
-                        }
-                        if (length == -1) {
-                            break;
-                        }
-//                        System.out.println(length);
-                        fout.write(inputByte, 0, length);
-                        fout.flush();
+            isReceiving = true;
+            inputByte = new byte[1024];
+            try {
+                mServerSocket = new ServerSocket(port);
+                mServerSocket.setSoTimeout(2000);
+                Log.d(this.getClass().getName(), "accepting the connect");
+                mSocket = mServerSocket.accept();
+
+                din = new DataInputStream(mSocket.getInputStream());
+                fout = new FileOutputStream(new File(dir.getAbsolutePath() + "/" + din.readUTF()));
+                while (true) {
+                    if (din != null) {
+                        length = din.read(inputByte, 0, inputByte.length);
                     }
+                    if (length == -1) {
+                        break;
+                    }
+//                        System.out.println(length);
+                    fout.write(inputByte, 0, length);
+                    fout.flush();
+                }
 //                    System.out.println("完成接收");
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (fout != null)
+                        fout.close();
+                    if (din != null)
+                        din.close();
+                    if (mSocket != null)
+                        mSocket.close();
+                    if (mServerSocket != null) {
+                        mServerSocket.close();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
-                    try {
-                        if (fout != null)
-                            fout.close();
-                        if (din != null)
-                            din.close();
-                        if (mSocket != null)
-                            mSocket.close();
-                        if (mServerSocket != null) {
-                            mServerSocket.close();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    isReceiving = false;
                 }
             }
         }

@@ -1,11 +1,17 @@
 package vis.net.protocol;
 
+import android.content.Context;
+import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import vis.net.CommandsTransfer;
+import vis.net.FilesTransfer;
 
 /**
  * FastFileTransfer 通讯服务<br>
@@ -15,27 +21,33 @@ import vis.net.CommandsTransfer;
  */
 public class FFTService {
     /**
-     * UDP类，用来发送命令
+     * 文件传输类
+     */
+    private final FilesTransfer mFilesTransfer;
+    /**
+     * 命令传输类
      */
     private CommandsTransfer mCommandsTransfer;
     private OnDataReceivedListener mOnDataReceivedListener;
     /**
-     * 目标IP地址
+     * 本地机型名
      */
-    private String address;
-    /**
-     * 目标端口,默认2048
-     */
-    private int recvPort = 2048;
+    public final static byte[] LOCALNAME = android.os.Build.MODEL.replaceAll("\\s|-", "").getBytes();
 
     /**
      * 发送列表，设备连接列表，key为IP，value为设备名
      */
     private Map<String, String> mConnectedDevices;
 
+    /**
+     * 目标地址
+     */
+    private String targetAddress;
+
     public FFTService() {
         mConnectedDevices = new HashMap<String, String>();
-        mCommandsTransfer = new CommandsTransfer(recvPort);
+        mCommandsTransfer = new CommandsTransfer(2222);
+        mFilesTransfer = new FilesTransfer();
     }
 
     /**
@@ -52,27 +64,73 @@ public class FFTService {
         mCommandsTransfer.disable();
     }
 
+    /**
+     * 发送登入信息
+     *
+     * @param address 地址
+     */
+    public void sendLogin(String address) {
+        //默认端口2222
+        sendLogin(address, 2222);
+    }
 
     /**
      * 发送登入信息
+     *
+     * @param address 地址
+     * @param port    端口
      */
-    public void sendLogin() {
-        SwapPackage sp = new SwapPackage(SwapPackage.LOGIN, SwapPackage.LOCALNAME);
-        mCommandsTransfer.send(sp.getString(), address, recvPort);
+    public void sendLogin(String address, int port) {
+        this.targetAddress = address;
+        if (!mFilesTransfer.isReceiving()) {
+            mFilesTransfer.receiveFile(2223, "/FFT");
+//            Log.d(this.getClass().getName(), Environment.getExternalStorageDirectory().getAbsolutePath());
+//            Log.d(this.getClass().getName(),Environment.getExternalStorageDirectory().getPath());
+        }
+        SwapPackage sp = new SwapPackage(address, port, SwapPackage.LOGIN, LOCALNAME);
+        mCommandsTransfer.send(sp);
     }
 
     /**
      * 发送登出信息
      */
     public void sendLogout() {
-        SwapPackage sp = new SwapPackage(SwapPackage.LOGOUT, SwapPackage.LOCALNAME);
-        mCommandsTransfer.send(sp.getString(), address, recvPort);
+        //默认端口2222
+        sendLogout(this.targetAddress, 2222);
+    }
+
+    /**
+     * 发送登出信息
+     *
+     * @param address 地址
+     * @param port    端口
+     */
+    public void sendLogout(String address, int port) {
+        SwapPackage sp = new SwapPackage(address, port, SwapPackage.LOGOUT, LOCALNAME);
+        mCommandsTransfer.send(sp);
     }
 
     /**
      * 发送文件信息
+     *
+     * @param context 上下文
+     * @param fileUri 文件Uri
      */
-    public static void sendFlies() {
+    public void sendFlies(Context context, Uri fileUri) {
+        if (null == fileUri) {
+            Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT).show();
+        } else if (mConnectedDevices.isEmpty()) {
+            Toast.makeText(context, "没有设备连接", Toast.LENGTH_SHORT).show();
+        } else {
+            //发送文件
+            Toast.makeText(context, fileUri.toString(), Toast.LENGTH_SHORT).show();
+            //TODO  把这个Uri转成File
+            for (Map.Entry<String, String> entry : mConnectedDevices.entrySet()) {
+//                mFilesTransfer.sendFile(null,entry.getKey(),2223);
+                Log.d(this.getClass().getName(), entry.getKey() + ":2333->" + fileUri.toString());
+            }
+
+        }
 
     }
 
@@ -93,6 +151,7 @@ public class FFTService {
                     SwapPackage sp = new SwapPackage(data);
 //                    Log.d("SwapPackage", sp.getString().toString());
                     if (sp.getCmdByByte() == SwapPackage.LOGIN) {
+                        //设备登入
                         addDevice(address, new String(sp.getData()));
                         Log.d("Login", address + "->" + new String(sp.getData()));
 //                        mOnDataReceivedListener.onLogin(address, new String(sp.getData()));
@@ -106,20 +165,6 @@ public class FFTService {
             });
 
         }
-    }
-
-    /**
-     * 设置目标
-     *
-     * @param address 目标IP
-     */
-    public void setTarget(String address) {
-        this.address = address;
-    }
-
-    public void setTarget(String address, int port) {
-        this.address = address;
-        this.recvPort = port;
     }
 
     /**

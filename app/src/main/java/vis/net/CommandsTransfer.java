@@ -11,6 +11,8 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import vis.net.protocol.SwapPackage;
+
 /**
  * 命令传输类，<br>
  * 使用前必须先调用enable使能，使用完毕必须再调用disable失能；
@@ -120,11 +122,11 @@ public class CommandsTransfer {
     /**
      * 发送
      *
-     * @param msg 信息字节数组
+     * @param sp SwapPackage 交换包
      */
-    public void send(byte[] msg, String address, int port) {
+    public void send(SwapPackage sp) {
         if (isEnable) {
-            new Thread(new Sender(msg, address, port)).start();
+            new Thread(new Sender(sp.getString(), sp.getAddress(), sp.getPort())).start();
         }
     }
 

@@ -14,6 +14,8 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Arrays;
+
 import vis.net.protocol.FFTService;
 import vis.net.wifi.ReceiveWifiManager;
 
@@ -27,6 +29,7 @@ public class ReceiveActivity extends Activity {
     private String ssid;
     private WifiStateChangedReceiver wscr;
     private TextView tvTips;
+    private TextView tvTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,8 @@ public class ReceiveActivity extends Activity {
         mFFTService = new FFTService();
 
         tvTips = (TextView) findViewById(R.id.tvTips);
+        tvTitle = (TextView) findViewById(R.id.tvTitle);
+        tvTitle.setText(new String(FFTService.LOCALNAME));
     }
 
     @Override
@@ -174,8 +179,7 @@ public class ReceiveActivity extends Activity {
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
                 tvTips.setText("已连接:" + ssid);
                 mFFTService.enableTransmission();
-                mFFTService.setTarget(mReceiveWifiManager.getServerAddressByStr());
-                mFFTService.sendLogin();
+                mFFTService.sendLogin(mReceiveWifiManager.getServerAddressByStr());
             } else if (isConnected && NetworkInfo.State.DISCONNECTED == info.getState()) {
 //                isConnected = false;
 //                unregisterReceiver(this);

@@ -31,6 +31,8 @@ public class ShareActivity extends Activity {
 
     private ShareWifiManager mShareWifiManager;
     private FFTService mFFTService;
+
+    private  Uri fileUri;
     /**
      * 连接列表
      */
@@ -76,9 +78,9 @@ public class ShareActivity extends Activity {
             case FILE_SELECT_CODE:
                 if (resultCode == RESULT_OK) {
                     // Get the Uri of the selected file
-                    Uri uri = data.getData();
+                    fileUri = data.getData();
 //                    String path = FileUtils.getPath(this, uri);
-                    this.tvFileName.setText(uri.toString());
+                    this.tvFileName.setText(fileUri.toString());
                 }
                 break;
         }
@@ -151,7 +153,8 @@ public class ShareActivity extends Activity {
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ShareActivity.this, "send to which connected devices", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(ShareActivity.this, tvFileName.getText().toString(), Toast.LENGTH_SHORT).show();
+                mFFTService.sendFlies(ShareActivity.this, fileUri);
             }
         });
         mFFTService.enableTransmission();
@@ -160,21 +163,6 @@ public class ShareActivity extends Activity {
             public void onDataReceived(Map<String, String> devicesList) {
                 devicesListIsChanged(devicesList);
             }
-
-
-//            @Override
-//            public void onLogin(String address, String name) {
-////                addDevice(address, name);
-//                Toast.makeText(ShareActivity.this, name + "登入", Toast.LENGTH_SHORT).show();
-//                devicesListIsChanged(mFFTService.getConnectedDevices());
-//            }
-//
-//            @Override
-//            public void onLogout(String address, String name) {
-////                removeDevice(address,name);
-//                Toast.makeText(ShareActivity.this, name + "登出", Toast.LENGTH_SHORT).show();
-//                devicesListIsChanged(mFFTService.getConnectedDevices());
-//            }
 
         });
 
