@@ -26,7 +26,7 @@ public class MainActivity extends Activity {
         tvModel = (TextView) findViewById(R.id.tvModel);
         btnShare = (Button) findViewById(R.id.btnShare);
         btnReceive = (Button) findViewById(R.id.btnReceive);
-        tvModel.setText(android.os.Build.MODEL);
+        tvModel.setText(android.os.Build.MODEL.replaceAll("-", ""));
         Log.d("SSID:", android.os.Build.MODEL + ","
                 + getSerialNumber());
         btnShare.setOnClickListener(new View.OnClickListener() {

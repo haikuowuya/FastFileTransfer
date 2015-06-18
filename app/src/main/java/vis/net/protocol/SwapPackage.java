@@ -1,11 +1,14 @@
 package vis.net.protocol;
 
+import java.net.DatagramPacket;
+import java.util.UUID;
+
 /**
  * 通讯服务信息包
  * Created by Vision on 15/5/24.
  * Email:Vision.lsm.2012@gmail.com
  */
-public class SwapPackage {
+public class SwapPackage{
     //命令代码
     /**
      * 登入
@@ -15,12 +18,6 @@ public class SwapPackage {
      * 登出
      */
     public final static byte LOGOUT = 0x02;
-
-    /**
-     * 本地机型名
-     */
-    public final static byte[] LOCALNAME = android.os.Build.MODEL.getBytes();
-
     /**
      * 头部编码
      */
@@ -37,7 +34,14 @@ public class SwapPackage {
      * 临时存放字节串
      */
     protected byte[] temp;
-
+    /**
+     * 此包的目标地址
+     */
+    private String address;
+    /**
+     * 此包的目标端口
+     */
+    private int port;
     /**
      * 输入命令与数据组装成对象
      *
@@ -57,6 +61,12 @@ public class SwapPackage {
      */
     public SwapPackage(byte[] string) {
         setString(string);
+    }
+
+    public SwapPackage(String address, int port, byte cmd, byte[] data) {
+        this(cmd, data);
+        this.address = address;
+        this.port = port;
     }
 
     /**
@@ -83,6 +93,7 @@ public class SwapPackage {
 
     /**
      * 获取字节串
+     *
      * @return 本对象的字节串
      */
     public byte[] getString() {
@@ -91,6 +102,7 @@ public class SwapPackage {
 
     /**
      * 设置字节串
+     *
      * @param string 字节串
      * @return 如果校验成功返回true
      */
@@ -123,6 +135,7 @@ public class SwapPackage {
 
     /**
      * 获取数据
+     *
      * @return 数据字节串
      */
     public byte[] getData() {
@@ -136,6 +149,7 @@ public class SwapPackage {
 
     /**
      * 获取命令
+     *
      * @return 命令 byte 类型
      */
     public byte getCmdByByte() {
@@ -179,4 +193,11 @@ public class SwapPackage {
         return new String(res);
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public int getPort() {
+        return port;
+    }
 }

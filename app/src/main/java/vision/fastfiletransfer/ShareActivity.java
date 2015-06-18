@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import vis.net.protocol.FFTService;
 import vis.net.protocol.SwapPackage;
@@ -30,6 +31,8 @@ public class ShareActivity extends Activity {
 
     private ShareWifiManager mShareWifiManager;
     private FFTService mFFTService;
+
+    private String filePath;
     /**
      * 连接列表
      */
@@ -47,7 +50,7 @@ public class ShareActivity extends Activity {
         setContentView(R.layout.activity_share);
 
         mShareWifiManager = new ShareWifiManager(this);
-        mFFTService = new FFTService();
+        mFFTService = new FFTService(this);
 
         tvTips = (TextView) findViewById(R.id.tvTips);
         lvConnectedDevices = (ListView) findViewById(R.id.lvConnectedDevices);
@@ -57,7 +60,7 @@ public class ShareActivity extends Activity {
 
         if (mShareWifiManager.setWifiApEnabled(true)) {
             Toast.makeText(ShareActivity.this, "热点开启", Toast.LENGTH_SHORT).show();
-            tvTips.setText(Build.MODEL + "00");
+            tvTips.setText(mShareWifiManager.getSSID());
         } else {
             tvTips.setText("打开热点失败");
         }
@@ -75,9 +78,8 @@ public class ShareActivity extends Activity {
             case FILE_SELECT_CODE:
                 if (resultCode == RESULT_OK) {
                     // Get the Uri of the selected file
-                    Uri uri = data.getData();
-//                    String path = FileUtils.getPath(this, uri);
-                    this.tvFileName.setText(uri.toString());
+                    filePath = mFFTService.getRealPathFromURI(this, data.getData());
+                    this.tvFileName.setText(filePath.substring(filePath.lastIndexOf("/") + 1));
                 }
                 break;
         }
@@ -134,6 +136,12 @@ public class ShareActivity extends Activity {
      * set好所有的东西
      */
     private void setAllTheThing() {
+
+        mData = new ArrayList<Map<String, String>>();
+        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
+                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
+        lvConnectedDevices.setAdapter(adapter);
+
         btnSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -144,7 +152,8 @@ public class ShareActivity extends Activity {
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ShareActivity.this, "send to which connected devices", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(ShareActivity.this, tvFileName.getText().toString(), Toast.LENGTH_SHORT).show();
+                mFFTService.sendFlies(ShareActivity.this, filePath);
             }
         });
         mFFTService.enableTransmission();
@@ -154,30 +163,12 @@ public class ShareActivity extends Activity {
                 devicesListIsChanged(devicesList);
             }
 
-//            @Override
-//            public void onLogin(String address, String name) {
-////                addDevice(address, name);
-//                Toast.makeText(ShareActivity.this, name + "登入", Toast.LENGTH_SHORT).show();
-//                devicesListIsChanged(mFFTService.getConnectedDevices());
-//            }
-//
-//            @Override
-//            public void onLogout(String address, String name) {
-////                removeDevice(address,name);
-//                Toast.makeText(ShareActivity.this, name + "登出", Toast.LENGTH_SHORT).show();
-//                devicesListIsChanged(mFFTService.getConnectedDevices());
-//            }
-
         });
 
-        mData = new ArrayList<Map<String, String>>();
-        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
-                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
-        lvConnectedDevices.setAdapter(adapter);
     }
 
     private void devicesListIsChanged(Map<String, String> data) {
-        //TODO 这里的效率有待优化
+        //这里的效率有待考究
         mData.clear();
         for (Map.Entry<String, String> entry : data.entrySet()) {
             Map<String, String> map = new HashMap<String, String>();

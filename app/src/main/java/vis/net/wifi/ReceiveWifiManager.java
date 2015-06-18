@@ -105,9 +105,9 @@ public class ReceiveWifiManager {
         mWifiManager.enableNetwork(localNetworkID, true);
     }
 
-    public String getSSID() {
-        return mWifiManager.getConnectionInfo().getSSID();
-    }
+//    public String getSSID() {
+//        return mWifiManager.getConnectionInfo().getSSID();
+//    }
 
     public DhcpInfo getDhcpInfo() {
         return mWifiManager.getDhcpInfo();
