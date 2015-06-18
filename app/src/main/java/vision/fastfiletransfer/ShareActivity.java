@@ -32,7 +32,7 @@ public class ShareActivity extends Activity {
     private ShareWifiManager mShareWifiManager;
     private FFTService mFFTService;
 
-    private  Uri fileUri;
+    private String filePath;
     /**
      * 连接列表
      */
@@ -50,7 +50,7 @@ public class ShareActivity extends Activity {
         setContentView(R.layout.activity_share);
 
         mShareWifiManager = new ShareWifiManager(this);
-        mFFTService = new FFTService();
+        mFFTService = new FFTService(this);
 
         tvTips = (TextView) findViewById(R.id.tvTips);
         lvConnectedDevices = (ListView) findViewById(R.id.lvConnectedDevices);
@@ -78,9 +78,8 @@ public class ShareActivity extends Activity {
             case FILE_SELECT_CODE:
                 if (resultCode == RESULT_OK) {
                     // Get the Uri of the selected file
-                    fileUri = data.getData();
-//                    String path = FileUtils.getPath(this, uri);
-                    this.tvFileName.setText(fileUri.toString());
+                    filePath = mFFTService.getRealPathFromURI(this, data.getData());
+                    this.tvFileName.setText(filePath.substring(filePath.lastIndexOf("/") + 1));
                 }
                 break;
         }
@@ -154,7 +153,7 @@ public class ShareActivity extends Activity {
             @Override
             public void onClick(View v) {
 //                Toast.makeText(ShareActivity.this, tvFileName.getText().toString(), Toast.LENGTH_SHORT).show();
-                mFFTService.sendFlies(ShareActivity.this, fileUri);
+                mFFTService.sendFlies(ShareActivity.this, filePath);
             }
         });
         mFFTService.enableTransmission();

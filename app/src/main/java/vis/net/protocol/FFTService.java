@@ -1,8 +1,10 @@
 package vis.net.protocol;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -44,10 +46,10 @@ public class FFTService {
      */
     private String targetAddress;
 
-    public FFTService() {
+    public FFTService(Context context) {
         mConnectedDevices = new HashMap<String, String>();
         mCommandsTransfer = new CommandsTransfer(2222);
-        mFilesTransfer = new FilesTransfer();
+        mFilesTransfer = new FilesTransfer(context);
     }
 
     /**
@@ -110,28 +112,47 @@ public class FFTService {
         mCommandsTransfer.send(sp);
     }
 
+    public void sendFlies(Context context, String filePath) {
+        if (null != filePath) {
+            sendFlies(context, new File(filePath));
+        } else {
+            Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     /**
      * 发送文件信息
      *
      * @param context 上下文
-     * @param fileUri 文件Uri
+     * @param file    文件
      */
-    public void sendFlies(Context context, Uri fileUri) {
-        if (null == fileUri) {
+    public void sendFlies(Context context, File file) {
+        if (null == file) {
             Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT).show();
         } else if (mConnectedDevices.isEmpty()) {
             Toast.makeText(context, "没有设备连接", Toast.LENGTH_SHORT).show();
         } else {
             //发送文件
-            Toast.makeText(context, fileUri.toString(), Toast.LENGTH_SHORT).show();
-            //TODO  把这个Uri转成File
+            Toast.makeText(context, file.toString(), Toast.LENGTH_SHORT).show();
             for (Map.Entry<String, String> entry : mConnectedDevices.entrySet()) {
-//                mFilesTransfer.sendFile(null,entry.getKey(),2223);
-                Log.d(this.getClass().getName(), entry.getKey() + ":2333->" + fileUri.toString());
+                mFilesTransfer.sendFile(file,entry.getKey(),2223);
+                Log.d(this.getClass().getName(), entry.getKey() + ":2333->" + file.toString());
             }
 
         }
 
+    }
+
+    public String getRealPathFromURI(Context context, Uri contentUri) {
+        String res = null;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        return res;
     }
 
     /**

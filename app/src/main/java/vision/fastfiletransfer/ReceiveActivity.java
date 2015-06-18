@@ -37,7 +37,7 @@ public class ReceiveActivity extends Activity {
         setContentView(R.layout.activity_receive);
 
         mReceiveWifiManager = new ReceiveWifiManager(this);
-        mFFTService = new FFTService();
+        mFFTService = new FFTService(this);
 
         tvTips = (TextView) findViewById(R.id.tvTips);
         tvTitle = (TextView) findViewById(R.id.tvTitle);
@@ -117,7 +117,7 @@ public class ReceiveActivity extends Activity {
             if (ssid != null) {
                 Toast.makeText(ReceiveActivity.this, "找到AP了！", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, ssid);
-                tvTips.setText("找到IP了，尝试连接" + ssid);
+                tvTips.setText("找到AP了，尝试连接" + ssid);
                 unregisterReceiver(this);
                 srar = null;
                 //注册接收网络变化
@@ -173,14 +173,15 @@ public class ReceiveActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-            Log.d(mReceiveWifiManager.getSSID(), String.valueOf(info.getState()));
-            if (NetworkInfo.State.CONNECTED == info.getState() && ssid.equals(mReceiveWifiManager.getSSID())) {
+            if (NetworkInfo.State.CONNECTED == info.getState() && info.isConnected()) {
+                Log.d(this.getClass().getName(), String.valueOf(info.getState()));
                 isConnected = true;
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
                 tvTips.setText("已连接:" + ssid);
                 mFFTService.enableTransmission();
                 mFFTService.sendLogin(mReceiveWifiManager.getServerAddressByStr());
-            } else if (isConnected && NetworkInfo.State.DISCONNECTED == info.getState()) {
+            } else if (isConnected && NetworkInfo.State.DISCONNECTED == info.getState() && !info.isConnected()) {
+                Log.d(this.getClass().getName(), String.valueOf(info.getState()));
 //                isConnected = false;
 //                unregisterReceiver(this);
 //                nscr = null;

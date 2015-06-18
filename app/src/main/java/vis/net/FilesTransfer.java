@@ -1,7 +1,9 @@
 package vis.net;
 
+import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,14 +21,17 @@ import java.net.Socket;
  * Email:Vision.lsm.2012@gmail.com
  */
 public class FilesTransfer {
+
     private ServerSocket mServerSocket;
     private Socket mSocket;
     /**
      * 是否在接收模式
      */
     private boolean isReceiving = false;
+    private Context context;
 
-    public FilesTransfer() {
+    public FilesTransfer(Context context) {
+        this.context = context;
     }
 
     /**
@@ -49,12 +54,16 @@ public class FilesTransfer {
         if (Environment.getExternalStorageState().equals(
                 Environment.MEDIA_MOUNTED)) {
 //            Log.d(this.getClass().getName(), Environment.getExternalStorageState());
-            File dir = new File(Environment.getExternalStorageDirectory().getPath());
-            //FIXME 总是没有发现目录
+            File dir = new File(Environment.getExternalStorageDirectory().getPath()+dirName);
+            if (!dir.exists()) {
+                if (dir.mkdirs()) {
+                    Toast.makeText(this.context, "创建文件夹成功", Toast.LENGTH_SHORT).show();
+                }
+            }
             if (dir.exists()) {
                 if (dir.canWrite()) {
                     Log.d(this.getClass().getName(), "the dir is OK!");
-                    new Thread(new Receiver(port, dir));
+                    new Thread(new Receiver(port, dir)).start();
                 } else {
                     Log.e(this.getClass().getName(), "the dir can not write");
                 }
@@ -62,6 +71,7 @@ public class FilesTransfer {
                 Log.d(this.getClass().getName(), "没有这个目录");
             }
         } else {
+            Toast.makeText(this.context, "请检查SD卡是否正确安装", Toast.LENGTH_SHORT).show();
             Log.e(this.getClass().getName(), "请检查SD卡是否正确安装");
         }
     }
@@ -88,13 +98,18 @@ public class FilesTransfer {
             isReceiving = true;
             inputByte = new byte[1024];
             try {
+                Log.d(this.getClass().getName(), "start accept");
                 mServerSocket = new ServerSocket(port);
-                mServerSocket.setSoTimeout(2000);
+                //FIXME 这个应该需要一直在监听
+                mServerSocket.setSoTimeout(5000);
                 Log.d(this.getClass().getName(), "accepting the connect");
                 mSocket = mServerSocket.accept();
-
+                Log.d(this.getClass().getName(),"start translate");
                 din = new DataInputStream(mSocket.getInputStream());
-                fout = new FileOutputStream(new File(dir.getAbsolutePath() + "/" + din.readUTF()));
+                fout = new FileOutputStream(new File(dir.getPath() + "/" + din.readUTF()));
+//                if (dir.exists()) {
+//
+//                }
                 while (true) {
                     if (din != null) {
                         length = din.read(inputByte, 0, inputByte.length);
@@ -110,6 +125,7 @@ public class FilesTransfer {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
+                Log.d(this.getClass().getName(), "end all thing");
                 try {
                     if (fout != null)
                         fout.close();
@@ -148,6 +164,7 @@ public class FilesTransfer {
 
         @Override
         public void run() {
+            Log.d(this.getClass().getName(), "start send file");
             try {
                 socket = new Socket();
                 socket.connect(new InetSocketAddress(address, port), 10 * 1000);
@@ -163,6 +180,7 @@ public class FilesTransfer {
             } catch (IOException e) {
 
             } finally {
+                Log.d(this.getClass().getName(), "end send");
                 try {
                     if (dout != null)
                         dout.close();
