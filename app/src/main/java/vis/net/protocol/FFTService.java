@@ -3,15 +3,19 @@ package vis.net.protocol;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.SparseArray;
+import android.widget.ListAdapter;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
+import vis.UserDevice;
+import vis.UserListAdapter;
 import vis.net.CommandsTransfer;
 import vis.net.FilesTransfer;
 
@@ -22,6 +26,9 @@ import vis.net.FilesTransfer;
  * Email:Vision.lsm.2012@gmail.com
  */
 public class FFTService {
+//    public static final int MESSAGE_FROM_FILESTRANSFER = 0x01;
+//    public static final int MESSAGE_FROM_COMMANDSTRANSFER = 0x02;
+
     /**
      * 文件传输类
      */
@@ -39,17 +46,53 @@ public class FFTService {
     /**
      * 发送列表，设备连接列表，key为IP，value为设备名
      */
-    private Map<String, String> mConnectedDevices;
+//    private Map<String, String> mConnectedDevices;
+    private SparseArray<UserDevice> mConnectedDevices;
+    private UserListAdapter adapter;
 
     /**
      * 目标地址
      */
     private String targetAddress;
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+//            if (MESSAGE_FROM_FILESTRANSFER == msg.what) {
+//            } else if (MESSAGE_FROM_COMMANDSTRANSFER == msg.what) {
+            Object[] objects = (Object[]) msg.obj;
+            byte[] address = (byte[]) objects[0];
+            byte[] data = (byte[]) objects[1];
+            SwapPackage sp = new SwapPackage(data);
+            if (sp.getCmdByByte() == SwapPackage.LOGIN) {
+                //设备登入
+                UserDevice us = new UserDevice();
+                us.ip = byteArray2IpAddress(address);
+                us.name = new String(sp.getData());
+                int ip = byteArray2Int(address);
+                addDevice(ip, us);
+//                addDevice(address, new String(sp.getData()));
+                Log.d("Login", address + "->" + new String(sp.getData()));
+//              mOnDataReceivedListener.onLogin(address, new String(sp.getData()));
+            } else if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
+                int ip = byteArray2Int(address);
+                removeDevice(ip);
+                Log.d("Logout", address + "->" + new String(sp.getData()));
+//              mOnDataReceivedListener.onLogout(address, new String(sp.getData()));
+            }
+            adapter.notifyDataSetChanged();
+            mOnDataReceivedListener.onDataReceived(mConnectedDevices);
+        }
+//        }
+    };
 
     public FFTService(Context context) {
-        mConnectedDevices = new HashMap<String, String>();
+//        mConnectedDevices = new HashMap<String, String>();
         mCommandsTransfer = new CommandsTransfer(2222);
         mFilesTransfer = new FilesTransfer(context);
+        mConnectedDevices = new SparseArray<UserDevice>();
+        adapter = new UserListAdapter(context, mConnectedDevices);
+        mFilesTransfer.setCallbackHandler(adapter.getHandler());
     }
 
     /**
@@ -110,6 +153,7 @@ public class FFTService {
     public void sendLogout(String address, int port) {
         SwapPackage sp = new SwapPackage(address, port, SwapPackage.LOGOUT, LOCALNAME);
         mCommandsTransfer.send(sp);
+        mFilesTransfer.stopReceiving();
     }
 
     public void sendFlies(Context context, String filePath) {
@@ -129,15 +173,18 @@ public class FFTService {
     public void sendFlies(Context context, File file) {
         if (null == file) {
             Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT).show();
-        } else if (mConnectedDevices.isEmpty()) {
+        } else if (mConnectedDevices.size() == 0) {
             Toast.makeText(context, "没有设备连接", Toast.LENGTH_SHORT).show();
         } else {
             //发送文件
             Toast.makeText(context, file.toString(), Toast.LENGTH_SHORT).show();
-            for (Map.Entry<String, String> entry : mConnectedDevices.entrySet()) {
-                mFilesTransfer.sendFile(file,entry.getKey(),2223);
-                Log.d(this.getClass().getName(), entry.getKey() + ":2333->" + file.toString());
+            for (int i = 0, nsize = mConnectedDevices.size(); i < nsize; i++) {
+                UserDevice ud = mConnectedDevices.valueAt(i);
+                mFilesTransfer.sendFile(i,file, ud.ip, 2223);
+                Log.d(this.getClass().getName(), ud.ip + ":2333->" + file.toString());
             }
+//            for (Map.Entry<String, String> entry : mConnectedDevices.entrySet()) {
+//            }
 
         }
 
@@ -163,28 +210,9 @@ public class FFTService {
     public void setOnDataReceivedListener(OnDataReceivedListener listener) {
         this.mOnDataReceivedListener = listener;
         if (listener == null) {
-            mCommandsTransfer.setDateReceivedListener(null);
+            mCommandsTransfer.setCallbackHandler(null);
         } else {
-            mCommandsTransfer.setDateReceivedListener(new CommandsTransfer.OnDataReceivedListener() {
-
-                @Override
-                public void onDataReceived(String address, byte[] data) {
-                    SwapPackage sp = new SwapPackage(data);
-//                    Log.d("SwapPackage", sp.getString().toString());
-                    if (sp.getCmdByByte() == SwapPackage.LOGIN) {
-                        //设备登入
-                        addDevice(address, new String(sp.getData()));
-                        Log.d("Login", address + "->" + new String(sp.getData()));
-//                        mOnDataReceivedListener.onLogin(address, new String(sp.getData()));
-                    } else if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
-                        removeDevice(address);
-                        Log.d("Logout", address + "->" + new String(sp.getData()));
-//                        mOnDataReceivedListener.onLogout(address, new String(sp.getData()));
-                    }
-                    mOnDataReceivedListener.onDataReceived(mConnectedDevices);
-                }
-            });
-
+            mCommandsTransfer.setCallbackHandler(this.mHandler);
         }
     }
 
@@ -197,7 +225,7 @@ public class FFTService {
          *
          * @param devicesList 设备连接集合
          */
-        void onDataReceived(Map<String, String> devicesList);
+        void onDataReceived(SparseArray<UserDevice> devicesList);
 //        void onLogin(String address, String name);
 //        void onLogout(String address, String name);
     }
@@ -205,24 +233,31 @@ public class FFTService {
     /**
      * 添加设备进列表中
      *
-     * @param address IP地址，作为key
-     * @param name    设备名称，作为value
-     * @return 如果添加成功返回value，即为name;如果不成功返回null
+     * @param address    int型的IP地址
+     * @param userDevice 设备类，作为value
      */
-    private String addDevice(String address, String name) {
-        return mConnectedDevices.put(address, name);
+    private void addDevice(int address, UserDevice userDevice) {
+        mConnectedDevices.put(address, userDevice);
     }
 
     /**
      * 在列表中除移设备
      *
-     * @param address IP地址，作为key
+     * @param address int型的IP地址，作为key
      * @return 如果添加成功返回对应的value，即为对应的name;如果不成功返回null
      */
-    private String removeDevice(String address) {
-        return mConnectedDevices.remove(address);
+    private void removeDevice(int address) {
+        mConnectedDevices.remove(address);
     }
 
+    /**
+     * 获取用于显示列表的适配器
+     *
+     * @return ListAdapter
+     */
+    public ListAdapter getAdapter() {
+        return this.adapter;
+    }
 
     /**
      * 合并数组
@@ -238,5 +273,26 @@ public class FFTService {
         return byte_3;
     }
 
+    /**
+     * @param array
+     * @return
+     */
+    private int byteArray2Int(byte[] array) {
+        int temp = 0;
+        for (int i = 0; i < 4; i++) {
+            temp |= array[i] << (24 - (i * 8));
+        }
+        return temp;
+    }
+
+    /**
+     * byte数组型IP地址转成String型IP地址
+     *
+     * @param array
+     * @return
+     */
+    private String byteArray2IpAddress(byte[] array) {
+        return (array[0] & 0xff) + "." + (array[1] & 0xff) + "." + (array[2] & 0xff) + "." + (array[3] & 0xff);
+    }
 
 }

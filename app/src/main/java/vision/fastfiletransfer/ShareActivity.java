@@ -2,26 +2,20 @@ package vision.fastfiletransfer;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
+import vis.UserDevice;
 import vis.net.protocol.FFTService;
-import vis.net.protocol.SwapPackage;
 import vis.net.wifi.ShareWifiManager;
 
 
@@ -36,13 +30,20 @@ public class ShareActivity extends Activity {
     /**
      * 连接列表
      */
-    private ListView lvConnectedDevices;
     private TextView tvFileName;
     private Button btnSelectFile;
     private Button btnSend;
-    private TextView tvTips;
-    private List<Map<String, String>> mData;
-    private SimpleAdapter adapter;
+    private TextView tvName;
+
+    /**
+     * 设备连接ListView
+     */
+    private ListView lvConnectedDevices;
+//    private UserListAdapter adapter;
+//    private SparseArray<UserDevice> userList = new SparseArray<UserDevice>();
+
+//    private List<Map<String, String>> mData;
+//    private SimpleAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,17 +53,16 @@ public class ShareActivity extends Activity {
         mShareWifiManager = new ShareWifiManager(this);
         mFFTService = new FFTService(this);
 
-        tvTips = (TextView) findViewById(R.id.tvTips);
+        tvName = (TextView) findViewById(R.id.tvName);
         lvConnectedDevices = (ListView) findViewById(R.id.lvConnectedDevices);
         tvFileName = (TextView) findViewById(R.id.tvFileName);
         btnSelectFile = (Button) findViewById(R.id.btnSelectFile);
         btnSend = (Button) findViewById(R.id.btnSend);
-
         if (mShareWifiManager.setWifiApEnabled(true)) {
             Toast.makeText(ShareActivity.this, "热点开启", Toast.LENGTH_SHORT).show();
-            tvTips.setText(mShareWifiManager.getSSID());
+            tvName.setText("本机：" + new String(FFTService.LOCALNAME));
         } else {
-            tvTips.setText("打开热点失败");
+            tvName.setText("打开热点失败");
         }
         this.setAllTheThing();
     }
@@ -137,10 +137,13 @@ public class ShareActivity extends Activity {
      */
     private void setAllTheThing() {
 
-        mData = new ArrayList<Map<String, String>>();
-        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
-                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
-        lvConnectedDevices.setAdapter(adapter);
+//        mData = new ArrayList<Map<String, String>>();
+//        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
+//                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
+//        lvConnectedDevices.setAdapter(adapter);
+//        adapter = new UserListAdapter(this, userList);
+
+        lvConnectedDevices.setAdapter(mFFTService.getAdapter());
 
         btnSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,24 +162,30 @@ public class ShareActivity extends Activity {
         mFFTService.enableTransmission();
         mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
             @Override
-            public void onDataReceived(Map<String, String> devicesList) {
-                devicesListIsChanged(devicesList);
+            public void onDataReceived(SparseArray<UserDevice> devicesList) {
+//                devicesListIsChanged(devicesList);
+
             }
 
         });
-
+//        Map<String, String> map = new HashMap<>();
+//        devicesListIsChanged(map);
     }
 
     private void devicesListIsChanged(Map<String, String> data) {
         //这里的效率有待考究
-        mData.clear();
-        for (Map.Entry<String, String> entry : data.entrySet()) {
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("title", entry.getValue());
-            map.put("text", entry.getKey());
-            mData.add(map);
-        }
-        adapter.notifyDataSetChanged();
+//        if (data.isEmpty()) {
+//            data.put( "朋友没有安装助手？邀请安装>","等待附近的好友接收文件……");
+//        }
+//        mData.clear();
+//        Map<String, String> map = new HashMap<String, String>();
+//        for (Map.Entry<String, String> entry : data.entrySet()) {
+//            map.put("title", entry.getValue());
+//            map.put("text", entry.getKey());
+//            mData.add(map);
+//        }
+//
+//        adapter.notifyDataSetChanged();
     }
 
     /**

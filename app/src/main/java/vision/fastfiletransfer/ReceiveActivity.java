@@ -14,8 +14,6 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Arrays;
-
 import vis.net.protocol.FFTService;
 import vis.net.wifi.ReceiveWifiManager;
 
@@ -39,7 +37,7 @@ public class ReceiveActivity extends Activity {
         mReceiveWifiManager = new ReceiveWifiManager(this);
         mFFTService = new FFTService(this);
 
-        tvTips = (TextView) findViewById(R.id.tvTips);
+        tvTips = (TextView) findViewById(R.id.tvName);
         tvTitle = (TextView) findViewById(R.id.tvTitle);
         tvTitle.setText(new String(FFTService.LOCALNAME));
     }
