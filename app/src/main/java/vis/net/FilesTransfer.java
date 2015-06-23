@@ -114,7 +114,6 @@ public class FilesTransfer {
         public Receiver(int port, File dir) {
             this.port = port;
             this.dir = dir;
-            userFile = new UserFile();
         }
 
         @Override
@@ -130,6 +129,7 @@ public class FilesTransfer {
                         mSocket = mServerSocket.accept();
                         Log.d(this.getClass().getName(), "start translate");
                         din = new DataInputStream(mSocket.getInputStream());
+                        userFile = new UserFile();
                         userFile.name = din.readUTF();
                         fout = new FileOutputStream(new File(dir.getPath() + "/" + userFile.name));
                         userFile.size = din.readLong();

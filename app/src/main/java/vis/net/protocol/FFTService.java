@@ -12,6 +12,7 @@ import android.widget.BaseAdapter;
 import android.widget.Toast;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 
 import vis.FFTAdapter;
 import vis.UserDevice;
@@ -48,8 +49,6 @@ public class FFTService {
     /**
      * 发送列表，设备连接列表，key为IP，value为设备名
      */
-//    private Map<String, String> mDevices;
-//    private SparseArray<UserDevice> mDevices;
     private FFTAdapter mAdapter;
 
     /**
@@ -57,43 +56,46 @@ public class FFTService {
      */
     private String targetAddress;
 
-    private Handler mCommandHandler = new Handler() {
+    private Handler mCommandHandler = new MyHandler(this);
+
+    private static class MyHandler extends Handler {
+        private final WeakReference<FFTService> mFFTService;
+
+        public MyHandler(FFTService ffts) {
+            mFFTService = new WeakReference<FFTService>(ffts);
+        }
+
         @Override
         public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-//            if (MESSAGE_FROM_FILESTRANSFER == msg.what) {
-//            } else if (MESSAGE_FROM_COMMANDSTRANSFER == msg.what) {
-            Object[] objects = (Object[]) msg.obj;
-            byte[] address = (byte[]) objects[0];
-            byte[] data = (byte[]) objects[1];
-            SwapPackage sp = new SwapPackage(data);
-            if (sp.getCmdByByte() == SwapPackage.LOGIN) {
-                //设备登入
-                UserDevice us = new UserDevice();
-                us.ip = byteArray2IpAddress(address);
-                us.name = new String(sp.getData());
-                int ip = byteArray2Int(address);
-//                addDevice(ip, us);
-                mAdapter.put(ip, us);
-//                addDevice(address, new String(sp.getData()));
-                Log.d("Login", us.ip + "->" + new String(sp.getData()));
-//              mOnDataReceivedListener.onLogin(address, new String(sp.getData()));
-            } else if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
-                int ip = byteArray2Int(address);
-                mAdapter.remove(ip);
-                Log.d("Logout", new String(address) + "->" + new String(sp.getData()));
-//              mOnDataReceivedListener.onLogout(address, new String(sp.getData()));
+            FFTService ffts = mFFTService.get();
+            if (ffts != null) {
+                Object[] objects = (Object[]) msg.obj;
+                byte[] address = (byte[]) objects[0];
+                byte[] data = (byte[]) objects[1];
+                SwapPackage sp = new SwapPackage(data);
+                if (sp.getCmdByByte() == SwapPackage.LOGIN) {
+                    //设备登入
+                    UserDevice us = new UserDevice();
+                    us.ip = ffts.byteArray2IpAddress(address);
+                    us.name = new String(sp.getData());
+                    int ip = ffts.byteArray2Int(address);
+                    ffts.mAdapter.put(ip, us);
+                    Log.d("Login", us.ip + "->" + new String(sp.getData()));
+                } else if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
+                    int ip = ffts.byteArray2Int(address);
+                    ffts.mAdapter.remove(ip);
+                    Log.d("Logout", new String(address) + "->" + new String(sp.getData()));
+                }
+                ffts.mOnDataReceivedListener.onDataReceived(null);
             }
-            mOnDataReceivedListener.onDataReceived(null);
         }
-//        }
-    };
+    }
+
 
     public FFTService(Context context, int serviceType) {
         mCommandsTransfer = new CommandsTransfer(2222);
         mFilesTransfer = new FilesTransfer(context);
         if (SERVICE_SHARE == serviceType) {
-//            mDevices = new SparseArray<UserDevice>();
             mAdapter = new UserDevicesAdapter(context);
         } else if (SERVICE_RECEIVE == serviceType) {
             mAdapter = new UserFilesAdapter(context);
@@ -137,8 +139,6 @@ public class FFTService {
         this.targetAddress = address;
         if (!mFilesTransfer.isReceiving()) {
             mFilesTransfer.receiveFile(2223, "/FFT");
-//            Log.d(this.getClass().getName(), Environment.getExternalStorageDirectory().getAbsolutePath());
-//            Log.d(this.getClass().getName(),Environment.getExternalStorageDirectory().getPath());
         }
         SwapPackage sp = new SwapPackage(address, port, SwapPackage.LOGIN, LOCALNAME);
         mCommandsTransfer.send(sp);
@@ -191,11 +191,7 @@ public class FFTService {
                 mFilesTransfer.sendFile(i, file, ud.ip, 2223);
                 Log.d(this.getClass().getName(), ud.ip + ":2333->" + file.toString());
             }
-//            for (Map.Entry<String, String> entry : mDevices.entrySet()) {
-//            }
-
         }
-
     }
 
     public String getRealPathFromURI(Context context, Uri contentUri) {
@@ -234,28 +230,7 @@ public class FFTService {
          * @param devicesList 设备连接集合
          */
         void onDataReceived(SparseArray<UserDevice> devicesList);
-//        void onLogin(String address, String name);
-//        void onLogout(String address, String name);
     }
-
-    /**
-     * 添加设备进列表中
-     *
-     * @param address    int型的IP地址
-     * @param userDevice 设备类，作为value
-     */
-//    private void addDevice(int address, UserDevice userDevice) {
-//        mAdapter.put(address, userDevice);
-//    }
-
-    /**
-     * 在列表中除移设备
-     *
-     * @param address int型的IP地址，作为key
-     */
-//    private void removeDevice(int address) {
-//        mAdapter.remove(address);
-//    }
 
     /**
      * 获取用于显示列表的适配器
@@ -265,20 +240,6 @@ public class FFTService {
     public FFTAdapter getAdapter() {
         return this.mAdapter;
     }
-
-    /**
-     * 合并数组
-     *
-     * @param byte_1 数组一
-     * @param byte_2 数组二
-     * @return 合并之后的数组
-     */
-//    public byte[] byteMerger(byte[] byte_1, byte[] byte_2) {
-//        byte[] byte_3 = new byte[byte_1.length + byte_2.length];
-//        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
-//        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
-//        return byte_3;
-//    }
 
     /**
      * @param array
