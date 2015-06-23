@@ -11,10 +11,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.Arrays;
 
 import vis.net.protocol.FFTService;
 import vis.net.wifi.ReceiveWifiManager;
@@ -29,7 +28,8 @@ public class ReceiveActivity extends Activity {
     private String ssid;
     private WifiStateChangedReceiver wscr;
     private TextView tvTips;
-    private TextView tvTitle;
+    private TextView tvName;
+    private ListView lvFiles;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +37,13 @@ public class ReceiveActivity extends Activity {
         setContentView(R.layout.activity_receive);
 
         mReceiveWifiManager = new ReceiveWifiManager(this);
-        mFFTService = new FFTService(this);
+        mFFTService = new FFTService(this,FFTService.SERVICE_RECEIVE);
 
         tvTips = (TextView) findViewById(R.id.tvTips);
-        tvTitle = (TextView) findViewById(R.id.tvTitle);
-        tvTitle.setText(new String(FFTService.LOCALNAME));
+        tvName = (TextView) findViewById(R.id.tvName);
+        tvName.setText(new String(FFTService.LOCALNAME));
+        lvFiles = (ListView) findViewById(R.id.lvFiles);
+        lvFiles.setAdapter(mFFTService.getAdapter());
     }
 
     @Override
@@ -177,7 +179,8 @@ public class ReceiveActivity extends Activity {
                 Log.d(this.getClass().getName(), String.valueOf(info.getState()));
                 isConnected = true;
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
-                tvTips.setText("已连接:" + ssid);
+//                tvTips.setText("已连接:" + ssid);
+                tvTips.setText("等待" + ssid.substring(5, ssid.length() - 6) + "发送文件");
                 mFFTService.enableTransmission();
                 mFFTService.sendLogin(mReceiveWifiManager.getServerAddressByStr());
             } else if (isConnected && NetworkInfo.State.DISCONNECTED == info.getState() && !info.isConnected()) {

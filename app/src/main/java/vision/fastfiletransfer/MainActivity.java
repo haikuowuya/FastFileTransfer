@@ -26,9 +26,8 @@ public class MainActivity extends Activity {
         tvModel = (TextView) findViewById(R.id.tvModel);
         btnShare = (Button) findViewById(R.id.btnShare);
         btnReceive = (Button) findViewById(R.id.btnReceive);
-        tvModel.setText(android.os.Build.MODEL.replaceAll("-", ""));
-        Log.d("SSID:", android.os.Build.MODEL + ","
-                + getSerialNumber());
+        tvModel.setText(android.os.Build.MODEL.replaceAll("\\s|-", ""));
+        Log.d("SSID:", android.os.Build.MODEL.replaceAll("\\s|-", ""));
         btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -43,18 +42,6 @@ public class MainActivity extends Activity {
                 startActivity(receiveIntent);
             }
         });
-    }
-
-    public static String getSerialNumber() {
-        String serial = null;
-        try {
-            Class<?> c = Class.forName("android.os.SystemProperties");
-            Method get = c.getMethod("get", String.class);
-            serial = (String) get.invoke(c, "ro.serialno");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return serial;
     }
 
     @Override

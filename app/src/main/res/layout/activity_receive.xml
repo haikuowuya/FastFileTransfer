@@ -10,14 +10,20 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:id="@+id/tvTips"
-        android:layout_below="@+id/tvTitle" />
+        android:layout_below="@+id/tvName" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Large Text"
-        android:id="@+id/tvTitle"
+        android:id="@+id/tvName"
         android:gravity="center_horizontal" />
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/lvFiles"
+        android:layout_below="@+id/tvTips" />
 
 </RelativeLayout>

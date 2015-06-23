@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gamelist_item_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:background="@drawable/style_listitem_background"
+    android:paddingBottom="5dp"
+    android:paddingTop="5dp" >
+
+    <ImageView
+        android:id="@+id/app_icon"
+        android:layout_width="53dip"
+        android:layout_height="53dip"
+        android:layout_marginLeft="5dip"
+        android:adjustViewBounds="false"
+        android:padding="5dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginLeft="5dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:text=""
+            android:textColor="#000000"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/app_tips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:visibility="gone"
+            android:textSize="15sp" />
+
+        <vis.widget.TextProgress
+            android:id="@+id/app_size_progressBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            android:max="100"
+            android:layout_marginRight="10dp"
+            style="@android:style/Widget.ProgressBar.Horizontal" />
+
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/download_btn"
+        android:layout_width="55dip"
+        android:layout_height="30dip"
+        android:layout_marginRight="10dip"
+        android:background="@drawable/style_btn_download"
+        android:focusable="false"
+        android:text="@string/open"
+        android:textColor="#ffffffff"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+</LinearLayout>

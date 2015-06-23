@@ -2,6 +2,8 @@ package vis.net;
 
 import android.content.Context;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,6 +16,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+
+import vis.UserDevice;
+import vis.UserFile;
 
 /**
  * 文件传输类
@@ -29,9 +36,16 @@ public class FilesTransfer {
      */
     private boolean isReceiving = false;
     private Context context;
+    private Handler mHandler;
+    private Message msg;
+
 
     public FilesTransfer(Context context) {
         this.context = context;
+    }
+
+    public void setCallbackHandler(Handler handler) {
+        this.mHandler = handler;
     }
 
     /**
@@ -41,8 +55,8 @@ public class FilesTransfer {
      * @param address 要发送往的地址
      * @param port    目标地址的端口
      */
-    public void sendFile(File file, String address, int port) {
-        new Thread(new Sender(file, address, port)).start();
+    public void sendFile(int index, File file, String address, int port) {
+        new Thread(new Sender(index, file, address, port)).start();
     }
 
     /**
@@ -54,7 +68,7 @@ public class FilesTransfer {
         if (Environment.getExternalStorageState().equals(
                 Environment.MEDIA_MOUNTED)) {
 //            Log.d(this.getClass().getName(), Environment.getExternalStorageState());
-            File dir = new File(Environment.getExternalStorageDirectory().getPath()+dirName);
+            File dir = new File(Environment.getExternalStorageDirectory().getPath() + dirName);
             if (!dir.exists()) {
                 if (dir.mkdirs()) {
                     Toast.makeText(this.context, "创建文件夹成功", Toast.LENGTH_SHORT).show();
@@ -80,6 +94,10 @@ public class FilesTransfer {
         return this.isReceiving;
     }
 
+    public void stopReceiving() {
+        this.isReceiving = false;
+    }
+
     class Receiver implements Runnable {
         private DataInputStream din = null;
         private FileOutputStream fout;
@@ -87,10 +105,16 @@ public class FilesTransfer {
         private byte[] inputByte = null;
         private int port;
         private File dir;
+        private UserFile userFile;
+        /**
+         * 本次接收的文件序号
+         */
+        private int index;
 
         public Receiver(int port, File dir) {
             this.port = port;
             this.dir = dir;
+            userFile = new UserFile();
         }
 
         @Override
@@ -98,49 +122,56 @@ public class FilesTransfer {
             isReceiving = true;
             inputByte = new byte[1024];
             try {
-                Log.d(this.getClass().getName(), "start accept");
                 mServerSocket = new ServerSocket(port);
-                //FIXME 这个应该需要一直在监听
-                mServerSocket.setSoTimeout(5000);
-                Log.d(this.getClass().getName(), "accepting the connect");
-                mSocket = mServerSocket.accept();
-                Log.d(this.getClass().getName(),"start translate");
-                din = new DataInputStream(mSocket.getInputStream());
-                fout = new FileOutputStream(new File(dir.getPath() + "/" + din.readUTF()));
-//                if (dir.exists()) {
-//
-//                }
-                while (true) {
-                    if (din != null) {
-                        length = din.read(inputByte, 0, inputByte.length);
+                mServerSocket.setSoTimeout(2000);
+                while (isReceiving) {
+                    try {
+                        Log.d(this.getClass().getName(), "accepting the connect");
+                        mSocket = mServerSocket.accept();
+                        Log.d(this.getClass().getName(), "start translate");
+                        din = new DataInputStream(mSocket.getInputStream());
+                        userFile.name = din.readUTF();
+                        fout = new FileOutputStream(new File(dir.getPath() + "/" + userFile.name));
+                        userFile.size = din.readLong();
+                        userFile.state = UserFile.TRANSFER_STATE_TRANSFERRING;
+                        userFile.id = index;
+                        while (true) {
+                            if (din != null) {
+                                length = din.read(inputByte, 0, inputByte.length);
+                            }
+                            if (length == -1) {
+                                break;
+                            }
+                            fout.write(inputByte, 0, length);
+                            fout.flush();
+                            userFile.completed += length;
+                            if (userFile.completed == userFile.size) {
+                                userFile.state = UserFile.TRANSFER_STATE_FINISH;
+                            }
+                            msg = Message.obtain();
+                            msg.obj = userFile;
+                            mHandler.sendMessage(msg);
+                        }
+                        index++;
+                        Log.d(this.getClass().getName(), "finish translate");
+                    } catch (SocketTimeoutException e) {
+                        Log.d("Exception", "SocketTimeoutException");
+                    } catch (SocketException e) {
+                        Log.d("Exception", "SocketException");
                     }
-                    if (length == -1) {
-                        break;
-                    }
-//                        System.out.println(length);
-                    fout.write(inputByte, 0, length);
-                    fout.flush();
                 }
-//                    System.out.println("完成接收");
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
+                if (din != null)
+                    din.close();
+                if (fout != null)
+                    fout.close();
+                if (mSocket != null)
+                    mSocket.close();
+                if (mServerSocket != null) {
+                    mServerSocket.close();
+                }
                 Log.d(this.getClass().getName(), "end all thing");
-                try {
-                    if (fout != null)
-                        fout.close();
-                    if (din != null)
-                        din.close();
-                    if (mSocket != null)
-                        mSocket.close();
-                    if (mServerSocket != null) {
-                        mServerSocket.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    isReceiving = false;
-                }
+            } catch (IOException e) {
+                Log.d("Exception", "IOException");
             }
         }
     }
@@ -156,7 +187,13 @@ public class FilesTransfer {
         private String address;
         private int port;
 
-        public Sender(File file, String address, int port) {
+        private long sendLength;
+        private int index;
+        private int completionPercentage;
+
+
+        public Sender(int index, File file, String address, int port) {
+            this.index = index;
             this.file = file;
             this.address = address;
             this.port = port;
@@ -164,7 +201,7 @@ public class FilesTransfer {
 
         @Override
         public void run() {
-            Log.d(this.getClass().getName(), "start send file");
+            Log.d(this.getClass().getName(), "start send file :" + file.length());
             try {
                 socket = new Socket();
                 socket.connect(new InetSocketAddress(address, port), 10 * 1000);
@@ -173,9 +210,26 @@ public class FilesTransfer {
                 fin = new FileInputStream(file);
                 sendByte = new byte[1024];
                 dout.writeUTF(file.getName());
+                dout.writeLong(file.length());
                 while ((length = fin.read(sendByte, 0, sendByte.length)) > 0) {
                     dout.write(sendByte, 0, length);
                     dout.flush();
+                    sendLength += length;
+                    int transferred = (int) (sendLength * 100 / file.length());
+                    if (completionPercentage < transferred) {       //减少发送message
+                        Log.d("completed", String.valueOf(completionPercentage));
+                        completionPercentage = transferred;
+                        msg = Message.obtain();
+                        msg.what = this.index;
+                        msg.arg1 = completionPercentage;
+                        if (100 > completionPercentage) {
+                            msg.arg2 = UserDevice.TRANSFER_STATE_TRANSFERRING;
+                        } else {
+                            msg.arg2 = UserDevice.TRANSFER_STATE_FINISH;
+                        }
+                        mHandler.sendMessage(msg);
+                    }
+//                    Log.d("sendLength:", String.valueOf(sendLength));
                 }
             } catch (IOException e) {
 
@@ -194,6 +248,4 @@ public class FilesTransfer {
             }
         }
     }
-
-
 }
