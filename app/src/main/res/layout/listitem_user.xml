@@ -41,7 +41,7 @@
             android:visibility="visible"
             android:textSize="15sp" />
 
-        <vis.widget.MyProgress
+        <vis.widget.TextProgress
             android:id="@+id/app_size_progressBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

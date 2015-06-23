@@ -15,7 +15,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import vis.widget.MyProgress;
+import vis.widget.TextProgress;
 import vision.fastfiletransfer.R;
 
 /**
@@ -83,7 +83,7 @@ public class UserListAdapter extends BaseAdapter {
                     .findViewById(R.id.app_name);
 //			holder.size = (TextView) convertView
 //					.findViewById(R.id.app_size);
-            holder.size = (MyProgress) convertView.findViewById(R.id.app_size_progressBar);
+            holder.size = (TextProgress) convertView.findViewById(R.id.app_size_progressBar);
 //            holder.btn = (Button) convertView
 //                    .findViewById(R.id.download_btn);
             convertView.setTag(holder);
@@ -104,23 +104,22 @@ public class UserListAdapter extends BaseAdapter {
         Drawable drawable = mContext.getResources().getDrawable(R.drawable.app_icon);
         holder.icon.setImageDrawable(drawable);
 
+        holder.tips = (TextView) convertView.findViewById(R.id.app_tips);
+
         switch (userDevice.transferState) {
             case UserDevice.TRANSFER_STATE_NORMAL:
-                holder.tips = (TextView) convertView.findViewById(R.id.app_tips);
                 holder.tips.setText("就绪");
                 break;
             case UserDevice.TRANSFER_STATE_TRANSFERRING:
-//                Toast.makeText(mContext,"传输中",Toast.LENGTH_SHORT)
-//                        .show();
-
-//                holder.btn.setText("下载中");
-//                this.changeBtnStyle(holder.btn, false);
+                holder.size.setVisibility(View.VISIBLE);
+                holder.tips.setVisibility(View.GONE);
+                holder.size.setProgress(userDevice.completionPercentage);
                 break;
             case UserDevice.TRANSFER_STATE_FINISH:
                 holder.tips = (TextView) convertView.findViewById(R.id.app_tips);
                 holder.tips.setText("传输完成");
-//                holder.btn.setText("打开");
-//                this.changeBtnStyle(holder.btn, false);
+                holder.tips.setVisibility(View.VISIBLE);
+                holder.size.setVisibility(View.GONE);
                 break;
         }
 //        holder.btn.setOnClickListener(new OnClickListener() {
@@ -141,7 +140,7 @@ public class UserListAdapter extends BaseAdapter {
         TextView name;
         //        TextView size;
         TextView tips;
-        MyProgress size;
+        TextProgress size;
 //        Button btn;
     }
 
@@ -186,6 +185,11 @@ public class UserListAdapter extends BaseAdapter {
             UserDevice ud = dataList.valueAt(msg.what);
             ud.completionPercentage = msg.arg1;
             ud.transferState = msg.arg2;
+            if (ud.completionPercentage == 100) {
+                Toast.makeText(mContext, "传输完成", Toast.LENGTH_SHORT)
+                        .show();
+            }
+//            Log.d("FFT", String.valueOf(ud.completionPercentage));
             // notifyDataSetChanged会执行getView函数，更新所有可视item的数据
             notifyDataSetChanged();
             // 只更新指定item的数据，提高了性能

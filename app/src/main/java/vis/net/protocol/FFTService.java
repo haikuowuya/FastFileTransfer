@@ -72,12 +72,12 @@ public class FFTService {
                 int ip = byteArray2Int(address);
                 addDevice(ip, us);
 //                addDevice(address, new String(sp.getData()));
-                Log.d("Login", address + "->" + new String(sp.getData()));
+                Log.d("Login", us.ip + "->" + new String(sp.getData()));
 //              mOnDataReceivedListener.onLogin(address, new String(sp.getData()));
             } else if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
                 int ip = byteArray2Int(address);
                 removeDevice(ip);
-                Log.d("Logout", address + "->" + new String(sp.getData()));
+                Log.d("Logout",new String(address) + "->" + new String(sp.getData()));
 //              mOnDataReceivedListener.onLogout(address, new String(sp.getData()));
             }
             adapter.notifyDataSetChanged();

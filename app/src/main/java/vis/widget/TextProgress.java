@@ -12,35 +12,31 @@ import android.widget.ProgressBar;
  * Created by Vision on 15/6/19.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class MyProgress extends ProgressBar {
+public class TextProgress extends ProgressBar {
     String text;
     Paint mPaint;
 
-    public MyProgress(Context context) {
+    public TextProgress(Context context) {
         super(context);
-        // TODO Auto-generated constructor stub
-        System.out.println("1");
+//        System.out.println("1");
         initText();
     }
 
-    public MyProgress(Context context, AttributeSet attrs, int defStyle) {
+    public TextProgress(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        // TODO Auto-generated constructor stub
-        System.out.println("2");
+//        System.out.println("2");
         initText();
     }
 
 
-    public MyProgress(Context context, AttributeSet attrs) {
+    public TextProgress(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // TODO Auto-generated constructor stub
-        System.out.println("3");
+//        System.out.println("3");
         initText();
     }
 
     @Override
     public synchronized void setProgress(int progress) {
-        // TODO Auto-generated method stub
         setText(progress);
         super.setProgress(progress);
 
@@ -48,7 +44,6 @@ public class MyProgress extends ProgressBar {
 
     @Override
     protected synchronized void onDraw(Canvas canvas) {
-        // TODO Auto-generated method stub
         super.onDraw(canvas);
         //this.setText();
         Rect rect = new Rect();

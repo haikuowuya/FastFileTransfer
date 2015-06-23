@@ -52,8 +52,8 @@ public class FilesTransfer {
      * @param address 要发送往的地址
      * @param port    目标地址的端口
      */
-    public void sendFile(int index ,File file, String address, int port) {
-        new Thread(new Sender(index,file, address, port)).start();
+    public void sendFile(int index, File file, String address, int port) {
+        new Thread(new Sender(index, file, address, port)).start();
     }
 
     /**
@@ -129,7 +129,6 @@ public class FilesTransfer {
                             if (length == -1) {
                                 break;
                             }
-//                        System.out.println(length);
                             fout.write(inputByte, 0, length);
                             fout.flush();
                         }
@@ -173,7 +172,7 @@ public class FilesTransfer {
         private int completionPercentage;
 
 
-        public Sender(int index ,File file, String address, int port) {
+        public Sender(int index, File file, String address, int port) {
             this.index = index;
             this.file = file;
             this.address = address;
@@ -196,14 +195,14 @@ public class FilesTransfer {
                     dout.flush();
                     sendLength += length;
                     int transferred = (int) (sendLength * 100 / file.length());
-                    if (completionPercentage < transferred) {
+                    if (completionPercentage < transferred) {       //减少发送message
                         completionPercentage = transferred;
                         msg = Message.obtain();
                         msg.what = this.index;
                         msg.arg1 = completionPercentage;
                         if (100 > completionPercentage) {
                             msg.arg2 = UserDevice.TRANSFER_STATE_TRANSFERRING;
-                        }else{
+                        } else {
                             msg.arg2 = UserDevice.TRANSFER_STATE_FINISH;
                         }
                         mHandler.sendMessage(msg);
