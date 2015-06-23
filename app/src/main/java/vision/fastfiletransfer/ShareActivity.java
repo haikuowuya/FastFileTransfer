@@ -2,7 +2,9 @@ package vision.fastfiletransfer;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,6 +14,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.Map;
 
 import vis.UserDevice;
@@ -38,8 +41,8 @@ public class ShareActivity extends Activity {
     /**
      * 设备连接ListView
      */
-    private ListView lvConnectedDevices;
-//    private UserListAdapter adapter;
+    private ListView lvDevices;
+//    private UserDevicesAdapter adapter;
 //    private SparseArray<UserDevice> userList = new SparseArray<UserDevice>();
 
 //    private List<Map<String, String>> mData;
@@ -51,10 +54,10 @@ public class ShareActivity extends Activity {
         setContentView(R.layout.activity_share);
 
         mShareWifiManager = new ShareWifiManager(this);
-        mFFTService = new FFTService(this);
+        mFFTService = new FFTService(this,FFTService.SERVICE_SHARE);
 
-        tvName = (TextView) findViewById(R.id.tvName);
-        lvConnectedDevices = (ListView) findViewById(R.id.lvConnectedDevices);
+        tvName = (TextView) findViewById(R.id.tvTips);
+        lvDevices = (ListView) findViewById(R.id.lvDevices);
         tvFileName = (TextView) findViewById(R.id.tvFileName);
         btnSelectFile = (Button) findViewById(R.id.btnSelectFile);
         btnSend = (Button) findViewById(R.id.btnSend);
@@ -80,6 +83,20 @@ public class ShareActivity extends Activity {
                     // Get the Uri of the selected file
                     filePath = mFFTService.getRealPathFromURI(this, data.getData());
                     this.tvFileName.setText(filePath.substring(filePath.lastIndexOf("/") + 1));
+                    tvFileName.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent("android.intent.action.VIEW");
+                            intent.addCategory("android.intent.category.DEFAULT");
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            Uri uri = Uri.fromFile(new File(filePath));
+                            {
+                                //暂时只能打开图片
+                                intent.setDataAndType(uri, "image/*");
+                            }
+                            startActivity(intent);
+                        }
+                    });
                 }
                 break;
         }
@@ -140,10 +157,10 @@ public class ShareActivity extends Activity {
 //        mData = new ArrayList<Map<String, String>>();
 //        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
 //                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
-//        lvConnectedDevices.setAdapter(adapter);
-//        adapter = new UserListAdapter(this, userList);
+//        lvDevices.setAdapter(adapter);
+//        adapter = new UserDevicesAdapter(this, userList);
 
-        lvConnectedDevices.setAdapter(mFFTService.getAdapter());
+        lvDevices.setAdapter(mFFTService.getAdapter());
 
         btnSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override

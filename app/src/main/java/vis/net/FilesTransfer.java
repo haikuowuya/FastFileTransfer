@@ -20,6 +20,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import vis.UserDevice;
+import vis.UserFile;
 
 /**
  * 文件传输类
@@ -36,6 +37,8 @@ public class FilesTransfer {
     private boolean isReceiving = false;
     private Context context;
     private Handler mHandler;
+    private Message msg;
+
 
     public FilesTransfer(Context context) {
         this.context = context;
@@ -102,10 +105,16 @@ public class FilesTransfer {
         private byte[] inputByte = null;
         private int port;
         private File dir;
+        private UserFile userFile;
+        /**
+         * 本次接收的文件序号
+         */
+        private int index;
 
         public Receiver(int port, File dir) {
             this.port = port;
             this.dir = dir;
+            userFile = new UserFile();
         }
 
         @Override
@@ -121,7 +130,11 @@ public class FilesTransfer {
                         mSocket = mServerSocket.accept();
                         Log.d(this.getClass().getName(), "start translate");
                         din = new DataInputStream(mSocket.getInputStream());
-                        fout = new FileOutputStream(new File(dir.getPath() + "/" + din.readUTF()));
+                        userFile.name = din.readUTF();
+                        fout = new FileOutputStream(new File(dir.getPath() + "/" + userFile.name));
+                        userFile.size = din.readLong();
+                        userFile.state = UserFile.TRANSFER_STATE_TRANSFERRING;
+                        userFile.id = index;
                         while (true) {
                             if (din != null) {
                                 length = din.read(inputByte, 0, inputByte.length);
@@ -131,7 +144,15 @@ public class FilesTransfer {
                             }
                             fout.write(inputByte, 0, length);
                             fout.flush();
+                            userFile.completed += length;
+                            if (userFile.completed == userFile.size) {
+                                userFile.state = UserFile.TRANSFER_STATE_FINISH;
+                            }
+                            msg = Message.obtain();
+                            msg.obj = userFile;
+                            mHandler.sendMessage(msg);
                         }
+                        index++;
                         Log.d(this.getClass().getName(), "finish translate");
                     } catch (SocketTimeoutException e) {
                         Log.d("Exception", "SocketTimeoutException");
@@ -167,7 +188,6 @@ public class FilesTransfer {
         private int port;
 
         private long sendLength;
-        private Message msg;
         private int index;
         private int completionPercentage;
 
@@ -190,12 +210,14 @@ public class FilesTransfer {
                 fin = new FileInputStream(file);
                 sendByte = new byte[1024];
                 dout.writeUTF(file.getName());
+                dout.writeLong(file.length());
                 while ((length = fin.read(sendByte, 0, sendByte.length)) > 0) {
                     dout.write(sendByte, 0, length);
                     dout.flush();
                     sendLength += length;
                     int transferred = (int) (sendLength * 100 / file.length());
                     if (completionPercentage < transferred) {       //减少发送message
+                        Log.d("completed", String.valueOf(completionPercentage));
                         completionPercentage = transferred;
                         msg = Message.obtain();
                         msg.what = this.index;

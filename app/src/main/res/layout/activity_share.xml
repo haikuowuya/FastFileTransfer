@@ -45,18 +45,18 @@
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/lvConnectedDevices"
+        android:id="@+id/lvDevices"
         android:layout_alignParentTop="false"
         android:layout_centerHorizontal="true"
         android:layout_above="@+id/linearLayout"
-        android:layout_below="@+id/tvName" />
+        android:layout_below="@+id/tvTips" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="本设备名称"
-        android:id="@+id/tvName"
+        android:id="@+id/tvTips"
         android:layout_centerHorizontal="true"
         android:gravity="center_horizontal" />
 
