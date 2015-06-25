@@ -104,15 +104,7 @@ public class UserFilesAdapter extends FFTAdapter {
                     public void onClick(View v) {
                         Toast.makeText(mContext, userFile.name, Toast.LENGTH_SHORT)
                                 .show();
-                        Intent intent = new Intent("android.intent.action.VIEW");
-                        intent.addCategory("android.intent.category.DEFAULT");
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        Uri uri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getPath() + "/FFT/" + userFile.name));
-                        {
-                            //暂时只能打开图片
-                            intent.setDataAndType(uri, "image/*");
-                        }
-                        mContext.startActivity(intent);
+                        openFile(userFile.name);
                     }
                 });
                 break;
@@ -174,6 +166,18 @@ public class UserFilesAdapter extends FFTAdapter {
 
     public Object getObject(int index) {
         return null;
+    }
+
+    private void openFile(String filename) {
+        Intent intent = new Intent("android.intent.action.VIEW");
+        intent.addCategory("android.intent.category.DEFAULT");
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Uri uri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getPath() + "/FFT/" + filename));
+        {
+            //暂时只能打开图片
+            intent.setDataAndType(uri, "image/*");
+        }
+        mContext.startActivity(intent);
     }
 
 }

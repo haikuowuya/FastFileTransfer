@@ -76,13 +76,13 @@ public class FFTService {
                 if (sp.getCmdByByte() == SwapPackage.LOGIN) {
                     //设备登入
                     UserDevice us = new UserDevice();
-                    us.ip = ffts.byteArray2IpAddress(address);
+                    us.ip = byteArray2IpAddress(address);
                     us.name = new String(sp.getData());
-                    int ip = ffts.byteArray2Int(address);
+                    int ip = byteArray2Int(address);
                     ffts.mAdapter.put(ip, us);
                     Log.d("Login", us.ip + "->" + new String(sp.getData()));
                 } else if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
-                    int ip = ffts.byteArray2Int(address);
+                    int ip = byteArray2Int(address);
                     ffts.mAdapter.remove(ip);
                     Log.d("Logout", new String(address) + "->" + new String(sp.getData()));
                 }
@@ -94,7 +94,7 @@ public class FFTService {
 
     public FFTService(Context context, int serviceType) {
         mCommandsTransfer = new CommandsTransfer(2222);
-        mFilesTransfer = new FilesTransfer(context);
+        mFilesTransfer = new FilesTransfer(context,serviceType);
         if (SERVICE_SHARE == serviceType) {
             mAdapter = new UserDevicesAdapter(context);
         } else if (SERVICE_RECEIVE == serviceType) {
@@ -106,17 +106,17 @@ public class FFTService {
     }
 
     /**
-     * 使能传输
+     * 使能
      */
-    public void enableTransmission() {
-        mCommandsTransfer.enable();
+    public void enable() {
+//        mCommandsTransfer.enable();
     }
 
     /**
-     * 失能传输
+     * 失能
      */
-    public void disableTransmission() {
-        mCommandsTransfer.disable();
+    public void disable() {
+//        mCommandsTransfer.disable();
     }
 
     /**
@@ -185,7 +185,7 @@ public class FFTService {
             Toast.makeText(context, "没有设备连接", Toast.LENGTH_SHORT).show();
         } else {
             //发送文件
-            Toast.makeText(context, file.toString(), Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, file.toString(), Toast.LENGTH_SHORT).show();
             for (int i = 0, nsize = mAdapter.getCount(); i < nsize; i++) {
                 UserDevice ud = (UserDevice) mAdapter.getObject(i);
                 mFilesTransfer.sendFile(i, file, ud.ip, 2223);
@@ -194,7 +194,7 @@ public class FFTService {
         }
     }
 
-    public String getRealPathFromURI(Context context, Uri contentUri) {
+    public static String getRealPathFromURI(Context context, Uri contentUri) {
         String res = null;
         String[] proj = {MediaStore.Images.Media.DATA};
         Cursor cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
@@ -245,7 +245,7 @@ public class FFTService {
      * @param array
      * @return int
      */
-    private int byteArray2Int(byte[] array) {
+    private static int byteArray2Int(byte[] array) {
         int temp = 0;
         for (int i = 0; i < 4; i++) {
             temp |= array[i] << (24 - (i * 8));
@@ -259,7 +259,7 @@ public class FFTService {
      * @param array
      * @return String
      */
-    private String byteArray2IpAddress(byte[] array) {
+    private static String byteArray2IpAddress(byte[] array) {
         return (array[0] & 0xff) + "." + (array[1] & 0xff) + "." + (array[2] & 0xff) + "." + (array[3] & 0xff);
     }
 

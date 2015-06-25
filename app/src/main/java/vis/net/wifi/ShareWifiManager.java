@@ -18,6 +18,11 @@ public class ShareWifiManager {
     private static final String TAG = APWifiManager.class.getName();
     private static final String SSID = "YDZS_" + Build.MODEL.replaceAll("\\s|-", "") + "00" + UUID.randomUUID().toString().substring(0, 4);
 
+    public static final int WIFI_AP_STATE_ENABLING = 12;
+    public static final int WIFI_AP_STATE_ENABLED = 13;
+    public static final int WIFI_AP_STATE_FAILED = 14;
+
+
     //定义WifiManager对象
     private WifiManager mWifiManager;
 
@@ -76,6 +81,22 @@ public class ShareWifiManager {
             mWifiManager.setWifiEnabled(this.backupStatus);
         }
         return success;
+    }
+
+    public boolean isApEnabled() {
+        int state = getWifiApState();
+        return WIFI_AP_STATE_ENABLING == state || WIFI_AP_STATE_ENABLED == state;
+    }
+
+    public int getWifiApState() {
+        try {
+            Method method = mWifiManager.getClass().getMethod("getWifiApState");
+            int i = (Integer) method.invoke(mWifiManager);
+            return i;
+        } catch (Exception e) {
+            Log.i(TAG, "Cannot get WiFi AP state" + e);
+            return WIFI_AP_STATE_FAILED;
+        }
     }
 
     public WifiConfiguration getWifiApConfiguration() {

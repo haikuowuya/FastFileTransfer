@@ -6,6 +6,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,26 +58,30 @@ public class ReceiveWifiManager {
      * @param pattern 正则表达式
      * @return 如果匹配成功返回SSID，如果不成功返回Null
      */
-    public String findSSID(String pattern) {
-        String foundSSID = null;
+//    public String findSSID(String pattern) {
+    public ArrayList<String> findSSID(String pattern) {
+//        String foundSSID = null;
+        ArrayList<String> al = new ArrayList<String>();
         List<ScanResult> wifiList = mWifiManager.getScanResults();
         Pattern p = Pattern.compile(pattern);
         for (int i = 0; i < wifiList.size(); i++) {
             //匹配SSID
             Matcher m = p.matcher(wifiList.get(i).SSID);
             if (m.find()) {//匹配成功
-                foundSSID = wifiList.get(i).SSID;
-                break;
+//                foundSSID = wifiList.get(i).SSID;
+                al.add(wifiList.get(i).SSID);
+//                break;
             }
         }
-        return foundSSID;
+//        return foundSSID;
+        return al;
     }
 
     /**
      * 登入网络
      */
-    public void addNetworkWithoutPasswork(String ssid) {
-        mWifiManager.disconnect();
+    public boolean addNetworkWithoutPasswork(String ssid) {
+//        mWifiManager.disconnect();
         targetConfig = new WifiConfiguration();
         targetConfig.SSID = "\"" + ssid + "\"";
         targetConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
@@ -85,7 +90,7 @@ public class ReceiveWifiManager {
         //保存本地NetworkID
         localNetworkID = mWifiManager.getConnectionInfo().getNetworkId();
         //加入网络
-        mWifiManager.enableNetwork(targetNetID, true);
+        return mWifiManager.enableNetwork(targetNetID, true);
     }
 
     /**
@@ -93,9 +98,6 @@ public class ReceiveWifiManager {
      */
     public void disableNetwork() {
         mWifiManager.removeNetwork(targetNetID);
-//        mWifiManager.disconnect();
-//        mWifiManager.disableNetwork(targetNetID);
-        mWifiManager.reconnect();
     }
 
     /**
@@ -123,6 +125,7 @@ public class ReceiveWifiManager {
 
     /**
      * 把IP地址从int转换成String
+     *
      * @param i int 型的IP地址
      * @return String 型的IP地址，如255.255.255.255
      */

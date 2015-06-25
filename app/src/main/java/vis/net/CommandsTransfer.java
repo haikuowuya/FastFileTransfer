@@ -10,8 +10,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import vis.net.protocol.FFTService;
 import vis.net.protocol.SwapPackage;
 
 /**
@@ -28,14 +29,16 @@ public class CommandsTransfer {
 
     //    private static final int PORT = 2048;
     private static final int RECEIVEPACKETLENGTH = 64;
+    private final ExecutorService executorService;
+
     /**
      * 是否使能UDP
      */
-    private boolean isEnable = false;
+//    private boolean isEnable = false;
     /**
      * 是否使能接收
      */
-    private boolean isReceive = false;
+//    private boolean isReceive = false;
 
     /**
      * 接收监听端口
@@ -51,65 +54,64 @@ public class CommandsTransfer {
     }
 
     public CommandsTransfer(int recvPort) {
-        byte[] sendData = new byte[RECEIVEPACKETLENGTH];
-        sendPacket = new DatagramPacket(sendData, sendData.length);
         this.recvPort = recvPort;
+        executorService = Executors.newSingleThreadExecutor();
     }
 
     /**
      * 使能UDP
      */
-    public void enable() {
-        this.isEnable = true;
-    }
+//    public void enable() {
+//        this.isEnable = true;
+//    }
 
     /**
      * @return the isEnable
      */
-    public boolean isEnable() {
-        return isEnable;
-    }
+//    public boolean isEnable() {
+//        return isEnable;
+//    }
 
     /**
      * 失能UDP
      */
-    public void disable() {
-        this.isReceive = false;
-        this.isEnable = false;
-        closeSocket();
-    }
+//    public void disable() {
+//        this.isReceive = false;
+//        this.isEnable = false;
+//        closeSocket();
+//    }
 
     /**
-     * 获得DatagramSocket对象，单例模式
+     * 获得DatagramSocket对象
      *
      * @return DatagramSocket
      */
-    private DatagramSocket getSocket() {
-        if (this.mDatagramSocket == null) {
-            try {
-                mDatagramSocket = new DatagramSocket(recvPort);
-                mDatagramSocket.setSoTimeout(5000);
-            } catch (SocketException e) {
-                e.printStackTrace();
-            }
-        }
-        return mDatagramSocket;
-    }
+//    private DatagramSocket getSocket() {
+//        if (this.mDatagramSocket == null) {
+//            try {
+//                mDatagramSocket = new DatagramSocket(recvPort);
+//                mDatagramSocket.setSoTimeout(5000);
+//            } catch (SocketException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return mDatagramSocket;
+//    }
 
     /**
      * 关闭DatagramSocket
      */
-    private void closeSocket() {
-        if (mDatagramSocket != null) {
-            if (mDatagramSocket.isConnected()) {
-                mDatagramSocket.disconnect();
-            }
-            if (!mDatagramSocket.isClosed()) {
-                mDatagramSocket.close();
-            }
-            mDatagramSocket = null;
-        }
-    }
+//    private void closeSocket() {
+//        if (mDatagramSocket != null) {
+//            if (mDatagramSocket.isConnected()) {
+//                mDatagramSocket.disconnect();
+//            }
+//            if (!mDatagramSocket.isClosed()) {
+//                mDatagramSocket.close();
+//            }
+//            mDatagramSocket = null;
+//        }
+//    }
 
     /**
      * 发送
@@ -117,9 +119,10 @@ public class CommandsTransfer {
      * @param sp SwapPackage 交换包
      */
     public void send(SwapPackage sp) {
-        if (isEnable) {
-            new Thread(new Sender(sp.getString(), sp.getAddress(), sp.getPort())).start();
-        }
+//        if (isEnable) {
+        executorService.execute(new Sender(sp.getString(), sp.getAddress(), sp.getPort()));
+//            new Thread().start();
+//        }
     }
 
     /**
@@ -129,17 +132,19 @@ public class CommandsTransfer {
 //        ExecutorService exec = Executors.newCachedThreadPool();
 //        Receiver server = new Receiver();
 //        exec.execute(server);
-        if (isEnable && !isReceive) {
-            isReceive = true;
-            new Thread(new Receiver()).start();
-        }
+//        if (isEnable ) {
+//            isReceive = true;
+        executorService.execute(new Receiver());
+//            new Thread().start();
+//        }
     }
 
     /**
      * 停止接收
      */
     private void stopReceiver() {
-        isReceive = false;
+//        isReceive = false;
+        executorService.shutdown();
     }
 
     /**
@@ -148,22 +153,13 @@ public class CommandsTransfer {
      * @param handler 回调Handler
      */
     public void setCallbackHandler(Handler handler) {
-//        this.mOnDataReceivedListener = listener;
         this.mHandler = handler;
         if (null == handler) {
             stopReceiver();
         } else {
             startReceiver();
         }
-
     }
-
-    /**
-     * 监听接口
-     */
-//    public interface OnDataReceivedListener {
-//        void onDataReceived(String sourceAddress, byte[] data);
-//    }
 
     /**
      * 发送线程
@@ -171,7 +167,7 @@ public class CommandsTransfer {
     class Sender implements Runnable {
 
         private final byte[] msg;
-        private final String TAG = Sender.class.getName();
+//        private final String TAG = Sender.class.getName();
         private final String address;
         private final int port;
 
@@ -183,17 +179,24 @@ public class CommandsTransfer {
 
         @Override
         public void run() {
-            try {//InetAddress.getByName("255.255.255.255")
+            try {
+                mDatagramSocket = new DatagramSocket();
                 sendPacket = new DatagramPacket(msg, msg.length, InetAddress.getByName(address),
                         port);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
+            } catch (SocketException e) {
+                e.printStackTrace();
             }
             try {
-                getSocket().send(sendPacket);
+                mDatagramSocket.send(sendPacket);
                 Log.d("send", new String(msg));
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                if (!mDatagramSocket.isClosed()) {
+                    mDatagramSocket.close();
+                }
             }
         }
     }
@@ -206,11 +209,17 @@ public class CommandsTransfer {
 
         @Override
         public void run() {
+            try {
+                mDatagramSocket = new DatagramSocket(recvPort);
+                mDatagramSocket.setSoTimeout(5000);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
             byte[] receiveBuf = new byte[RECEIVEPACKETLENGTH];
             DatagramPacket receivePacket = new DatagramPacket(receiveBuf, receiveBuf.length);
-            while (isEnable && isReceive) {
+            while (!Thread.interrupted()) {
                 try {
-                    getSocket().receive(receivePacket);
+                    mDatagramSocket.receive(receivePacket);
                     Object[] objects = new Object[2];
                     objects[0] = receivePacket.getAddress().getAddress();
                     objects[1] = receivePacket.getData();
@@ -219,10 +228,13 @@ public class CommandsTransfer {
                     mHandler.sendMessage(msg);
                     Log.i("received", new String((byte[]) objects[0]) + "->" + new String(receivePacket.getData()).trim());
                 } catch (IOException e) {
-                    Log.d("", "I am receiving!");
+//                    Log.d("", "I am receiving!");
                 }
             }
-            isReceive = false;
+            if (!mDatagramSocket.isClosed()) {
+                mDatagramSocket.close();
+            }
+//            isReceive = false;
         }
     }
 

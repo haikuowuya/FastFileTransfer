@@ -18,9 +18,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import vis.UserDevice;
+import vis.UserDevicesAdapter;
 import vis.UserFile;
+import vis.UserFilesAdapter;
+import vis.net.protocol.FFTService;
 
 /**
  * 文件传输类
@@ -29,6 +34,7 @@ import vis.UserFile;
  */
 public class FilesTransfer {
 
+    private final ExecutorService executorService;
     private ServerSocket mServerSocket;
     private Socket mSocket;
     /**
@@ -39,9 +45,15 @@ public class FilesTransfer {
     private Handler mHandler;
     private Message msg;
 
-
-    public FilesTransfer(Context context) {
+    public FilesTransfer(Context context, int serviceType) {
         this.context = context;
+        if (FFTService.SERVICE_SHARE == serviceType) {
+            executorService = Executors.newFixedThreadPool(3);
+        } else if (FFTService.SERVICE_RECEIVE == serviceType) {
+            executorService = Executors.newSingleThreadExecutor();
+        } else {
+            executorService = null;
+        }
     }
 
     public void setCallbackHandler(Handler handler) {
@@ -56,7 +68,7 @@ public class FilesTransfer {
      * @param port    目标地址的端口
      */
     public void sendFile(int index, File file, String address, int port) {
-        new Thread(new Sender(index, file, address, port)).start();
+        executorService.execute(new Sender(index, file, address, port));
     }
 
     /**
@@ -77,7 +89,7 @@ public class FilesTransfer {
             if (dir.exists()) {
                 if (dir.canWrite()) {
                     Log.d(this.getClass().getName(), "the dir is OK!");
-                    new Thread(new Receiver(port, dir)).start();
+                    executorService.execute(new Receiver(port, dir));
                 } else {
                     Log.e(this.getClass().getName(), "the dir can not write");
                 }
@@ -127,11 +139,18 @@ public class FilesTransfer {
                     try {
                         Log.d(this.getClass().getName(), "accepting the connect");
                         mSocket = mServerSocket.accept();
+                        mSocket.setSoTimeout(2000);
                         Log.d(this.getClass().getName(), "start translate");
                         din = new DataInputStream(mSocket.getInputStream());
                         userFile = new UserFile();
                         userFile.name = din.readUTF();
-                        fout = new FileOutputStream(new File(dir.getPath() + "/" + userFile.name));
+                        File file;
+                        int i = 1;
+                        while ((file = new File(dir.getPath() + "/" + userFile.name)).exists()) {
+                            userFile.name = userFile.name.replaceAll("(\\(\\d*\\))?\\.", "(" + String.valueOf(i++) + ").");
+                        }
+                        Log.d("isExists", file.getPath());
+                        fout = new FileOutputStream(file);
                         userFile.size = din.readLong();
                         userFile.state = UserFile.TRANSFER_STATE_TRANSFERRING;
                         userFile.id = index;
@@ -217,7 +236,7 @@ public class FilesTransfer {
                     sendLength += length;
                     int transferred = (int) (sendLength * 100 / file.length());
                     if (completionPercentage < transferred) {       //减少发送message
-                        Log.d("completed", String.valueOf(completionPercentage));
+//                        Log.d("completed", String.valueOf(completionPercentage));
                         completionPercentage = transferred;
                         msg = Message.obtain();
                         msg.what = this.index;

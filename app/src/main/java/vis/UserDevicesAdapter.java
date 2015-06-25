@@ -48,8 +48,8 @@ public class UserDevicesAdapter extends FFTAdapter {
                 ud.completed = msg.arg1;
                 ud.state = msg.arg2;
                 if (ud.completed == 100) {
-                    Toast.makeText(uda.mContext, "传输完成", Toast.LENGTH_SHORT)
-                            .show();
+//                    Toast.makeText(uda.mContext, "传输完成", Toast.LENGTH_SHORT)
+//                            .show();
                 }
                 // notifyDataSetChanged会执行getView函数，更新所有可视item的数据
                 uda.notifyDataSetChanged();
