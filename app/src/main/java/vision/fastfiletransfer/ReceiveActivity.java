@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,13 +17,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import vis.net.protocol.FFTService;
 import vis.net.wifi.ReceiveWifiManager;
+import vis.net.wifi.WifiHelper;
 
 
 public class ReceiveActivity extends Activity {
-    private ReceiveWifiManager mReceiveWifiManager;
+//    private ReceiveWifiManager mReceiveWifiManager;
+    private WifiHelper mWifiHelper;
     private FFTService mFFTService;
     private WifiStateChangedReceiver wscr;
     private NetworkStateChangeReceiver nscr;
@@ -39,6 +43,7 @@ public class ReceiveActivity extends Activity {
         setContentView(R.layout.activity_receive);
 
         mReceiveWifiManager = new ReceiveWifiManager(this);
+        mWifiHelper = new WifiHelper(this);
         mFFTService = new FFTService(this, FFTService.SERVICE_RECEIVE);
 
         tvTips = (TextView) findViewById(R.id.tvTips);
@@ -50,6 +55,7 @@ public class ReceiveActivity extends Activity {
         wscr = new WifiStateChangedReceiver();
         registerReceiver(wscr, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
         mReceiveWifiManager.setWifiEnabled(true);
+        mWifiHelper.setWifiEnabled(true);
         tvTips.setText("正在打开wifi……");
     }
 
@@ -84,6 +90,8 @@ public class ReceiveActivity extends Activity {
         super.onDestroy();
 //        mFFTService.disable();
         mReceiveWifiManager.disableNetwork();
+        mWifiHelper.removeNetwork();
+
         if (wscr != null) {
             unregisterReceiver(wscr);
         }
@@ -125,7 +133,9 @@ public class ReceiveActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
 //            Log.d(TAG, "ScanResultsAvailableReceiver");
-            ArrayList<String> al = mReceiveWifiManager.findSSID("YDZS_*");
+//            ArrayList<String> al = mReceiveWifiManager.findSSID("YDZS_*");
+           List<ScanResult> wifiList = mWifiManager.getScanResults();
+            ArrayList<String> al = WifiHelper.findSSID(wifiList,"YDZS_*")
             if (al.size() > 0) {
 //                Toast.makeText(ReceiveActivity.this, "找到AP了！", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, String.valueOf(al.size()));

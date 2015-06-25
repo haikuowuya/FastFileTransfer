@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * Email:Vision.lsm.2012@gmail.com
  */
 public class ReceiveWifiManager {
-    private static final String TAG = APWifiManager.class.getName();
+//    private static final String TAG = APWifiManager.class.getName();
     /**
      * 本地原来的NetworkID
      */

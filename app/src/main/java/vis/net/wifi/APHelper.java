@@ -47,13 +47,6 @@ public class APHelper {
         }
     }
 
-    public static WifiConfiguration createWifiCfg(String ssid) {
-        WifiConfiguration wifiCfg = new WifiConfiguration();
-        wifiCfg.SSID = ssid;
-        wifiCfg.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-//        wifiCfg.preSharedKey = "abcdefgh";
-        return wifiCfg;
-    }
 
     public boolean setWifiApEnabled(WifiConfiguration wifiConfig, boolean enabled) {
         boolean result = false;

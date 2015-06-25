@@ -61,7 +61,7 @@ public class FilesTransfer {
     }
 
     /**
-     * 发送文件
+     * 发送文件，最多可同时发送3个
      *
      * @param file    要发送的文件
      * @param address 要发送往的地址
@@ -81,13 +81,14 @@ public class FilesTransfer {
                 Environment.MEDIA_MOUNTED)) {
 //            Log.d(this.getClass().getName(), Environment.getExternalStorageState());
             File dir = new File(Environment.getExternalStorageDirectory().getPath() + dirName);
-            if (!dir.exists()) {
-                if (dir.mkdirs()) {
-                    Toast.makeText(this.context, "创建文件夹成功", Toast.LENGTH_SHORT).show();
+            if (!dir.exists()) {            //文件夹不存在
+                if (dir.mkdirs()) {         //创建文件夹
+//                    Toast.makeText(this.context, "创建文件夹成功", Toast.LENGTH_SHORT).show();
+                    Log.d(this.getClass().getName(), "created document success");
                 }
             }
-            if (dir.exists()) {
-                if (dir.canWrite()) {
+            if (dir.exists()) {             //已经存在或者已经创建成功
+                if (dir.canWrite()) {       //可以写入
                     Log.d(this.getClass().getName(), "the dir is OK!");
                     executorService.execute(new Receiver(port, dir));
                 } else {
@@ -108,6 +109,7 @@ public class FilesTransfer {
 
     public void stopReceiving() {
         this.isReceiving = false;
+        executorService.shutdown();
     }
 
     class Receiver implements Runnable {
@@ -135,7 +137,7 @@ public class FilesTransfer {
             try {
                 mServerSocket = new ServerSocket(port);
                 mServerSocket.setSoTimeout(2000);
-                while (isReceiving) {
+                while (isReceiving && !Thread.interrupted()) {
                     try {
                         Log.d(this.getClass().getName(), "accepting the connect");
                         mSocket = mServerSocket.accept();
@@ -209,7 +211,6 @@ public class FilesTransfer {
         private long sendLength;
         private int index;
         private int completionPercentage;
-
 
         public Sender(int index, File file, String address, int port) {
             this.index = index;

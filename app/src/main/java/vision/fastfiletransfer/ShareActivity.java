@@ -19,6 +19,7 @@ import vis.UserDevice;
 import vis.net.protocol.FFTService;
 import vis.net.wifi.APHelper;
 import vis.net.wifi.ShareWifiManager;
+import vis.net.wifi.WifiHelper;
 
 
 public class ShareActivity extends Activity {
@@ -150,7 +151,7 @@ public class ShareActivity extends Activity {
         });
         if (!mAPHelper.isApEnabled()) {
             //开启AP
-            if (mAPHelper.setWifiApEnabled(APHelper.createWifiCfg(APHelper.SSID), true)) {
+            if (mAPHelper.setWifiApEnabled(WifiHelper.createWifiCfg(APHelper.SSID), true)) {
                 Toast.makeText(ShareActivity.this, "热点开启", Toast.LENGTH_SHORT).show();
                 tvName.setText("本机：" + new String(FFTService.LOCALNAME));
                 mFFTService.enable();
