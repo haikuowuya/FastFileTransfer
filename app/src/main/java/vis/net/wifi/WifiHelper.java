@@ -1,6 +1,7 @@
 package vis.net.wifi;
 
 import android.content.Context;
+import android.net.DhcpInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
@@ -20,12 +21,13 @@ public class WifiHelper {
     /**
      * 目标AP的NetID
      */
-    private int targetNetID = 0;
+    private int targetNetID = -1;
 
     public WifiHelper(Context context) {
         //取得WifiManager对象
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
+
     /**
      * 打开/关闭WIFI
      */
@@ -34,29 +36,39 @@ public class WifiHelper {
             mWifiManager.setWifiEnabled(isEnable);
         }
     }
+
+    public boolean startScan() {
+        return mWifiManager.startScan();
+    }
+
+    public boolean addNetwork(WifiConfiguration wifiCfg) {
+        //添加一个网络并连接
+        targetNetID = mWifiManager.addNetwork(wifiCfg);
+        return targetNetID != -1;
+    }
+
     /**
      * 登入网络
      */
-    public boolean addNetwork(WifiConfiguration wifiCfg) {
+    public boolean enableNetwork(boolean b) {
 //        mWifiManager.disconnect();
-        //添加一个网络并连接
-        targetNetID = mWifiManager.addNetwork(wifiCfg);
         //加入网络
-        return mWifiManager.enableNetwork(targetNetID, true);
+        return mWifiManager.enableNetwork(targetNetID, b);
     }
 
     /**
      * 除移指定ID的网络
      */
     public void removeNetwork() {
-        if (0 != targetNetID) {
+        if (-1 != targetNetID) {
             mWifiManager.removeNetwork(targetNetID);
         }
     }
 
     public static WifiConfiguration createWifiCfg(String ssid) {
         WifiConfiguration wifiCfg = new WifiConfiguration();
-        wifiCfg.SSID = ssid;
+//        wifiCfg.SSID = ssid;
+        wifiCfg.SSID = "\"" + ssid + "\"";
         wifiCfg.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
 //        wifiCfg.preSharedKey = "abcdefgh";
         return wifiCfg;
@@ -69,10 +81,10 @@ public class WifiHelper {
      * @return 如果匹配成功返回SSID，如果不成功返回Null
      */
 //    public String findSSID(String pattern) {
-    public static ArrayList<String> findSSID(List<ScanResult> wifiList,String pattern) {
+    public ArrayList<String> findSSID(String pattern) {
 //        String foundSSID = null;
         ArrayList<String> al = new ArrayList<String>();
-//        List<ScanResult> wifiList = mWifiManager.getScanResults();
+        List<ScanResult> wifiList = mWifiManager.getScanResults();
         Pattern p = Pattern.compile(pattern);
         for (int i = 0; i < wifiList.size(); i++) {
             //匹配SSID
@@ -87,6 +99,28 @@ public class WifiHelper {
         return al;
     }
 
+    public DhcpInfo getDhcpInfo() {
+        return mWifiManager.getDhcpInfo();
+    }
+
+    public String getServerAddressByStr() {
+        return intToIp(getServerAddressByInt());
+    }
+
+    public int getServerAddressByInt() {
+        return getDhcpInfo().serverAddress;
+    }
+
+    /**
+     * 把IP地址从int转换成String
+     *
+     * @param i int 型的IP地址
+     * @return String 型的IP地址，如255.255.255.255
+     */
+    private static String intToIp(int i) {
+        return (i & 0xFF) + "." + ((i >> 8) & 0xFF) + "." + ((i >> 16) & 0xFF) + "."
+                + ((i >> 24) & 0xFF);
+    }
 
 
 }

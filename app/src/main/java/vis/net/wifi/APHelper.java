@@ -66,5 +66,13 @@ public class APHelper {
         return result;
     }
 
+    public static WifiConfiguration createWifiCfg(String ssid) {
+        WifiConfiguration wifiCfg = new WifiConfiguration();
+        wifiCfg.SSID = ssid;
+//        wifiCfg.SSID = "\"" + ssid + "\"";
+        wifiCfg.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+//        wifiCfg.preSharedKey = "abcdefgh";
+        return wifiCfg;
+    }
 
 }

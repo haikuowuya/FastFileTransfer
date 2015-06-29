@@ -20,7 +20,7 @@ import vis.net.protocol.SwapPackage;
  * 使用前必须先调用enable使能，使用完毕必须再调用disable失能；
  * 发送直接调用 {@code send()} ；
  * 接收只需要设置好监听 {@code setCallbackHandler()} 就能开启，设置为Null即关闭<br>
- * <p>
+ * <p/>
  * <br>
  * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
@@ -38,7 +38,7 @@ public class CommandsTransfer {
     /**
      * 是否使能接收
      */
-//    private boolean isReceive = false;
+    private boolean isReceive = false;
 
     /**
      * 接收监听端口
@@ -133,7 +133,7 @@ public class CommandsTransfer {
 //        Receiver server = new Receiver();
 //        exec.execute(server);
 //        if (isEnable ) {
-//            isReceive = true;
+        isReceive = true;
         executorService.execute(new Receiver());
 //            new Thread().start();
 //        }
@@ -143,7 +143,7 @@ public class CommandsTransfer {
      * 停止接收
      */
     private void stopReceiver() {
-//        isReceive = false;
+        isReceive = false;
         executorService.shutdown();
     }
 
@@ -167,7 +167,7 @@ public class CommandsTransfer {
     class Sender implements Runnable {
 
         private final byte[] msg;
-//        private final String TAG = Sender.class.getName();
+        //        private final String TAG = Sender.class.getName();
         private final String address;
         private final int port;
 
@@ -211,13 +211,13 @@ public class CommandsTransfer {
         public void run() {
             try {
                 mDatagramSocket = new DatagramSocket(recvPort);
-                mDatagramSocket.setSoTimeout(5000);
+                mDatagramSocket.setSoTimeout(1000);
             } catch (SocketException e) {
                 e.printStackTrace();
             }
             byte[] receiveBuf = new byte[RECEIVEPACKETLENGTH];
             DatagramPacket receivePacket = new DatagramPacket(receiveBuf, receiveBuf.length);
-            while (!Thread.interrupted()) {
+            while (isReceive) {
                 try {
                     mDatagramSocket.receive(receivePacket);
                     Object[] objects = new Object[2];
@@ -228,13 +228,13 @@ public class CommandsTransfer {
                     mHandler.sendMessage(msg);
                     Log.i("received", new String((byte[]) objects[0]) + "->" + new String(receivePacket.getData()).trim());
                 } catch (IOException e) {
-//                    Log.d("", "I am receiving!");
+                    Log.d("", "I am receiving!");
                 }
             }
+            Log.d("", "I am closing!");
             if (!mDatagramSocket.isClosed()) {
                 mDatagramSocket.close();
             }
-//            isReceive = false;
         }
     }
 

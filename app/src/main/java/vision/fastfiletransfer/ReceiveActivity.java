@@ -25,7 +25,7 @@ import vis.net.wifi.WifiHelper;
 
 
 public class ReceiveActivity extends Activity {
-//    private ReceiveWifiManager mReceiveWifiManager;
+    //    private ReceiveWifiManager mReceiveWifiManager;
     private WifiHelper mWifiHelper;
     private FFTService mFFTService;
     private WifiStateChangedReceiver wscr;
@@ -42,7 +42,7 @@ public class ReceiveActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive);
 
-        mReceiveWifiManager = new ReceiveWifiManager(this);
+//        mReceiveWifiManager = new ReceiveWifiManager(this);
         mWifiHelper = new WifiHelper(this);
         mFFTService = new FFTService(this, FFTService.SERVICE_RECEIVE);
 
@@ -54,7 +54,7 @@ public class ReceiveActivity extends Activity {
 
         wscr = new WifiStateChangedReceiver();
         registerReceiver(wscr, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
-        mReceiveWifiManager.setWifiEnabled(true);
+//        mReceiveWifiManager.setWifiEnabled(true);
         mWifiHelper.setWifiEnabled(true);
         tvTips.setText("正在打开wifi……");
     }
@@ -89,7 +89,7 @@ public class ReceiveActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
 //        mFFTService.disable();
-        mReceiveWifiManager.disableNetwork();
+//        mReceiveWifiManager.disableNetwork();
         mWifiHelper.removeNetwork();
 
         if (wscr != null) {
@@ -129,30 +129,39 @@ public class ReceiveActivity extends Activity {
 
         private final String TAG = ScanResultsAvailableReceiver.class.getName();
         private int noFindCount = 0;
+        private boolean bln = false;
 
         @Override
         public void onReceive(Context context, Intent intent) {
 //            Log.d(TAG, "ScanResultsAvailableReceiver");
 //            ArrayList<String> al = mReceiveWifiManager.findSSID("YDZS_*");
-           List<ScanResult> wifiList = mWifiManager.getScanResults();
-            ArrayList<String> al = WifiHelper.findSSID(wifiList,"YDZS_*")
-            if (al.size() > 0) {
+//           List<ScanResult> wifiList = mWifiManager.getScanResults();
+            ArrayList<String> al = mWifiHelper.findSSID("YDZS_*");
 //                Toast.makeText(ReceiveActivity.this, "找到AP了！", Toast.LENGTH_SHORT).show();
-                Log.d(TAG, String.valueOf(al.size()));
-                ssid = al.get(0);
+            Log.d(TAG, String.valueOf(al.size()));
+            for (int i = 0; i < al.size(); i++) {
+                ssid = al.get(i);
                 tvTips.setText("尝试连接" + ssid);
-                unregisterReceiver(this);
-                srar = null;
-                //注册接收网络变化
-                nscr = new NetworkStateChangeReceiver();
-                registerReceiver(nscr, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
-                boolean bln = mReceiveWifiManager.addNetworkWithoutPasswork(ssid);
-                Log.d("bln", String.valueOf(bln));
-            } else {
+                Log.d(TAG, String.valueOf("尝试连接" + ssid));
+                if (mWifiHelper.addNetwork(WifiHelper.createWifiCfg(ssid))) {
+                    bln = mWifiHelper.enableNetwork(true);
+                    //注销搜索广播接收
+//                    srar !=null
+                    unregisterReceiver(this);
+                    srar = null;
+                    //注册接收网络变化
+                    nscr = new NetworkStateChangeReceiver();
+                    registerReceiver(nscr, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
+                    Log.d("bln", String.valueOf(bln));
+                }
+//                boolean bln = mReceiveWifiManager.addNetworkWithoutPasswork(ssid);
+            }
+            if (!bln) {
                 Log.d("noFindCount", String.valueOf(noFindCount));
                 if (++noFindCount < 30) {
                     tvTips.setText("第" + (noFindCount + 1) + "次扫描没有发现，开始第" + (noFindCount + 2) + "次扫描……");
-                    mReceiveWifiManager.startScan();
+//                    mReceiveWifiManager.startScan();
+                    mWifiHelper.startScan();
                 } else {
                     tvTips.setText("扫描了30次，没有发现可以连接的热点。");
                     Toast.makeText(ReceiveActivity.this, "没有发现AP", Toast.LENGTH_SHORT).show();
@@ -184,7 +193,8 @@ public class ReceiveActivity extends Activity {
                             new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 //                    Toast.makeText(ReceiveActivity.this, "正在扫描附近AP", Toast.LENGTH_SHORT).show();
                     tvTips.setText("正在扫描附近热点……");
-                    mReceiveWifiManager.startScan();
+//                    mReceiveWifiManager.startScan();
+                    mWifiHelper.startScan();
                     break;
                 case WifiManager.WIFI_STATE_UNKNOWN:
                     break;
@@ -204,7 +214,8 @@ public class ReceiveActivity extends Activity {
 //                tvTips.setText("已连接:" + ssid);
                 tvTips.setText("等待" + ssid.substring(5, ssid.length() - 6) + "发送文件");
                 mFFTService.enable();
-                mFFTService.sendLogin(mReceiveWifiManager.getServerAddressByStr());
+//                mFFTService.sendLogin(mReceiveWifiManager.getServerAddressByStr());
+                mFFTService.sendLogin(mWifiHelper.getServerAddressByStr());
             } else if (isConnected && NetworkInfo.State.DISCONNECTED.equals(info.getState()) && !info.isConnected()) {
                 Log.d(this.getClass().getName(), String.valueOf(info.getState()));
                 mFFTService.disable();

@@ -137,7 +137,7 @@ public class FilesTransfer {
             try {
                 mServerSocket = new ServerSocket(port);
                 mServerSocket.setSoTimeout(2000);
-                while (isReceiving && !Thread.interrupted()) {
+                while (isReceiving) {
                     try {
                         Log.d(this.getClass().getName(), "accepting the connect");
                         mSocket = mServerSocket.accept();
