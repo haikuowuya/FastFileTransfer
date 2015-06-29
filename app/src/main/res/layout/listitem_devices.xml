@@ -58,7 +58,7 @@
         android:layout_width="55dip"
         android:layout_height="30dip"
         android:layout_marginRight="10dip"
-        android:background="@drawable/style_btn_download"
+        android:background="@drawable/style_btn_open"
         android:focusable="false"
         android:text="@string/download"
         android:textColor="#ffffffff"

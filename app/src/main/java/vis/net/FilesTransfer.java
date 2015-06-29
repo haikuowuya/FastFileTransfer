@@ -18,9 +18,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import vis.UserDevice;
+import vis.UserDevicesAdapter;
 import vis.UserFile;
+import vis.UserFilesAdapter;
+import vis.net.protocol.FFTService;
 
 /**
  * 文件传输类
@@ -29,6 +34,7 @@ import vis.UserFile;
  */
 public class FilesTransfer {
 
+    private final ExecutorService executorService;
     private ServerSocket mServerSocket;
     private Socket mSocket;
     /**
@@ -39,9 +45,15 @@ public class FilesTransfer {
     private Handler mHandler;
     private Message msg;
 
-
-    public FilesTransfer(Context context) {
+    public FilesTransfer(Context context, int serviceType) {
         this.context = context;
+        if (FFTService.SERVICE_SHARE == serviceType) {
+            executorService = Executors.newFixedThreadPool(3);
+        } else if (FFTService.SERVICE_RECEIVE == serviceType) {
+            executorService = Executors.newSingleThreadExecutor();
+        } else {
+            executorService = null;
+        }
     }
 
     public void setCallbackHandler(Handler handler) {
@@ -49,14 +61,14 @@ public class FilesTransfer {
     }
 
     /**
-     * 发送文件
+     * 发送文件，最多可同时发送3个
      *
      * @param file    要发送的文件
      * @param address 要发送往的地址
      * @param port    目标地址的端口
      */
     public void sendFile(int index, File file, String address, int port) {
-        new Thread(new Sender(index, file, address, port)).start();
+        executorService.execute(new Sender(index, file, address, port));
     }
 
     /**
@@ -69,15 +81,16 @@ public class FilesTransfer {
                 Environment.MEDIA_MOUNTED)) {
 //            Log.d(this.getClass().getName(), Environment.getExternalStorageState());
             File dir = new File(Environment.getExternalStorageDirectory().getPath() + dirName);
-            if (!dir.exists()) {
-                if (dir.mkdirs()) {
-                    Toast.makeText(this.context, "创建文件夹成功", Toast.LENGTH_SHORT).show();
+            if (!dir.exists()) {            //文件夹不存在
+                if (dir.mkdirs()) {         //创建文件夹
+//                    Toast.makeText(this.context, "创建文件夹成功", Toast.LENGTH_SHORT).show();
+                    Log.d(this.getClass().getName(), "created document success");
                 }
             }
-            if (dir.exists()) {
-                if (dir.canWrite()) {
+            if (dir.exists()) {             //已经存在或者已经创建成功
+                if (dir.canWrite()) {       //可以写入
                     Log.d(this.getClass().getName(), "the dir is OK!");
-                    new Thread(new Receiver(port, dir)).start();
+                    executorService.execute(new Receiver(port, dir));
                 } else {
                     Log.e(this.getClass().getName(), "the dir can not write");
                 }
@@ -96,6 +109,7 @@ public class FilesTransfer {
 
     public void stopReceiving() {
         this.isReceiving = false;
+        executorService.shutdown();
     }
 
     class Receiver implements Runnable {
@@ -114,7 +128,6 @@ public class FilesTransfer {
         public Receiver(int port, File dir) {
             this.port = port;
             this.dir = dir;
-            userFile = new UserFile();
         }
 
         @Override
@@ -128,10 +141,18 @@ public class FilesTransfer {
                     try {
                         Log.d(this.getClass().getName(), "accepting the connect");
                         mSocket = mServerSocket.accept();
+                        mSocket.setSoTimeout(2000);
                         Log.d(this.getClass().getName(), "start translate");
                         din = new DataInputStream(mSocket.getInputStream());
+                        userFile = new UserFile();
                         userFile.name = din.readUTF();
-                        fout = new FileOutputStream(new File(dir.getPath() + "/" + userFile.name));
+                        File file;
+                        int i = 1;
+                        while ((file = new File(dir.getPath() + "/" + userFile.name)).exists()) {
+                            userFile.name = userFile.name.replaceAll("(\\(\\d*\\))?\\.", "(" + String.valueOf(i++) + ").");
+                        }
+                        Log.d("isExists", file.getPath());
+                        fout = new FileOutputStream(file);
                         userFile.size = din.readLong();
                         userFile.state = UserFile.TRANSFER_STATE_TRANSFERRING;
                         userFile.id = index;
@@ -191,7 +212,6 @@ public class FilesTransfer {
         private int index;
         private int completionPercentage;
 
-
         public Sender(int index, File file, String address, int port) {
             this.index = index;
             this.file = file;
@@ -217,7 +237,7 @@ public class FilesTransfer {
                     sendLength += length;
                     int transferred = (int) (sendLength * 100 / file.length());
                     if (completionPercentage < transferred) {       //减少发送message
-                        Log.d("completed", String.valueOf(completionPercentage));
+//                        Log.d("completed", String.valueOf(completionPercentage));
                         completionPercentage = transferred;
                         msg = Message.obtain();
                         msg.what = this.index;

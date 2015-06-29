@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,18 +14,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.Map;
 
 import vis.UserDevice;
 import vis.net.protocol.FFTService;
+import vis.net.wifi.APHelper;
 import vis.net.wifi.ShareWifiManager;
+import vis.net.wifi.WifiHelper;
 
 
 public class ShareActivity extends Activity {
 
     private static final int FILE_SELECT_CODE = 55;
+    private static final String ICICLE_KEY = "ShareActivity";
 
-    private ShareWifiManager mShareWifiManager;
+    //    private ShareWifiManager mShareWifiManager;
+    private APHelper mAPHelper;
     private FFTService mFFTService;
 
     private String filePath;
@@ -42,37 +44,25 @@ public class ShareActivity extends Activity {
      * 设备连接ListView
      */
     private ListView lvDevices;
-//    private UserDevicesAdapter adapter;
-//    private SparseArray<UserDevice> userList = new SparseArray<UserDevice>();
-
-//    private List<Map<String, String>> mData;
-//    private SimpleAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_share);
 
-        mShareWifiManager = new ShareWifiManager(this);
-        mFFTService = new FFTService(this,FFTService.SERVICE_SHARE);
+//        mShareWifiManager = new ShareWifiManager(this);
+        mAPHelper = new APHelper(this);
+        mFFTService = new FFTService(this, FFTService.SERVICE_SHARE);
 
         tvName = (TextView) findViewById(R.id.tvTips);
         lvDevices = (ListView) findViewById(R.id.lvDevices);
         tvFileName = (TextView) findViewById(R.id.tvFileName);
         btnSelectFile = (Button) findViewById(R.id.btnSelectFile);
         btnSend = (Button) findViewById(R.id.btnSend);
-        if (mShareWifiManager.setWifiApEnabled(true)) {
-            Toast.makeText(ShareActivity.this, "热点开启", Toast.LENGTH_SHORT).show();
-            tvName.setText("本机：" + new String(FFTService.LOCALNAME));
-        } else {
-            tvName.setText("打开热点失败");
-        }
-        this.setAllTheThing();
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+        lvDevices.setAdapter(mFFTService.getAdapter());
+
+        this.setAllTheThing();
     }
 
     @Override
@@ -81,7 +71,7 @@ public class ShareActivity extends Activity {
             case FILE_SELECT_CODE:
                 if (resultCode == RESULT_OK) {
                     // Get the Uri of the selected file
-                    filePath = mFFTService.getRealPathFromURI(this, data.getData());
+                    filePath = FFTService.getRealPathFromURI(this, data.getData());
                     this.tvFileName.setText(filePath.substring(filePath.lastIndexOf("/") + 1));
                     tvFileName.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -104,27 +94,20 @@ public class ShareActivity extends Activity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+    public void onBackPressed() {
+        super.onBackPressed();
+        //关闭AP
+//        if (mShareWifiManager.setWifiApEnabled(false)) {
+        if (mAPHelper.setWifiApEnabled(null, false)) {
+            Toast.makeText(ShareActivity.this, "热点关闭", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mShareWifiManager.setWifiApEnabled(false))
-            Toast.makeText(ShareActivity.this, "热点关闭", Toast.LENGTH_SHORT).show();
-        mFFTService.disableTransmission();
         mFFTService.setOnDataReceivedListener(null);
+        mFFTService.disable();
     }
 
     @Override
@@ -153,22 +136,12 @@ public class ShareActivity extends Activity {
      * set好所有的东西
      */
     private void setAllTheThing() {
-
-//        mData = new ArrayList<Map<String, String>>();
-//        adapter = new SimpleAdapter(this, mData, android.R.layout.simple_list_item_2,
-//                new String[]{"title", "text"}, new int[]{android.R.id.text1, android.R.id.text2});
-//        lvDevices.setAdapter(adapter);
-//        adapter = new UserDevicesAdapter(this, userList);
-
-        lvDevices.setAdapter(mFFTService.getAdapter());
-
         btnSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showFileChooser();
             }
         });
-
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -176,33 +149,23 @@ public class ShareActivity extends Activity {
                 mFFTService.sendFlies(ShareActivity.this, filePath);
             }
         });
-        mFFTService.enableTransmission();
-        mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
-            @Override
-            public void onDataReceived(SparseArray<UserDevice> devicesList) {
+        if (!mAPHelper.isApEnabled()) {
+            //开启AP
+            if (mAPHelper.setWifiApEnabled(APHelper.createWifiCfg(APHelper.SSID), true)) {
+                Toast.makeText(ShareActivity.this, "热点开启", Toast.LENGTH_SHORT).show();
+                tvName.setText("本机：" + new String(FFTService.LOCALNAME));
+                mFFTService.enable();
+                mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
+                    @Override
+                    public void onDataReceived(SparseArray<UserDevice> devicesList) {
+                        //保留这个接口
 //                devicesListIsChanged(devicesList);
-
+                    }
+                });
+            } else {
+                tvName.setText("打开热点失败");
             }
-
-        });
-//        Map<String, String> map = new HashMap<>();
-//        devicesListIsChanged(map);
-    }
-
-    private void devicesListIsChanged(Map<String, String> data) {
-        //这里的效率有待考究
-//        if (data.isEmpty()) {
-//            data.put( "朋友没有安装助手？邀请安装>","等待附近的好友接收文件……");
-//        }
-//        mData.clear();
-//        Map<String, String> map = new HashMap<String, String>();
-//        for (Map.Entry<String, String> entry : data.entrySet()) {
-//            map.put("title", entry.getValue());
-//            map.put("text", entry.getKey());
-//            mData.add(map);
-//        }
-//
-//        adapter.notifyDataSetChanged();
+        }
     }
 
     /**
@@ -218,6 +181,5 @@ public class ShareActivity extends Activity {
             Toast.makeText(this, "Please install a File Manager.", Toast.LENGTH_SHORT).show();
         }
     }
-
 
 }

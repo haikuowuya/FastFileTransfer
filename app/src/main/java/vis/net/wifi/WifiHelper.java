@@ -12,29 +12,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * wifi控制类<br>
- * Created by Vision on 15/6/9.<br>
+ * Created by Vision on 15/6/24.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class ReceiveWifiManager {
-//    private static final String TAG = APWifiManager.class.getName();
-    /**
-     * 本地原来的NetworkID
-     */
-    private int localNetworkID;
-    /**
-     * 目标AP的设置
-     */
-    private WifiConfiguration targetConfig;
+public class WifiHelper {
+    //定义WifiManager对象
+    private WifiManager mWifiManager;
     /**
      * 目标AP的NetID
      */
-    private int targetNetID;
+    private int targetNetID = -1;
 
-    //定义WifiManager对象
-    private WifiManager mWifiManager;
-
-    public ReceiveWifiManager(Context context) {
+    public WifiHelper(Context context) {
         //取得WifiManager对象
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
@@ -50,6 +39,39 @@ public class ReceiveWifiManager {
 
     public boolean startScan() {
         return mWifiManager.startScan();
+    }
+
+    public boolean addNetwork(WifiConfiguration wifiCfg) {
+        //添加一个网络并连接
+        targetNetID = mWifiManager.addNetwork(wifiCfg);
+        return targetNetID != -1;
+    }
+
+    /**
+     * 登入网络
+     */
+    public boolean enableNetwork(boolean b) {
+//        mWifiManager.disconnect();
+        //加入网络
+        return mWifiManager.enableNetwork(targetNetID, b);
+    }
+
+    /**
+     * 除移指定ID的网络
+     */
+    public void removeNetwork() {
+        if (-1 != targetNetID) {
+            mWifiManager.removeNetwork(targetNetID);
+        }
+    }
+
+    public static WifiConfiguration createWifiCfg(String ssid) {
+        WifiConfiguration wifiCfg = new WifiConfiguration();
+//        wifiCfg.SSID = ssid;
+        wifiCfg.SSID = "\"" + ssid + "\"";
+        wifiCfg.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+//        wifiCfg.preSharedKey = "abcdefgh";
+        return wifiCfg;
     }
 
     /**
@@ -77,50 +99,16 @@ public class ReceiveWifiManager {
         return al;
     }
 
-    /**
-     * 登入网络
-     */
-    public boolean addNetworkWithoutPasswork(String ssid) {
-//        mWifiManager.disconnect();
-        targetConfig = new WifiConfiguration();
-        targetConfig.SSID = "\"" + ssid + "\"";
-        targetConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-        //添加一个网络并连接
-        targetNetID = mWifiManager.addNetwork(targetConfig);
-        //保存本地NetworkID
-        localNetworkID = mWifiManager.getConnectionInfo().getNetworkId();
-        //加入网络
-        return mWifiManager.enableNetwork(targetNetID, true);
-    }
-
-    /**
-     * 断开指定ID的网络
-     */
-    public void disableNetwork() {
-        mWifiManager.removeNetwork(targetNetID);
-    }
-
-    /**
-     * 恢复原来的网络
-     */
-    public void recoveryNetwork() {
-        mWifiManager.enableNetwork(localNetworkID, true);
-    }
-
-//    public String getSSID() {
-//        return mWifiManager.getConnectionInfo().getSSID();
-//    }
-
     public DhcpInfo getDhcpInfo() {
         return mWifiManager.getDhcpInfo();
     }
 
-    public int getServerAddressByInt() {
-        return getDhcpInfo().serverAddress;
-    }
-
     public String getServerAddressByStr() {
         return intToIp(getServerAddressByInt());
+    }
+
+    public int getServerAddressByInt() {
+        return getDhcpInfo().serverAddress;
     }
 
     /**
@@ -129,9 +117,10 @@ public class ReceiveWifiManager {
      * @param i int 型的IP地址
      * @return String 型的IP地址，如255.255.255.255
      */
-    private String intToIp(int i) {
+    private static String intToIp(int i) {
         return (i & 0xFF) + "." + ((i >> 8) & 0xFF) + "." + ((i >> 16) & 0xFF) + "."
                 + ((i >> 24) & 0xFF);
     }
+
 
 }

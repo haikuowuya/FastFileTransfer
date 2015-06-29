@@ -28,5 +28,5 @@ public class UserDevice {
     /**
      * 下载状态:正常,正在下载，暂停，等待，已下载
      */
-    public int transferState;
+    public int state;
 }

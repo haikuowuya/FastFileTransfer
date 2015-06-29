@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 /**
  * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
+ * @hide
  */
 public class APWifiManager {
     private static final String TAG = APWifiManager.class.getName();
