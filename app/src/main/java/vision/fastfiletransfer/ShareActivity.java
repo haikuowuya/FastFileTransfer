@@ -10,10 +10,14 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import vis.net.wifi.APHelper;
+import vision.RM.MusicFragment;
+import vision.RM.PictureFragment;
 import vision.RM.RMFragment;
+import vision.RM.VideoFragment;
 
 
-public class ShareActivity extends FragmentActivity implements RMFragment.OnFragmentInteractionListener, ShareFragment.OnFragmentInteractionListener {
+public class ShareActivity extends FragmentActivity implements RMFragment.OnFragmentInteractionListener, ShareFragment.OnFragmentInteractionListener,
+        PictureFragment.OnFragmentInteractionListener,MusicFragment.OnFragmentInteractionListener,VideoFragment.OnFragmentInteractionListener{
 
     public static final int RM_FRAGMENT = 0;
     public static final int SHARE_FRAGMENT = 1;

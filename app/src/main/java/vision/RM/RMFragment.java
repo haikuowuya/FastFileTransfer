@@ -1,7 +1,7 @@
 package vision.RM;
 
 import android.app.Activity;
-import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import vision.fastfiletransfer.R;
@@ -33,9 +34,11 @@ public class RMFragment extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private FragmentPagerAdapter mFragmentPagerAdapter;
-    private TextView tvHello;
+    private FragmentPagerAdapter mViewPagerAdapter;
     private ViewPager vp;
+    private Button btnShare;
+    private Button btnCancel;
+    private TextView[] tab;
 
     /**
      * Use this factory method to create a new instance of
@@ -77,17 +80,6 @@ public class RMFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        mFragmentPagerAdapter = new FragmentPagerAdapter(getFragmentManager()) {
-            @Override
-            public Fragment getItem(int position) {
-                return null;
-            }
-
-            @Override
-            public int getCount() {
-                return 0;
-            }
-        };
     }
 
     @Override
@@ -95,23 +87,53 @@ public class RMFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_rm, container, false);
-        tvHello = (TextView)
-                rootView.findViewById(R.id.tvHello);
+        tab = new TextView[3];
+        tab[0] = (TextView)
+                rootView.findViewById(R.id.tab_1);
+        tab[1] = (TextView)
+                rootView.findViewById(R.id.tab_2);
+        tab[2] = (TextView)
+                rootView.findViewById(R.id.tab_3);
         vp = (ViewPager)
                 rootView.findViewById(R.id.vp);
+        btnShare = (Button)
+                rootView.findViewById(R.id.btnShare);
+        btnCancel = (Button)
+                rootView.findViewById(R.id.btnCancel);
         return rootView;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        tvHello.setOnClickListener(new View.OnClickListener() {
+        mViewPagerAdapter = new ViewPagerAdapter(getFragmentManager());
+        vp.setAdapter(mViewPagerAdapter);
+        tab[0].setTextColor(Color.parseColor("#ffffff"));
+        vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                for (int i = 0; i < 3; i++) {
+                    tab[i].setTextColor(Color.parseColor("#000000"));
+                }
+                tab[position].setTextColor(Color.parseColor("#ffffff"));
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onButtonPressed(null);
             }
         });
-        vp.setAdapter(mFragmentPagerAdapter);
     }
 
     @Override
