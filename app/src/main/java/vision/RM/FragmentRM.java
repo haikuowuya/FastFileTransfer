@@ -20,10 +20,10 @@ import vision.fastfiletransfer.R;
  * Activities that contain this fragment must implement the
  * {@link OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link RMFragment#newInstance} factory method to
+ * Use the {@link FragmentRM#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RMFragment extends Fragment {
+public class FragmentRM extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -46,11 +46,11 @@ public class RMFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment RMFragment.
+     * @return A new instance of fragment FragmentRM.
      */
     // TODO: Rename and change types and number of parameters
-    public static RMFragment newInstance(String param1, String param2) {
-        RMFragment fragment = new RMFragment();
+    public static FragmentRM newInstance(String param1, String param2) {
+        FragmentRM fragment = new FragmentRM();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -58,7 +58,7 @@ public class RMFragment extends Fragment {
         return fragment;
     }
 
-    public RMFragment() {
+    public FragmentRM() {
         // Required empty public constructor
     }
 
@@ -106,7 +106,7 @@ public class RMFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewPagerAdapter = new ViewPagerAdapter(getFragmentManager());
+        mViewPagerAdapter = new AdapterRM(getFragmentManager());
         vp.setAdapter(mViewPagerAdapter);
         tab[0].setTextColor(Color.parseColor("#ffffff"));
         vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

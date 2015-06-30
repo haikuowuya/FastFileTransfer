@@ -10,14 +10,14 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import vis.net.wifi.APHelper;
-import vision.RM.MusicFragment;
-import vision.RM.PictureFragment;
-import vision.RM.RMFragment;
-import vision.RM.VideoFragment;
+import vision.RM.FragmentImage;
+import vision.RM.FragmentMusic;
+import vision.RM.FragmentRM;
+import vision.RM.FragmentVideo;
 
 
-public class ShareActivity extends FragmentActivity implements RMFragment.OnFragmentInteractionListener, ShareFragment.OnFragmentInteractionListener,
-        PictureFragment.OnFragmentInteractionListener,MusicFragment.OnFragmentInteractionListener,VideoFragment.OnFragmentInteractionListener{
+public class ShareActivity extends FragmentActivity implements FragmentRM.OnFragmentInteractionListener, ShareFragment.OnFragmentInteractionListener,
+        FragmentImage.OnFragmentInteractionListener,FragmentMusic.OnFragmentInteractionListener,FragmentVideo.OnFragmentInteractionListener{
 
     public static final int RM_FRAGMENT = 0;
     public static final int SHARE_FRAGMENT = 1;
@@ -106,8 +106,8 @@ public class ShareActivity extends FragmentActivity implements RMFragment.OnFrag
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         switch (fragmentType) {
             case RM_FRAGMENT: {
-                RMFragment mRMFragment = RMFragment.newInstance("hello", "hi");
-                fragmentTransaction.replace(R.id.shareContain, mRMFragment);
+                FragmentRM mFragmentRM = FragmentRM.newInstance("hello", "hi");
+                fragmentTransaction.replace(R.id.shareContain, mFragmentRM);
                 break;
             }
             case SHARE_FRAGMENT: {

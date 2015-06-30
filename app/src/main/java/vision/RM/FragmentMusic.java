@@ -13,12 +13,12 @@ import vision.fastfiletransfer.R;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link MusicFragment.OnFragmentInteractionListener} interface
+ * {@link FragmentMusic.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link MusicFragment#newInstance} factory method to
+ * Use the {@link FragmentMusic#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MusicFragment extends Fragment {
+public class FragmentMusic extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -36,11 +36,11 @@ public class MusicFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment MusicFragment.
+     * @return A new instance of fragment FragmentMusic.
      */
     // TODO: Rename and change types and number of parameters
-    public static MusicFragment newInstance(String param1, String param2) {
-        MusicFragment fragment = new MusicFragment();
+    public static FragmentMusic newInstance(String param1, String param2) {
+        FragmentMusic fragment = new FragmentMusic();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -48,7 +48,7 @@ public class MusicFragment extends Fragment {
         return fragment;
     }
 
-    public MusicFragment() {
+    public FragmentMusic() {
         // Required empty public constructor
     }
 

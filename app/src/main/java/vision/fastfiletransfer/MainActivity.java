@@ -12,11 +12,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import vision.RM.RMFragment;
+import vision.RM.FragmentRM;
 
-public class MainActivity extends FragmentActivity implements RMFragment.OnFragmentInteractionListener {
+public class MainActivity extends FragmentActivity implements FragmentRM.OnFragmentInteractionListener {
 
     private Button btnShare;
     private Button btnReceive;
@@ -75,8 +74,8 @@ public class MainActivity extends FragmentActivity implements RMFragment.OnFragm
         if (id == R.id.res_mag) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            RMFragment mRMFragment = RMFragment.newInstance("hello", "hi");
-            fragmentTransaction.replace(R.id.fragment_container, mRMFragment);
+            FragmentRM mFragmentRM = FragmentRM.newInstance("hello", "hi");
+            fragmentTransaction.replace(R.id.fragment_container, mFragmentRM);
             fragmentTransaction.commit();
             return true;
         }

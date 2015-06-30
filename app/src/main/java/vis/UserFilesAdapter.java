@@ -63,11 +63,11 @@ public class UserFilesAdapter extends FFTAdapter {
             holder = new ViewHolder();
             convertView = inflater.inflate(R.layout.listitem_files, null);
             holder.layout = (LinearLayout) convertView
-                    .findViewById(R.id.gamelist_item_layout);
+                    .findViewById(R.id.list_item_layout);
             holder.icon = (ImageView) convertView
-                    .findViewById(R.id.app_icon);
+                    .findViewById(R.id.image);
             holder.name = (TextView) convertView
-                    .findViewById(R.id.app_name);
+                    .findViewById(R.id.name);
             holder.tips = (TextView) convertView.findViewById(R.id.app_tips);
             holder.size = (TextProgress) convertView.findViewById(R.id.app_size_progressBar);
             holder.btn = (Button) convertView

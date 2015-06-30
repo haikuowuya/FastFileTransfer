@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 
@@ -90,11 +89,11 @@ public class UserDevicesAdapter extends FFTAdapter {
             convertView = inflater
                     .inflate(R.layout.listitem_devices, null);
             holder.layout = (LinearLayout) convertView
-                    .findViewById(R.id.gamelist_item_layout);
+                    .findViewById(R.id.list_item_layout);
             holder.icon = (ImageView) convertView
-                    .findViewById(R.id.app_icon);
+                    .findViewById(R.id.image);
             holder.name = (TextView) convertView
-                    .findViewById(R.id.app_name);
+                    .findViewById(R.id.name);
             holder.tips = (TextView) convertView
                     .findViewById(R.id.app_tips);
             holder.size = (TextProgress) convertView

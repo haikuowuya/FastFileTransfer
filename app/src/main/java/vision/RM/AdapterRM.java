@@ -8,7 +8,7 @@ import android.support.v4.app.FragmentPagerAdapter;
  * Created by Vision on 15/6/30.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class ViewPagerAdapter extends FragmentPagerAdapter {
+public class AdapterRM extends FragmentPagerAdapter {
 
     private static final int TAB_INDEX_ONE = 0;
     private static final int TAB_INDEX_TWO = 1;
@@ -16,15 +16,15 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     private static final int TAB_INDEX_COUNT = 3;
 
 
-    private final PictureFragment mFragment1;
-    private final MusicFragment mFragment2;
-    private final VideoFragment mFragment3;
+    private final FragmentImage mFragment1;
+    private final FragmentMusic mFragment2;
+    private final FragmentVideo mFragment3;
 
-    public ViewPagerAdapter(FragmentManager fm) {
+    public AdapterRM(FragmentManager fm) {
         super(fm);
-        mFragment1 = PictureFragment.newInstance("", "");
-        mFragment2 = MusicFragment.newInstance("", "");
-        mFragment3 = VideoFragment.newInstance("", "");
+        mFragment1 = FragmentImage.newInstance("", "");
+        mFragment2 = FragmentMusic.newInstance("", "");
+        mFragment3 = FragmentVideo.newInstance("", "");
     }
 
     @Override

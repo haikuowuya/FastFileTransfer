@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="vision.RM.VideoFragment"
+    tools:context="vision.RM.FragmentVideo"
     android:background="#0000FF">
 
     <!-- TODO: Update blank fragment layout -->
