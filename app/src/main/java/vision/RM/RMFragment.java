@@ -86,7 +86,7 @@ public class RMFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_rm, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_manager, container, false);
         tab = new TextView[3];
         tab[0] = (TextView)
                 rootView.findViewById(R.id.tab_1);
