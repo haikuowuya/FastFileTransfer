@@ -1,9 +1,10 @@
 package vision.RM;
 
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.util.SparseArray;
 import android.view.View;
@@ -20,45 +21,41 @@ import vision.fastfiletransfer.R;
  * Created by Vision on 15/6/30.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class AdapterImage extends AdapterList {
+public class AdapterText extends AdapterList {
 
-    private SparseArray<Image> images;
+    private SparseArray<Text> texts;
 
-    public AdapterImage(Context context) {
+    public AdapterText(Context context) {
         super(context);
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     void initData() {
-        images = new SparseArray<Image>();
-//        Cursor cursor = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, "0=0) group by (bucket_display_name", null, null);
-        Cursor curImage = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new String[]{
-                MediaStore.Images.Media._ID, MediaStore.Images.Media.DISPLAY_NAME, MediaStore.Images.Media.DATA
-        }, null, null, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
-//        Cursor curThumb = cr.query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, null, null, null, MediaStore.Images.Thumbnails.IMAGE_ID);
-        if (curImage.moveToFirst()) {
-//        curThumb.moveToFirst();
-            Image image;
+        texts = new SparseArray<Text>();
+        Cursor curText = cr.query(MediaStore.Files.getContentUri("external"), new String[]{
+                MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.DATA, MediaStore.Files.FileColumns.MIME_TYPE, MediaStore.Files.FileColumns.TITLE
+        }, MediaStore.Files.FileColumns.MIME_TYPE + " LIKE ?", new String[]{"text/%"}, null);
+        if (curText.moveToFirst()) {
+            Text text;
             int i = 0;
             do {
-                image = new Image();
-                image.id = curImage.getInt(curImage.getColumnIndex(MediaStore.Images.Media._ID));
-//            images.thumbnails = curThumb.getString(curThumb.getColumnIndex(MediaStore.Images.Thumbnails.DATA));
-                image.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
-                image.name = curImage.getString(curImage
-                        .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
-                this.images.put(i, image);
+                text = new Text();
+                text.id = curText.getInt(curText.getColumnIndex(MediaStore.Images.Media._ID));
+                text.data = curText.getString(curText.getColumnIndex(MediaStore.Images.Media.DATA));
+                text.name = curText.getString(curText
+                        .getColumnIndex(MediaStore.Images.Media.TITLE));
+                this.texts.put(i, text);
                 i++;
-            } while (curImage.moveToNext());
-//        curThumb.close();
+            } while (curText.moveToNext());
         }
-        curImage.close();
+        curText.close();
     }
 
 
     @Override
     public int getCount() {
-        return images.size();
+        return texts.size();
     }
 
     @Override
@@ -76,7 +73,7 @@ public class AdapterImage extends AdapterList {
         final ViewHolder holder;
         if (null == convertView) {
             holder = new ViewHolder();
-            convertView = inflater.inflate(R.layout.listitem_image, null);
+            convertView = inflater.inflate(R.layout.listitem_text, null);
             holder.layout = (LinearLayout) convertView
                     .findViewById(R.id.list_item_layout);
             holder.image = (ImageView) convertView
@@ -89,18 +86,18 @@ public class AdapterImage extends AdapterList {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final Image image = this.images.get(position);
+        final Text text = this.texts.get(position);
 
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                image.isSelected = isChecked;
+                text.isSelected = isChecked;
             }
         });
-        holder.name.setText(image.name);
-        holder.checkBox.setChecked(image.isSelected);
-        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, image.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
-        holder.image.setImageBitmap(bm);
+        holder.name.setText(text.name);
+        holder.checkBox.setChecked(text.isSelected);
+//        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, text.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
+//        holder.image.setImageBitmap(bm);
         return convertView;
     }
 
@@ -115,7 +112,7 @@ public class AdapterImage extends AdapterList {
     }
 
 
-    private class Image {
+    private class Text {
         public int id;
         public String data;
         public String name;

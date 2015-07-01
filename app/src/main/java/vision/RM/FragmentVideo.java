@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
 import vision.fastfiletransfer.R;
 
@@ -29,6 +30,8 @@ public class FragmentVideo extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+    private ListView lvVio;
+    private AdapterVideo mAdapterVideo;
 
     /**
      * Use this factory method to create a new instance of
@@ -65,7 +68,16 @@ public class FragmentVideo extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_video, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_video, container, false);
+        lvVio = (ListView)
+                rootView.findViewById(R.id.lvVio);
+        return rootView;
+    }
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mAdapterVideo = new AdapterVideo(getActivity());
+        lvVio.setAdapter(mAdapterVideo);
     }
 
     // TODO: Rename method, update argument and hook method into UI event

@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
 import vision.fastfiletransfer.R;
 
@@ -29,6 +30,8 @@ public class FragmentMusic extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+    private ListView lvMic;
+    private AdapterAudio mAdapterAudio;
 
     /**
      * Use this factory method to create a new instance of
@@ -65,7 +68,16 @@ public class FragmentMusic extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_music, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_music, container, false);
+        lvMic = (ListView)
+                rootView.findViewById(R.id.lvMic);
+        return rootView;
+    }
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mAdapterAudio = new AdapterAudio(getActivity());
+        lvMic.setAdapter(mAdapterAudio);
     }
 
     // TODO: Rename method, update argument and hook method into UI event

@@ -30,7 +30,7 @@ public class FragmentImage extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private ListView lvPic;
+    private ListView lvImg;
     private AdapterImage mAdapterImage;
 
     /**
@@ -80,9 +80,9 @@ public class FragmentImage extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_picture, container, false);
-                lvPic = (ListView)
-                rootView.findViewById(R.id.lvPic);
+        View rootView = inflater.inflate(R.layout.fragment_image, container, false);
+                lvImg = (ListView)
+                rootView.findViewById(R.id.lvImg);
         return rootView;
     }
 
@@ -90,7 +90,7 @@ public class FragmentImage extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mAdapterImage = new AdapterImage(getActivity());
-        lvPic.setAdapter(mAdapterImage);
+        lvImg.setAdapter(mAdapterImage);
     }
 
     // TODO: Rename method, update argument and hook method into UI event

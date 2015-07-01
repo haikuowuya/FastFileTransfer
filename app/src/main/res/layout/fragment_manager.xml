@@ -19,7 +19,7 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:weightSum="3"
+        android:weightSum="4"
         android:id="@+id/TAB"
         android:background="@drawable/style_tab">
 
@@ -47,6 +47,14 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="视频"
             android:id="@+id/tab_3"
+            android:layout_weight="1"
+            android:gravity="center_vertical|center_horizontal" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="文档"
+            android:id="@+id/tab_4"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal" />
 

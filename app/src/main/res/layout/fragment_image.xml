@@ -2,14 +2,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="vision.RM.FragmentImage"
-    android:background="#00FF00">
+    tools:context="vision.RM.FragmentImage">
 
     <!-- TODO: Update blank fragment layout -->
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/lvPic" />
+        android:id="@+id/lvImg" />
 
 </FrameLayout>

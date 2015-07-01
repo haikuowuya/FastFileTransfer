@@ -1,9 +1,7 @@
 package vision.RM;
 
-
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.provider.MediaStore;
 import android.util.SparseArray;
 import android.view.View;
@@ -17,48 +15,41 @@ import android.widget.TextView;
 import vision.fastfiletransfer.R;
 
 /**
- * Created by Vision on 15/6/30.<br>
+ * Created by Vision on 15/7/1.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class AdapterImage extends AdapterList {
+public class AdapterAudio extends AdapterList {
 
-    private SparseArray<Image> images;
+    private SparseArray<Audio> audios;
 
-    public AdapterImage(Context context) {
+    public AdapterAudio(Context context) {
         super(context);
     }
 
     @Override
     void initData() {
-        images = new SparseArray<Image>();
-//        Cursor cursor = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, "0=0) group by (bucket_display_name", null, null);
-        Cursor curImage = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new String[]{
-                MediaStore.Images.Media._ID, MediaStore.Images.Media.DISPLAY_NAME, MediaStore.Images.Media.DATA
-        }, null, null, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
-//        Cursor curThumb = cr.query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, null, null, null, MediaStore.Images.Thumbnails.IMAGE_ID);
-        if (curImage.moveToFirst()) {
-//        curThumb.moveToFirst();
-            Image image;
+        audios = new SparseArray<Audio>();
+        Cursor curAudio = cr.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, new String[]{
+                MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DISPLAY_NAME
+        }, null, null, null);
+        if (curAudio.moveToFirst()) {
+            Audio audio;
             int i = 0;
             do {
-                image = new Image();
-                image.id = curImage.getInt(curImage.getColumnIndex(MediaStore.Images.Media._ID));
-//            images.thumbnails = curThumb.getString(curThumb.getColumnIndex(MediaStore.Images.Thumbnails.DATA));
-                image.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
-                image.name = curImage.getString(curImage
-                        .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
-                this.images.put(i, image);
-                i++;
-            } while (curImage.moveToNext());
-//        curThumb.close();
+                audio = new Audio();
+                audio.id = curAudio.getInt(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
+                audio.data = curAudio.getString(curAudio.getColumnIndex(MediaStore.Audio.Media.DATA));
+                audio.name = curAudio.getString(curAudio
+                        .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+                this.audios.put(i++, audio);
+            } while (curAudio.moveToNext());
         }
-        curImage.close();
+        curAudio.close();
     }
-
 
     @Override
     public int getCount() {
-        return images.size();
+        return audios.size();
     }
 
     @Override
@@ -76,7 +67,7 @@ public class AdapterImage extends AdapterList {
         final ViewHolder holder;
         if (null == convertView) {
             holder = new ViewHolder();
-            convertView = inflater.inflate(R.layout.listitem_image, null);
+            convertView = inflater.inflate(R.layout.listitem_music, null);
             holder.layout = (LinearLayout) convertView
                     .findViewById(R.id.list_item_layout);
             holder.image = (ImageView) convertView
@@ -89,18 +80,22 @@ public class AdapterImage extends AdapterList {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final Image image = this.images.get(position);
+        final Audio audio = this.audios.get(position);
 
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                image.isSelected = isChecked;
+                audio.isSelected = isChecked;
             }
         });
-        holder.name.setText(image.name);
-        holder.checkBox.setChecked(image.isSelected);
-        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, image.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
-        holder.image.setImageBitmap(bm);
+        holder.name.setText(audio.name);
+        holder.checkBox.setChecked(audio.isSelected);
+//        Drawable drawable = context.getResources().getDrawable(R.mipmap.app_icon);
+//        holder.images.setImageDrawable(drawable);
+//        BitmapFactory.Options options = new BitmapFactory.Options();
+//        options.inSampleSize = 32;
+//        Bitmap bm = BitmapFactory.decodeFile(audio.data, options);
+//        holder.image.setImageBitmap(bm);
         return convertView;
     }
 
@@ -114,11 +109,12 @@ public class AdapterImage extends AdapterList {
         CheckBox checkBox;
     }
 
-
-    private class Image {
+    private class Audio {
         public int id;
         public String data;
         public String name;
         public boolean isSelected;
     }
+
+
 }

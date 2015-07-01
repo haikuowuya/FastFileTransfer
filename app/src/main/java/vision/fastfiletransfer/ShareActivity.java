@@ -13,11 +13,17 @@ import vis.net.wifi.APHelper;
 import vision.RM.FragmentImage;
 import vision.RM.FragmentMusic;
 import vision.RM.FragmentRM;
+import vision.RM.FragmentText;
 import vision.RM.FragmentVideo;
 
 
-public class ShareActivity extends FragmentActivity implements FragmentRM.OnFragmentInteractionListener, ShareFragment.OnFragmentInteractionListener,
-        FragmentImage.OnFragmentInteractionListener,FragmentMusic.OnFragmentInteractionListener,FragmentVideo.OnFragmentInteractionListener{
+public class ShareActivity extends FragmentActivity implements
+        FragmentRM.OnFragmentInteractionListener,
+        ShareFragment.OnFragmentInteractionListener,
+        FragmentImage.OnFragmentInteractionListener,
+        FragmentMusic.OnFragmentInteractionListener,
+        FragmentVideo.OnFragmentInteractionListener,
+        FragmentText.OnFragmentInteractionListener {
 
     public static final int RM_FRAGMENT = 0;
     public static final int SHARE_FRAGMENT = 1;
