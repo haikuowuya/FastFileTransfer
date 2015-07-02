@@ -1,17 +1,12 @@
 package vision.RM;
 
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.database.Cursor;
-import android.os.Build;
-import android.provider.MediaStore;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -29,33 +24,21 @@ public class AdapterText extends AdapterList {
         super(context);
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
-    void initData() {
-        texts = new SparseArray<Text>();
-        Cursor curText = cr.query(MediaStore.Files.getContentUri("external"), new String[]{
-                MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.DATA, MediaStore.Files.FileColumns.MIME_TYPE, MediaStore.Files.FileColumns.TITLE
-        }, MediaStore.Files.FileColumns.MIME_TYPE + " LIKE ?", new String[]{"text/%"}, null);
-        if (curText.moveToFirst()) {
-            Text text;
-            int i = 0;
-            do {
-                text = new Text();
-                text.id = curText.getInt(curText.getColumnIndex(MediaStore.Images.Media._ID));
-                text.data = curText.getString(curText.getColumnIndex(MediaStore.Images.Media.DATA));
-                text.name = curText.getString(curText
-                        .getColumnIndex(MediaStore.Images.Media.TITLE));
-                this.texts.put(i, text);
-                i++;
-            } while (curText.moveToNext());
-        }
-        curText.close();
+    public void setData(SparseArray<?> data) {
+        this.texts = (SparseArray<Text>) data;
+        notifyDataSetChanged();
     }
 
 
     @Override
+
     public int getCount() {
-        return texts.size();
+        if (null == texts) {
+            return 0;
+        } else {
+            return texts.size();
+        }
     }
 
     @Override
@@ -76,8 +59,6 @@ public class AdapterText extends AdapterList {
             convertView = inflater.inflate(R.layout.listitem_text, null);
             holder.layout = (LinearLayout) convertView
                     .findViewById(R.id.list_item_layout);
-            holder.image = (ImageView) convertView
-                    .findViewById(R.id.image);
             holder.name = (TextView) convertView
                     .findViewById(R.id.name);
             holder.checkBox = (CheckBox)
@@ -106,16 +87,16 @@ public class AdapterText extends AdapterList {
      */
     static class ViewHolder {
         LinearLayout layout;
-        ImageView image;
         TextView name;
         CheckBox checkBox;
     }
 
 
-    private class Text {
-        public int id;
-        public String data;
-        public String name;
-        public boolean isSelected;
-    }
+}
+
+class Text {
+    public int id;
+    public String data;
+    public String name;
+    public boolean isSelected;
 }

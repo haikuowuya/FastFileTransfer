@@ -1,14 +1,11 @@
 package vision.RM;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.provider.MediaStore;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -27,29 +24,18 @@ public class AdapterAudio extends AdapterList {
     }
 
     @Override
-    void initData() {
-        audios = new SparseArray<Audio>();
-        Cursor curAudio = cr.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, new String[]{
-                MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DISPLAY_NAME
-        }, null, null, null);
-        if (curAudio.moveToFirst()) {
-            Audio audio;
-            int i = 0;
-            do {
-                audio = new Audio();
-                audio.id = curAudio.getInt(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
-                audio.data = curAudio.getString(curAudio.getColumnIndex(MediaStore.Audio.Media.DATA));
-                audio.name = curAudio.getString(curAudio
-                        .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
-                this.audios.put(i++, audio);
-            } while (curAudio.moveToNext());
-        }
-        curAudio.close();
+    void setData(SparseArray<?> data) {
+        this.audios = (SparseArray<Audio>) data;
+        notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        return audios.size();
+        if (null == audios) {
+            return 0;
+        } else {
+            return audios.size();
+        }
     }
 
     @Override
@@ -70,8 +56,6 @@ public class AdapterAudio extends AdapterList {
             convertView = inflater.inflate(R.layout.listitem_music, null);
             holder.layout = (LinearLayout) convertView
                     .findViewById(R.id.list_item_layout);
-            holder.image = (ImageView) convertView
-                    .findViewById(R.id.image);
             holder.name = (TextView) convertView
                     .findViewById(R.id.name);
             holder.checkBox = (CheckBox)
@@ -104,17 +88,15 @@ public class AdapterAudio extends AdapterList {
      */
     static class ViewHolder {
         LinearLayout layout;
-        ImageView image;
         TextView name;
         CheckBox checkBox;
     }
 
-    private class Audio {
-        public int id;
-        public String data;
-        public String name;
-        public boolean isSelected;
-    }
+}
 
-
+class Audio {
+    public int id;
+    public String data;
+    public String name;
+    public boolean isSelected;
 }

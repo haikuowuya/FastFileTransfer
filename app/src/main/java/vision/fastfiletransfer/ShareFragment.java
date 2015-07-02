@@ -15,8 +15,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-
 import vis.UserDevice;
 import vis.net.protocol.FFTService;
 
@@ -126,33 +124,33 @@ public class ShareFragment extends Fragment {
         setAllTheThing();
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case FILE_SELECT_CODE:
-                if (resultCode == Activity.RESULT_OK) {
-                    // Get the Uri of the selected file
-                    filePath = FFTService.getRealPathFromURI(context, data.getData());
-                    this.tvFileName.setText(filePath.substring(filePath.lastIndexOf("/") + 1));
-                    tvFileName.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent("android.intent.action.VIEW");
-                            intent.addCategory("android.intent.category.DEFAULT");
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            Uri uri = Uri.fromFile(new File(filePath));
-                            {
-                                //暂时只能打开图片
-                                intent.setDataAndType(uri, "image/*");
-                            }
-                            startActivity(intent);
-                        }
-                    });
-                }
-                break;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        switch (requestCode) {
+//            case FILE_SELECT_CODE:
+//                if (resultCode == Activity.RESULT_OK) {
+//                    // Get the Uri of the selected file
+//                    filePath = FFTService.getRealPathFromURI(context, data.getData());
+//                    this.tvFileName.setText(filePath.substring(filePath.lastIndexOf("/") + 1));
+//                    tvFileName.setOnClickListener(new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            Intent intent = new Intent("android.intent.action.VIEW");
+//                            intent.addCategory("android.intent.category.DEFAULT");
+//                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                            Uri uri = Uri.fromFile(new File(filePath));
+//                            {
+//                                //暂时只能打开图片
+//                                intent.setDataAndType(uri, "image/*");
+//                            }
+//                            startActivity(intent);
+//                        }
+//                    });
+//                }
+//                break;
+//        }
+//        super.onActivityResult(requestCode, resultCode, data);
+//    }
 
     @Override
     public void onDetach() {

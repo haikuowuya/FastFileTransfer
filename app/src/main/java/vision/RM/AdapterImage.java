@@ -2,8 +2,8 @@ package vision.RM;
 
 
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.util.SparseArray;
 import android.view.View;
@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import vision.fastfiletransfer.R;
+import vision.fastfiletransfer.ShareActivity;
 
 /**
  * Created by Vision on 15/6/30.<br>
@@ -23,42 +24,26 @@ import vision.fastfiletransfer.R;
 public class AdapterImage extends AdapterList {
 
     private SparseArray<Image> images;
+    private Context context;
 
-    public AdapterImage(Context context) {
+    public AdapterImage(Context context, FragmentImage.OnRMFragmentListener mListener) {
         super(context);
+        this.context = context;
     }
 
     @Override
-    void initData() {
-        images = new SparseArray<Image>();
-//        Cursor cursor = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, "0=0) group by (bucket_display_name", null, null);
-        Cursor curImage = cr.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new String[]{
-                MediaStore.Images.Media._ID, MediaStore.Images.Media.DISPLAY_NAME, MediaStore.Images.Media.DATA
-        }, null, null, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
-//        Cursor curThumb = cr.query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, null, null, null, MediaStore.Images.Thumbnails.IMAGE_ID);
-        if (curImage.moveToFirst()) {
-//        curThumb.moveToFirst();
-            Image image;
-            int i = 0;
-            do {
-                image = new Image();
-                image.id = curImage.getInt(curImage.getColumnIndex(MediaStore.Images.Media._ID));
-//            images.thumbnails = curThumb.getString(curThumb.getColumnIndex(MediaStore.Images.Thumbnails.DATA));
-                image.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
-                image.name = curImage.getString(curImage
-                        .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
-                this.images.put(i, image);
-                i++;
-            } while (curImage.moveToNext());
-//        curThumb.close();
-        }
-        curImage.close();
+    void setData(SparseArray<?> data) {
+        this.images = (SparseArray<Image>) data;
+        notifyDataSetChanged();
     }
-
 
     @Override
     public int getCount() {
-        return images.size();
+        if (null == images) {
+            return 0;
+        } else {
+            return images.size();
+        }
     }
 
     @Override
@@ -88,19 +73,29 @@ public class AdapterImage extends AdapterList {
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
+            holder.image.setImageResource(R.mipmap.explorer_c_icon_image_p);
         }
+
         final Image image = this.images.get(position);
 
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 image.isSelected = isChecked;
+                if (isChecked) {
+                    ((ShareActivity) context).mTransmissionQueue.add(image);
+                } else {
+                    ((ShareActivity) context).mTransmissionQueue.remove(image);
+                }
             }
         });
         holder.name.setText(image.name);
         holder.checkBox.setChecked(image.isSelected);
-        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, image.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
-        holder.image.setImageBitmap(bm);
+//        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, image.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
+//        holder.image.setImageBitmap(bm);
+        holder.image.setTag(image.id);
+        new LoadImage(holder.image, image.id)
+                .execute();
         return convertView;
     }
 
@@ -114,11 +109,37 @@ public class AdapterImage extends AdapterList {
         CheckBox checkBox;
     }
 
+    private class LoadImage extends AsyncTask<Void, Void, Void> {
 
-    private class Image {
-        public int id;
-        public String data;
-        public String name;
-        public boolean isSelected;
+        private ImageView iv;
+        private long origId;
+        private Bitmap bm;
+
+        public LoadImage(ImageView iv, long origId) {
+            this.iv = iv;
+            this.origId = origId;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            bm = MediaStore.Images.Thumbnails.getThumbnail(cr, origId, MediaStore.Images.Thumbnails.MICRO_KIND, null);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (iv.getTag() != null && ((long) iv.getTag()) == origId) {
+                iv.setImageBitmap(bm);
+            }
+//            super.onPostExecute(aVoid);
+        }
     }
+
+}
+
+class Image {
+    public long id;
+    public String data;
+    public String name;
+    public boolean isSelected;
 }

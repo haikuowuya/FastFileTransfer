@@ -1,9 +1,13 @@
 package vision.RM;
 
 import android.app.Activity;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,6 +82,7 @@ public class FragmentMusic extends Fragment {
         super.onActivityCreated(savedInstanceState);
         mAdapterAudio = new AdapterAudio(getActivity());
         lvMic.setAdapter(mAdapterAudio);
+        new RefreshList().execute();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -117,6 +122,47 @@ public class FragmentMusic extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+    }
+    private class RefreshList extends AsyncTask<Void, Void, SparseArray<?>> {
+        SparseArray<Audio> audios;
+
+        //步骤1.1：在后台线程中从数据库读取，返回新的游标newCursor
+        protected SparseArray<?> doInBackground(Void... params) {
+            audios = new SparseArray<Audio>();
+            Cursor curAudio = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, new String[]{
+                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DISPLAY_NAME
+            }, null, null, null);
+            if (curAudio.moveToFirst()) {
+                Audio audio;
+                int i = 0;
+                do {
+                    audio = new Audio();
+                    audio.id = curAudio.getInt(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
+                    audio.data = curAudio.getString(curAudio.getColumnIndex(MediaStore.Audio.Media.DATA));
+                    audio.name = curAudio.getString(curAudio
+                            .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+                    this.audios.put(i++, audio);
+                } while (curAudio.moveToNext());
+            }
+            curAudio.close();
+
+            return audios;
+        }
+
+
+        @Override
+        protected void onPostExecute(SparseArray<?> sparseArray) {
+//            super.onPostExecute(sparseArray);
+            mAdapterAudio.setData(sparseArray);
+        }
+
+        //步骤1.2：线程最后执行步骤，更换adapter的游标，并奖原游标关闭，释放资源
+//        protected void onPostExecute(Cursor newCursor) {
+
+//            adapter.changeCursor(newCursor);//网上看到很多问如何更新ListView的信息，采用CusorApater其实很简单，换cursor就可以
+//            cursor.close();
+//            cursor = newCursor;
+//        }
     }
 
 }

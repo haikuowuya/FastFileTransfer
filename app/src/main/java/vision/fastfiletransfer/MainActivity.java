@@ -1,10 +1,9 @@
 package vision.fastfiletransfer;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.Menu;
@@ -13,9 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import vision.RM.FragmentRM;
-
-public class MainActivity extends FragmentActivity implements FragmentRM.OnFragmentInteractionListener {
+public class MainActivity extends FragmentActivity implements RMFragment.OnFragmentInteractionListener {
 
     private Button btnShare;
     private Button btnReceive;
@@ -74,17 +71,12 @@ public class MainActivity extends FragmentActivity implements FragmentRM.OnFragm
         if (id == R.id.res_mag) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            FragmentRM mFragmentRM = FragmentRM.newInstance("hello", "hi");
-            fragmentTransaction.replace(R.id.fragment_container, mFragmentRM);
+            RMFragment mRMFragment = RMFragment.newInstance("hello", "hi");
+            fragmentTransaction.replace(R.id.fragment_container, mRMFragment);
             fragmentTransaction.commit();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
     }
 }

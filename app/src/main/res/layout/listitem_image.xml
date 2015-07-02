@@ -14,7 +14,8 @@
         android:layout_height="75dip"
         android:layout_marginLeft="5dip"
         android:adjustViewBounds="false"
-        android:padding="5dp" />
+        android:padding="5dp"
+        android:src="@mipmap/explorer_c_icon_image_p" />
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -1,9 +1,13 @@
 package vision.RM;
 
 import android.app.Activity;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,11 +77,13 @@ public class FragmentVideo extends Fragment {
                 rootView.findViewById(R.id.lvVio);
         return rootView;
     }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mAdapterVideo = new AdapterVideo(getActivity());
         lvVio.setAdapter(mAdapterVideo);
+        new RefreshList().execute();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -118,5 +124,55 @@ public class FragmentVideo extends Fragment {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
     }
+
+    //步骤1：通过后台线程AsyncTask来读取数据库，放入更换Cursor
+    private class RefreshList extends AsyncTask<Void, Void, SparseArray<?>> {
+        SparseArray<Video> videos;
+
+        //步骤1.1：在后台线程中从数据库读取，返回新的游标newCursor
+        protected SparseArray<?> doInBackground(Void... params) {
+            videos = new SparseArray<Video>();
+            Cursor curVideo = getActivity().getContentResolver().query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                            MediaStore.Video.Media._ID,
+                            MediaStore.Video.Media.DATA,
+                            MediaStore.Video.Media.DISPLAY_NAME
+                    },
+                    null,
+                    null,
+                    MediaStore.Video.Media.DATE_MODIFIED+" DESC");
+            if (curVideo.moveToFirst()) {
+                Video video;
+                int i = 0;
+                do {
+                    video = new Video();
+                    video.id = curVideo.getInt(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
+                    video.data = curVideo.getString(curVideo.getColumnIndex(MediaStore.Video.Media.DATA));
+                    video.name = curVideo.getString(curVideo
+                            .getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
+                    this.videos.put(i, video);
+                } while (curVideo.moveToNext());
+            }
+            curVideo.close();
+            return videos;
+        }
+
+
+        @Override
+        protected void onPostExecute(SparseArray<?> sparseArray) {
+//            super.onPostExecute(sparseArray);
+            mAdapterVideo.setData(sparseArray);
+        }
+
+        //步骤1.2：线程最后执行步骤，更换adapter的游标，并奖原游标关闭，释放资源
+//        protected void onPostExecute(Cursor newCursor) {
+
+//            adapter.changeCursor(newCursor);//网上看到很多问如何更新ListView的信息，采用CusorApater其实很简单，换cursor就可以
+//            cursor.close();
+//            cursor = newCursor;
+//        }
+    }
+
 
 }

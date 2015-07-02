@@ -1,9 +1,13 @@
 package vision.RM;
 
 import android.app.Activity;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +18,7 @@ import vision.fastfiletransfer.R;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link FragmentImage.OnFragmentInteractionListener} interface
+ * {@link vision.RM.FragmentImage.OnRMFragmentListener} interface
  * to handle interaction events.
  * Use the {@link FragmentImage#newInstance} factory method to
  * create an instance of this fragment.
@@ -29,7 +33,7 @@ public class FragmentImage extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+    private OnRMFragmentListener mListener;
     private ListView lvImg;
     private AdapterImage mAdapterImage;
 
@@ -59,7 +63,7 @@ public class FragmentImage extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (OnRMFragmentListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -81,7 +85,7 @@ public class FragmentImage extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_image, container, false);
-                lvImg = (ListView)
+        lvImg = (ListView)
                 rootView.findViewById(R.id.lvImg);
         return rootView;
     }
@@ -89,14 +93,15 @@ public class FragmentImage extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mAdapterImage = new AdapterImage(getActivity());
+        mAdapterImage = new AdapterImage(getActivity(),mListener);
         lvImg.setAdapter(mAdapterImage);
+        new RefreshList().execute();
     }
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onSelectionChanged();
         }
     }
 
@@ -111,14 +116,52 @@ public class FragmentImage extends Fragment {
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p>
+     * <p/>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
      */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+    public interface OnRMFragmentListener {
+        void onSelectionChanged();
+    }
+
+    private class RefreshList extends AsyncTask<Void, Void, SparseArray<?>> {
+        SparseArray<Image> images;
+
+        protected SparseArray<?> doInBackground(Void... params) {
+            images = new SparseArray<Image>();
+            Cursor curImage = getActivity().getContentResolver().query(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                            MediaStore.Images.Media._ID,
+                            MediaStore.Images.Media.DISPLAY_NAME,
+                            MediaStore.Images.Media.DATA
+                    },
+                    null,
+                    null,
+                    MediaStore.Images.Media.DATE_MODIFIED + " DESC");
+            if (curImage.moveToFirst()) {
+                Image image;
+                int i = 0;
+                do {
+                    image = new Image();
+                    image.id = curImage.getInt(curImage.getColumnIndex(MediaStore.Images.Media._ID));
+                    image.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
+                    image.name = curImage.getString(curImage
+                            .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+                    this.images.put(i, image);
+                    i++;
+                } while (curImage.moveToNext());
+            }
+            curImage.close();
+            return images;
+        }
+
+
+        @Override
+        protected void onPostExecute(SparseArray<?> sparseArray) {
+            mAdapterImage.setData(sparseArray);
+        }
     }
 
 }

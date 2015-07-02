@@ -9,61 +9,39 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import vis.TransmissionQueue;
 import vis.net.wifi.APHelper;
 import vision.RM.FragmentImage;
 import vision.RM.FragmentMusic;
-import vision.RM.FragmentRM;
 import vision.RM.FragmentText;
 import vision.RM.FragmentVideo;
 
 
 public class ShareActivity extends FragmentActivity implements
-        FragmentRM.OnFragmentInteractionListener,
+        RMFragment.OnFragmentInteractionListener,
         ShareFragment.OnFragmentInteractionListener,
-        FragmentImage.OnFragmentInteractionListener,
+        FragmentImage.OnRMFragmentListener,
         FragmentMusic.OnFragmentInteractionListener,
         FragmentVideo.OnFragmentInteractionListener,
         FragmentText.OnFragmentInteractionListener {
 
     public static final int RM_FRAGMENT = 0;
     public static final int SHARE_FRAGMENT = 1;
-    //    private static final String ICICLE_KEY = "ShareActivity";
-    //    private ShareWifiManager mShareWifiManager;
+
+    public TransmissionQueue mTransmissionQueue;
+
     private APHelper mAPHelper;
+    private FragmentManager fragmentManager = getSupportFragmentManager();
+    private RMFragment mRMFragment;
+    private ShareFragment mShareFragment;
 
-//    private String filePath;
-    /**
-     * 连接列表
-     */
-//    private TextView tvFileName;
-//    private Button btnSelectFile;
-//    private Button btnSend;
-//    private TextView tvName;
-
-    /**
-     * 设备连接ListView
-     */
-//    private ListView lvDevices;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_share);
 
-        jumpToFragment(RM_FRAGMENT);
-
-//        mShareWifiManager = new ShareWifiManager(this);
         mAPHelper = new APHelper(this);
-//        mFFTService = new FFTService(this, FFTService.SERVICE_SHARE);
-
-//        tvName = (TextView) findViewById(R.id.tvTips);
-//        lvDevices = (ListView) findViewById(R.id.lvDevices);
-//        tvFileName = (TextView) findViewById(R.id.tvFileName);
-//        btnSelectFile = (Button) findViewById(R.id.btnSelectFile);
-//        btnSend = (Button) findViewById(R.id.btnSend);
-
-//        lvDevices.setAdapter(mFFTService.getAdapter());
-
-//        this.setAllTheThing();
+        mTransmissionQueue = new TransmissionQueue();
         if (!mAPHelper.isApEnabled()) {
             //开启AP
             if (mAPHelper.setWifiApEnabled(APHelper.createWifiCfg(APHelper.SSID), true)) {
@@ -72,8 +50,9 @@ public class ShareActivity extends FragmentActivity implements
                 Toast.makeText(ShareActivity.this, "打开热点失败", Toast.LENGTH_SHORT).show();
             }
         }
-
+        jumpToFragment(RM_FRAGMENT);
     }
+
 
     @Override
     protected void onDestroy() {
@@ -108,17 +87,20 @@ public class ShareActivity extends FragmentActivity implements
     }
 
     public void jumpToFragment(int fragmentType) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         switch (fragmentType) {
             case RM_FRAGMENT: {
-                FragmentRM mFragmentRM = FragmentRM.newInstance("hello", "hi");
-                fragmentTransaction.replace(R.id.shareContain, mFragmentRM);
+                mRMFragment = RMFragment.newInstance("hello", "hi");
+                fragmentTransaction.replace(R.id.shareContain, mRMFragment);
                 break;
             }
             case SHARE_FRAGMENT: {
-                ShareFragment shareFragment = ShareFragment.newInstance("", "");
-                fragmentTransaction.replace(R.id.shareContain, shareFragment);
+                mShareFragment = ShareFragment.newInstance("", "");
+                //隐藏
+                fragmentTransaction.hide(mRMFragment);
+                fragmentTransaction.add(R.id.shareContain, mShareFragment);
+                //这里可以回退
+                fragmentTransaction.addToBackStack(null);
                 break;
             }
             default: {
@@ -130,9 +112,13 @@ public class ShareActivity extends FragmentActivity implements
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-        jumpToFragment(SHARE_FRAGMENT);
+//        jumpToFragment(SHARE_FRAGMENT);
     }
 
 
-}
+    @Override
+    public void onSelectionChanged() {
+        //        mTransmissionQueue.put();
 
+    }
+}

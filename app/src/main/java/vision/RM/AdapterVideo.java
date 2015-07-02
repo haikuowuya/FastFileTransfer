@@ -1,8 +1,8 @@
 package vision.RM;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.util.SparseArray;
 import android.view.View;
@@ -28,29 +28,19 @@ public class AdapterVideo extends AdapterList {
     }
 
     @Override
-    void initData() {
-        videos = new SparseArray<Video>();
-        Cursor curVideo = cr.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, new String[]{
-                MediaStore.Video.Media._ID, MediaStore.Video.Media.DATA, MediaStore.Video.Media.DISPLAY_NAME
-        }, null, null, null);
-        if (curVideo.moveToFirst()) {
-            Video video;
-            int i = 0;
-            do {
-                video = new Video();
-                video.id = curVideo.getInt(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
-                video.data = curVideo.getString(curVideo.getColumnIndex(MediaStore.Video.Media.DATA));
-                video.name = curVideo.getString(curVideo
-                        .getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
-                this.videos.put(i, video);
-            } while (curVideo.moveToNext());
-        }
-        curVideo.close();
+    void setData(SparseArray<?> data) {
+        this.videos = (SparseArray<Video>) data;
+        notifyDataSetChanged();
     }
+
 
     @Override
     public int getCount() {
-        return videos.size();
+        if (null == videos) {
+            return 0;
+        } else {
+            return videos.size();
+        }
     }
 
     @Override
@@ -91,8 +81,11 @@ public class AdapterVideo extends AdapterList {
         });
         holder.name.setText(video.name);
         holder.checkBox.setChecked(video.isSelected);
-        Bitmap bm = MediaStore.Video.Thumbnails.getThumbnail(cr, video.id, MediaStore.Video.Thumbnails.MICRO_KIND, null);
-        holder.image.setImageBitmap(bm);
+//        Bitmap bm = MediaStore.Video.Thumbnails.getThumbnail(cr, video.id, MediaStore.Video.Thumbnails.MICRO_KIND, null);
+//        holder.image.setImageBitmap(bm);
+        new LoadImage(holder.image, video.id)
+                .execute();
+
         return convertView;
     }
 
@@ -107,11 +100,35 @@ public class AdapterVideo extends AdapterList {
         CheckBox checkBox;
     }
 
-    private class Video {
-        public int id;
-        public String data;
-        public String name;
-        public boolean isSelected;
+    private class LoadImage extends AsyncTask<Void, Void, Void> {
+
+        private ImageView iv;
+        private long origId;
+        private Bitmap bm;
+
+        public LoadImage(ImageView iv, long origId) {
+            this.iv = iv;
+            this.origId = origId;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            bm = MediaStore.Video.Thumbnails.getThumbnail(cr, origId, MediaStore.Video.Thumbnails.MICRO_KIND, null);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            iv.setImageBitmap(bm);
+//            super.onPostExecute(aVoid);
+        }
     }
 
+}
+
+class Video {
+    public int id;
+    public String data;
+    public String name;
+    public boolean isSelected;
 }

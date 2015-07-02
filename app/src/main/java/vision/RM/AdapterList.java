@@ -2,6 +2,7 @@ package vision.RM;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 
@@ -21,8 +22,7 @@ public abstract class AdapterList extends BaseAdapter {//CursorAdapter
         this.inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         cr = context.getContentResolver();
-        initData();
     }
 
-    abstract void initData();
+    abstract void setData(SparseArray<?> data);
 }

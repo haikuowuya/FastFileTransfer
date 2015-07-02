@@ -1,4 +1,4 @@
-package vision.RM;
+package vision.fastfiletransfer;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -12,17 +12,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import vision.fastfiletransfer.R;
-
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
  * {@link OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link FragmentRM#newInstance} factory method to
+ * Use the {@link RMFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FragmentRM extends Fragment {
+public class RMFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -33,7 +31,7 @@ public class FragmentRM extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private AdapterRM mViewPagerAdapter;
+    private RMAdapter mViewPagerAdapter;
     private ViewPager vp;
     private Button btnShare;
     private Button btnCancel;
@@ -45,11 +43,11 @@ public class FragmentRM extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment FragmentRM.
+     * @return A new instance of fragment RMFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static FragmentRM newInstance(String param1, String param2) {
-        FragmentRM fragment = new FragmentRM();
+    public static RMFragment newInstance(String param1, String param2) {
+        RMFragment fragment = new RMFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -57,7 +55,7 @@ public class FragmentRM extends Fragment {
         return fragment;
     }
 
-    public FragmentRM() {
+    public RMFragment() {
         // Required empty public constructor
     }
 
@@ -107,7 +105,7 @@ public class FragmentRM extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewPagerAdapter = new AdapterRM(getFragmentManager());
+        mViewPagerAdapter = new RMAdapter(getFragmentManager());
         vp.setAdapter(mViewPagerAdapter);
         tab[0].setTextColor(Color.parseColor("#ffffff"));
         vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -132,7 +130,8 @@ public class FragmentRM extends Fragment {
         btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onButtonPressed(null);
+//                onButtonPressed(null);
+                ((ShareActivity) getActivity()).jumpToFragment(ShareActivity.SHARE_FRAGMENT);
             }
         });
     }
@@ -146,7 +145,7 @@ public class FragmentRM extends Fragment {
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+//            mListener.onFragmentInteraction(uri);
         }
     }
 
@@ -161,8 +160,7 @@ public class FragmentRM extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
+//        void onFragmentInteraction(Uri uri);
     }
 
 }
