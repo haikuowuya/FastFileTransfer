@@ -26,7 +26,8 @@
             android:layout_height="wrap_content"
             android:text="选择文件"
             android:id="@+id/btnSelectFile"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:visibility="gone" />
     </LinearLayout>
 
     <Button

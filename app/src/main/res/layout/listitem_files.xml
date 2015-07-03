@@ -9,7 +9,7 @@
     android:paddingTop="5dp" >
 
     <ImageView
-        android:id="@+id/text"
+        android:id="@+id/image"
         android:layout_width="53dip"
         android:layout_height="53dip"
         android:layout_marginLeft="5dip"

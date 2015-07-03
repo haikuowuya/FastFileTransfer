@@ -23,17 +23,17 @@ import vision.fastfiletransfer.ShareActivity;
  */
 public class AdapterImage extends AdapterList {
 
-    private SparseArray<Image> images;
+    private SparseArray<FileImage> images;
     private Context context;
 
-    public AdapterImage(Context context, FragmentImage.OnRMFragmentListener mListener) {
+    public AdapterImage(Context context) {
         super(context);
         this.context = context;
     }
 
     @Override
-    void setData(SparseArray<?> data) {
-        this.images = (SparseArray<Image>) data;
+    public void setData(SparseArray<?> data) {
+        this.images = (SparseArray<FileImage>) data;
         notifyDataSetChanged();
     }
 
@@ -76,25 +76,26 @@ public class AdapterImage extends AdapterList {
             holder.image.setImageResource(R.mipmap.explorer_c_icon_image_p);
         }
 
-        final Image image = this.images.get(position);
+        final FileImage fileImage = this.images.get(position);
 
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                image.isSelected = isChecked;
+                fileImage.isSelected = isChecked;
+//                Log.d("OnChecked","look at that");
                 if (isChecked) {
-                    ((ShareActivity) context).mTransmissionQueue.add(image);
+                    ((ShareActivity) context).mTransmissionQueue.add(fileImage);
                 } else {
-                    ((ShareActivity) context).mTransmissionQueue.remove(image);
+                    ((ShareActivity) context).mTransmissionQueue.remove(fileImage);
                 }
             }
         });
-        holder.name.setText(image.name);
-        holder.checkBox.setChecked(image.isSelected);
-//        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, image.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
-//        holder.image.setImageBitmap(bm);
-        holder.image.setTag(image.id);
-        new LoadImage(holder.image, image.id)
+        holder.name.setText(fileImage.name);
+        holder.checkBox.setChecked(fileImage.isSelected);
+//        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, fileImage.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
+//        holder.fileImage.setImageBitmap(bm);
+        holder.image.setTag(fileImage.id);
+        new LoadImage(holder.image, fileImage.id)
                 .execute();
         return convertView;
     }
@@ -137,9 +138,3 @@ public class AdapterImage extends AdapterList {
 
 }
 
-class Image {
-    public long id;
-    public String data;
-    public String name;
-    public boolean isSelected;
-}

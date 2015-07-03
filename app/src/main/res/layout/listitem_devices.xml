@@ -9,7 +9,7 @@
     android:paddingTop="5dp" >
 
     <ImageView
-        android:id="@+id/text"
+        android:id="@+id/image"
         android:layout_width="53dip"
         android:layout_height="53dip"
         android:layout_marginLeft="5dip"
@@ -60,7 +60,7 @@
         android:layout_marginRight="10dip"
         android:background="@drawable/style_btn_open"
         android:focusable="false"
-        android:text="@string/download"
+        android:fileText="@string/download"
         android:textColor="#ffffffff"
         android:textSize="12sp" /-->
 

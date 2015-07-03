@@ -3,7 +3,6 @@ package vis.net.wifi;
 import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.util.Log;
 
 import java.lang.reflect.Method;
@@ -195,7 +194,7 @@ public class APWifiManager {
                         开启TCP监听
                         往IP发送登入命令+设备名称
     从包里获得IP，登记在发送列表，显示名称
-    FIXME TCP连接IP，如果连接无效，抛出异常，并在发送列表中删除无效项
+    TCP连接IP，如果连接无效，抛出异常，并在发送列表中删除无效项
     传送文件
                         接收完成显示在列表中，点击列表可以打开文件
                         往IP发送登出命令+设备名称

@@ -1,36 +1,35 @@
 package vision.fastfiletransfer;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import vis.TransmissionQueue;
+import vis.UserDevice;
+import vis.net.protocol.FFTService;
 import vis.net.wifi.APHelper;
-import vision.RM.FragmentImage;
-import vision.RM.FragmentMusic;
-import vision.RM.FragmentText;
-import vision.RM.FragmentVideo;
+import vision.RM.File;
 
 
-public class ShareActivity extends FragmentActivity implements
-        RMFragment.OnFragmentInteractionListener,
-        ShareFragment.OnFragmentInteractionListener,
-        FragmentImage.OnRMFragmentListener,
-        FragmentMusic.OnFragmentInteractionListener,
-        FragmentVideo.OnFragmentInteractionListener,
-        FragmentText.OnFragmentInteractionListener {
+public class ShareActivity extends FragmentActivity
+{
 
     public static final int RM_FRAGMENT = 0;
     public static final int SHARE_FRAGMENT = 1;
 
-    public TransmissionQueue mTransmissionQueue;
+    /**
+     * 发送队列
+     */
+    public TransmissionQueue<File> mTransmissionQueue;
 
     private APHelper mAPHelper;
+    public  FFTService mFFTService;
+
     private FragmentManager fragmentManager = getSupportFragmentManager();
     private RMFragment mRMFragment;
     private ShareFragment mShareFragment;
@@ -41,7 +40,18 @@ public class ShareActivity extends FragmentActivity implements
         setContentView(R.layout.activity_share);
 
         mAPHelper = new APHelper(this);
-        mTransmissionQueue = new TransmissionQueue();
+        mFFTService = new FFTService(this, FFTService.SERVICE_SHARE);
+        mFFTService.enable();
+        mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
+            @Override
+            public void onDataReceived(SparseArray<UserDevice> devicesList) {
+                //必需set这个东西才能开始监听接收
+                //保留这个接口
+//                devicesListIsChanged(devicesList);
+            }
+        });
+
+        mTransmissionQueue = new TransmissionQueue<File>();
         if (!mAPHelper.isApEnabled()) {
             //开启AP
             if (mAPHelper.setWifiApEnabled(APHelper.createWifiCfg(APHelper.SSID), true)) {
@@ -56,6 +66,9 @@ public class ShareActivity extends FragmentActivity implements
 
     @Override
     protected void onDestroy() {
+        mFFTService.setOnDataReceivedListener(null);
+        mFFTService.disable();
+
         //关闭AP
 //        if (mShareWifiManager.setWifiApEnabled(false)) {
         if (mAPHelper.setWifiApEnabled(null, false)) {
@@ -110,15 +123,4 @@ public class ShareActivity extends FragmentActivity implements
         fragmentTransaction.commit();
     }
 
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-//        jumpToFragment(SHARE_FRAGMENT);
-    }
-
-
-    @Override
-    public void onSelectionChanged() {
-        //        mTransmissionQueue.put();
-
-    }
 }

@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import vision.fastfiletransfer.R;
+import vision.fastfiletransfer.ShareActivity;
 
 /**
  * Created by Vision on 15/6/30.<br>
@@ -18,7 +19,7 @@ import vision.fastfiletransfer.R;
  */
 public class AdapterText extends AdapterList {
 
-    private SparseArray<Text> texts;
+    private SparseArray<FileText> texts;
 
     public AdapterText(Context context) {
         super(context);
@@ -26,7 +27,7 @@ public class AdapterText extends AdapterList {
 
     @Override
     public void setData(SparseArray<?> data) {
-        this.texts = (SparseArray<Text>) data;
+        this.texts = (SparseArray<FileText>) data;
         notifyDataSetChanged();
     }
 
@@ -67,17 +68,22 @@ public class AdapterText extends AdapterList {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final Text text = this.texts.get(position);
+        final FileText fileText = this.texts.get(position);
 
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                text.isSelected = isChecked;
+                fileText.isSelected = isChecked;
+                if (isChecked) {
+                    ((ShareActivity) context).mTransmissionQueue.add(fileText);
+                } else {
+                    ((ShareActivity) context).mTransmissionQueue.remove(fileText);
+                }
             }
         });
-        holder.name.setText(text.name);
-        holder.checkBox.setChecked(text.isSelected);
-//        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, text.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
+        holder.name.setText(fileText.name);
+        holder.checkBox.setChecked(fileText.isSelected);
+//        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, fileText.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
 //        holder.image.setImageBitmap(bm);
         return convertView;
     }
@@ -94,9 +100,3 @@ public class AdapterText extends AdapterList {
 
 }
 
-class Text {
-    public int id;
-    public String data;
-    public String name;
-    public boolean isSelected;
-}

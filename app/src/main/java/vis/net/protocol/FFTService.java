@@ -8,7 +8,6 @@ import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.SparseArray;
-import android.widget.BaseAdapter;
 import android.widget.Toast;
 
 import java.io.File;
@@ -47,7 +46,9 @@ public class FFTService {
     public final static byte[] LOCALNAME = android.os.Build.MODEL.replaceAll("\\s|-", "").getBytes();
 
     /**
-     * 发送列表，设备连接列表，key为IP，value为设备名
+     * 接收文件 或 已连接用户 列表适配器
+     * <p>发送：key为IP，value为设备名</p>
+     * <p>用户：</p>
      */
     private FFTAdapter mAdapter;
 
@@ -94,7 +95,7 @@ public class FFTService {
 
     public FFTService(Context context, int serviceType) {
         mCommandsTransfer = new CommandsTransfer(2222);
-        mFilesTransfer = new FilesTransfer(context,serviceType);
+        mFilesTransfer = new FilesTransfer(context, serviceType);
         if (SERVICE_SHARE == serviceType) {
             mAdapter = new UserDevicesAdapter(context);
         } else if (SERVICE_RECEIVE == serviceType) {
@@ -107,6 +108,8 @@ public class FFTService {
 
     /**
      * 使能
+     *
+     * @deprecated
      */
     public void enable() {
 //        mCommandsTransfer.enable();
@@ -114,6 +117,8 @@ public class FFTService {
 
     /**
      * 失能
+     *
+     * @deprecated
      */
     public void disable() {
 //        mCommandsTransfer.disable();
@@ -164,9 +169,14 @@ public class FFTService {
         mFilesTransfer.stopReceiving();
     }
 
-    public void sendFlies(Context context, String filePath) {
-        if (null != filePath) {
-            sendFlies(context, new File(filePath));
+    public void sendFlies(Context context, String[] paths) {
+        if (null != paths && paths.length != 0) {
+            File[] files = new File[paths.length];
+            for (int i = 0; i < paths.length; i++) {
+                Log.d("Paths", paths[i]);
+                files[i] = new File(paths[i]);
+            }
+            sendFlies(context, files);
         } else {
             Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT).show();
         }
@@ -176,10 +186,11 @@ public class FFTService {
      * 发送文件信息
      *
      * @param context 上下文
-     * @param file    文件
+     * @param files   文件
      */
-    public void sendFlies(Context context, File file) {
-        if (null == file) {
+    public void sendFlies(Context context, File[] files) {
+        //FIXME 这里应该禁止发送期间同一个地址多次发送
+        if (null == files) {
             Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT).show();
         } else if (mAdapter.getCount() == 0) {
             Toast.makeText(context, "没有设备连接", Toast.LENGTH_SHORT).show();
@@ -188,8 +199,11 @@ public class FFTService {
 //            Toast.makeText(context, file.toString(), Toast.LENGTH_SHORT).show();
             for (int i = 0, nsize = mAdapter.getCount(); i < nsize; i++) {
                 UserDevice ud = (UserDevice) mAdapter.getObject(i);
-                mFilesTransfer.sendFile(i, file, ud.ip, 2223);
-                Log.d(this.getClass().getName(), ud.ip + ":2333->" + file.toString());
+                if (ud.state != UserDevice.TRANSFER_STATE_TRANSFERRING) {
+                    ud.state = UserDevice.TRANSFER_STATE_TRANSFERRING;
+                    mFilesTransfer.sendFile(i, files, ud.ip, 2223);
+                    Log.d(this.getClass().getName(), ud.ip + ":2333->" + files.toString());
+                }
             }
         }
     }

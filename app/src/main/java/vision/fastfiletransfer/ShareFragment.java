@@ -2,31 +2,18 @@ package vision.fastfiletransfer;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import vis.UserDevice;
 import vis.net.protocol.FFTService;
 
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link ShareFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class ShareFragment extends Fragment {
 
     private static final int FILE_SELECT_CODE = 55;
@@ -40,11 +27,10 @@ public class ShareFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+//    private OnFragmentInteractionListener mListener;
 
     private Context context;
-    private FFTService mFFTService;
-    private String filePath;
+//    private String filePath;
     private TextView tvFileName;
     private Button btnSelectFile;
     private Button btnSend;
@@ -76,12 +62,6 @@ public class ShareFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
         this.context = activity;
     }
 
@@ -110,54 +90,30 @@ public class ShareFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mFFTService = new FFTService(context, FFTService.SERVICE_SHARE);
-        lvDevices.setAdapter(mFFTService.getAdapter());
+        lvDevices.setAdapter(((ShareActivity) context).mFFTService.getAdapter());
         tvName.setText("本机：" + new String(FFTService.LOCALNAME));
-        mFFTService.enable();
-        mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
-            @Override
-            public void onDataReceived(SparseArray<UserDevice> devicesList) {
-                //保留这个接口
-//                devicesListIsChanged(devicesList);
-            }
-        });
         setAllTheThing();
     }
 
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        switch (requestCode) {
-//            case FILE_SELECT_CODE:
-//                if (resultCode == Activity.RESULT_OK) {
-//                    // Get the Uri of the selected file
-//                    filePath = FFTService.getRealPathFromURI(context, data.getData());
-//                    this.tvFileName.setText(filePath.substring(filePath.lastIndexOf("/") + 1));
-//                    tvFileName.setOnClickListener(new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//                            Intent intent = new Intent("android.intent.action.VIEW");
-//                            intent.addCategory("android.intent.category.DEFAULT");
-//                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                            Uri uri = Uri.fromFile(new File(filePath));
-//                            {
-//                                //暂时只能打开图片
-//                                intent.setDataAndType(uri, "image/*");
-//                            }
-//                            startActivity(intent);
-//                        }
-//                    });
-//                }
-//                break;
-//        }
-//        super.onActivityResult(requestCode, resultCode, data);
-//    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((ShareActivity) context).mFFTService.getAdapter().notifyDataSetChanged();
+        if (((ShareActivity) context).mTransmissionQueue.isEmpty()) {
+            this.tvFileName.setText("没有选择文件");
+//                    Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT)
+//                            .show();
+        } else {
+            this.tvFileName.setText(
+                    "已选择" + ((ShareActivity) context)
+                            .mTransmissionQueue.size() + "个文件"
+            );
+        }
+    }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
-        mFFTService.setOnDataReceivedListener(null);
-        mFFTService.disable();
     }
 
 
@@ -168,14 +124,14 @@ public class ShareFragment extends Fragment {
         btnSelectFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showFileChooser();
+//                showFileChooser();
             }
         });
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Toast.makeText(ShareActivity.this, tvFileName.getText().toString(), Toast.LENGTH_SHORT).show();
-                mFFTService.sendFlies(context, filePath);
+                String[] paths = ((ShareActivity) context).mTransmissionQueue.getPaths();
+                ((ShareActivity) context).mFFTService.sendFlies(context, paths);
             }
         });
     }
@@ -183,39 +139,15 @@ public class ShareFragment extends Fragment {
     /**
      * 显示文件选择器
      */
-    private void showFileChooser() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        try {
-            startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), FILE_SELECT_CODE);
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(context, "Please install a File Manager.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-    }
+//    private void showFileChooser() {
+//        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//        intent.setType("*/*");
+//        intent.addCategory(Intent.CATEGORY_OPENABLE);
+//        try {
+//            startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), FILE_SELECT_CODE);
+//        } catch (android.content.ActivityNotFoundException ex) {
+//            Toast.makeText(context, "Please install a File Manager.", Toast.LENGTH_SHORT).show();
+//        }
+//    }
 
 }

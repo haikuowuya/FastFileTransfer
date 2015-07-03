@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="vision.RM.FragmentMusic">
+    tools:context="vision.RM.FragmentAudio">
 
     <!-- TODO: Update blank fragment layout -->
 

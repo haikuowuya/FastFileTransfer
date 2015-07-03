@@ -10,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import vision.fastfiletransfer.R;
+import vision.fastfiletransfer.ShareActivity;
 
 /**
  * Created by Vision on 15/7/1.<br>
@@ -17,15 +18,15 @@ import vision.fastfiletransfer.R;
  */
 public class AdapterAudio extends AdapterList {
 
-    private SparseArray<Audio> audios;
+    private SparseArray<FileAudio> audios;
 
     public AdapterAudio(Context context) {
         super(context);
     }
 
     @Override
-    void setData(SparseArray<?> data) {
-        this.audios = (SparseArray<Audio>) data;
+    public void setData(SparseArray<?> data) {
+        this.audios = (SparseArray<FileAudio>) data;
         notifyDataSetChanged();
     }
 
@@ -64,21 +65,26 @@ public class AdapterAudio extends AdapterList {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final Audio audio = this.audios.get(position);
+        final FileAudio fileAudio = this.audios.get(position);
 
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                audio.isSelected = isChecked;
+                fileAudio.isSelected = isChecked;
+                if (isChecked) {
+                    ((ShareActivity) context).mTransmissionQueue.add(fileAudio);
+                } else {
+                    ((ShareActivity) context).mTransmissionQueue.remove(fileAudio);
+                }
             }
         });
-        holder.name.setText(audio.name);
-        holder.checkBox.setChecked(audio.isSelected);
+        holder.name.setText(fileAudio.name);
+        holder.checkBox.setChecked(fileAudio.isSelected);
 //        Drawable drawable = context.getResources().getDrawable(R.mipmap.app_icon);
 //        holder.images.setImageDrawable(drawable);
 //        BitmapFactory.Options options = new BitmapFactory.Options();
 //        options.inSampleSize = 32;
-//        Bitmap bm = BitmapFactory.decodeFile(audio.data, options);
+//        Bitmap bm = BitmapFactory.decodeFile(fileAudio.data, options);
 //        holder.image.setImageBitmap(bm);
         return convertView;
     }
@@ -92,11 +98,4 @@ public class AdapterAudio extends AdapterList {
         CheckBox checkBox;
     }
 
-}
-
-class Audio {
-    public int id;
-    public String data;
-    public String name;
-    public boolean isSelected;
 }

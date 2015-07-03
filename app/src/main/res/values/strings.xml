@@ -9,7 +9,7 @@
 
     <string name="res_mag">资源管理</string>
 
-<!-- TODO: Remove or change this placeholder text -->
+<!-- TODO: Remove or change this placeholder fileText -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="send">发送</string>
 </resources>

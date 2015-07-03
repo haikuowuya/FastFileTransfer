@@ -12,7 +12,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class MainActivity extends FragmentActivity implements RMFragment.OnFragmentInteractionListener {
+public class MainActivity extends FragmentActivity
+//        implements
+//        RMFragment.OnFragmentInteractionListener
+{
 
     private Button btnShare;
     private Button btnReceive;

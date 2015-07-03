@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import vision.fastfiletransfer.R;
+import vision.fastfiletransfer.ShareActivity;
 
 /**
  * Created by Vision on 15/7/1.<br>
@@ -21,15 +22,15 @@ import vision.fastfiletransfer.R;
  */
 public class AdapterVideo extends AdapterList {
 
-    private SparseArray<Video> videos;
+    private SparseArray<FileVideo> videos;
 
     public AdapterVideo(Context context) {
         super(context);
     }
 
     @Override
-    void setData(SparseArray<?> data) {
-        this.videos = (SparseArray<Video>) data;
+    public void setData(SparseArray<?> data) {
+        this.videos = (SparseArray<FileVideo>) data;
         notifyDataSetChanged();
     }
 
@@ -71,19 +72,24 @@ public class AdapterVideo extends AdapterList {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final Video video = this.videos.get(position);
+        final FileVideo fileVideo = this.videos.get(position);
 
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                video.isSelected = isChecked;
+                fileVideo.isSelected = isChecked;
+                if (isChecked) {
+                    ((ShareActivity) context).mTransmissionQueue.add(fileVideo);
+                } else {
+                    ((ShareActivity) context).mTransmissionQueue.remove(fileVideo);
+                }
             }
         });
-        holder.name.setText(video.name);
-        holder.checkBox.setChecked(video.isSelected);
-//        Bitmap bm = MediaStore.Video.Thumbnails.getThumbnail(cr, video.id, MediaStore.Video.Thumbnails.MICRO_KIND, null);
+        holder.name.setText(fileVideo.name);
+        holder.checkBox.setChecked(fileVideo.isSelected);
+//        Bitmap bm = MediaStore.FileVideo.Thumbnails.getThumbnail(cr, fileVideo.id, MediaStore.FileVideo.Thumbnails.MICRO_KIND, null);
 //        holder.image.setImageBitmap(bm);
-        new LoadImage(holder.image, video.id)
+        new LoadImage(holder.image, fileVideo.id)
                 .execute();
 
         return convertView;
@@ -126,9 +132,3 @@ public class AdapterVideo extends AdapterList {
 
 }
 
-class Video {
-    public int id;
-    public String data;
-    public String name;
-    public boolean isSelected;
-}

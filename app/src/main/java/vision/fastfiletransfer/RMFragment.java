@@ -1,25 +1,35 @@
 package vision.fastfiletransfer;
 
-import android.app.Activity;
+import android.annotation.TargetApi;
+import android.database.Cursor;
 import android.graphics.Color;
-import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link RMFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import vision.RM.AdapterAudio;
+import vision.RM.AdapterImage;
+import vision.RM.AdapterText;
+import vision.RM.AdapterVideo;
+import vision.RM.FileAudio;
+import vision.RM.FileImage;
+import vision.RM.FileText;
+import vision.RM.FileVideo;
+import vision.RM.FragmentAudio;
+import vision.RM.FragmentImage;
+import vision.RM.FragmentText;
+import vision.RM.FragmentVideo;
+
 public class RMFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -30,7 +40,13 @@ public class RMFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    private OnFragmentInteractionListener mListener;
+    private ListFragment[] mFragments;
+    private AdapterImage mAdapterImage;
+    private AdapterAudio mAdapterAudio;
+    private AdapterVideo mAdapterVideo;
+    private AdapterText mAdapterText;
+
+    //    private OnFragmentInteractionListener mListener;
     private RMAdapter mViewPagerAdapter;
     private ViewPager vp;
     private Button btnShare;
@@ -59,16 +75,16 @@ public class RMFragment extends Fragment {
         // Required empty public constructor
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
+//    @Override
+//    public void onAttach(Activity activity) {
+//        super.onAttach(activity);
+//        try {
+//            mListener = (OnFragmentInteractionListener) activity;
+//        } catch (ClassCastException e) {
+//            throw new ClassCastException(activity.toString()
+//                    + " must implement OnFragmentInteractionListener");
+//        }
+//    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,6 +93,26 @@ public class RMFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        mFragments = new ListFragment[4];
+        mFragments[0] = FragmentImage.newInstance(null, null);
+        mFragments[1] = FragmentAudio.newInstance(null, null);
+        mFragments[2] = FragmentVideo.newInstance(null, null);
+        mFragments[3] = FragmentText.newInstance(null, null);
+        mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
+
+        mAdapterImage = new AdapterImage(getActivity());
+        mAdapterAudio = new AdapterAudio(getActivity());
+        mAdapterVideo = new AdapterVideo(getActivity());
+        mAdapterText = new AdapterText(getActivity());
+        mFragments[0].setListAdapter(mAdapterImage);
+        mFragments[1].setListAdapter(mAdapterAudio);
+        mFragments[2].setListAdapter(mAdapterVideo);
+        mFragments[3].setListAdapter(mAdapterText);
+
+        new RefreshImageList().execute();
+        new RefreshAudioList().execute();
+        new RefreshVideoList().execute();
+        new RefreshTextList().execute();
     }
 
     @Override
@@ -105,8 +141,9 @@ public class RMFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewPagerAdapter = new RMAdapter(getFragmentManager());
+
         vp.setAdapter(mViewPagerAdapter);
+
         tab[0].setTextColor(Color.parseColor("#ffffff"));
         vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -139,28 +176,166 @@ public class RMFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        mFragments = null;
+        mAdapterImage = null;
+        mAdapterAudio = null;
+        mAdapterVideo = null;
+        mAdapterText = null;
+        mViewPagerAdapter = null;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-//            mListener.onFragmentInteraction(uri);
+
+    private class RefreshImageList extends AsyncTask<Void, Void, SparseArray<?>> {
+        SparseArray<FileImage> images;
+
+        protected SparseArray<?> doInBackground(Void... params) {
+            images = new SparseArray<FileImage>();
+            Cursor curImage = getActivity().getContentResolver().query(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                            MediaStore.Images.Media._ID,
+                            MediaStore.Images.Media.DISPLAY_NAME,
+                            MediaStore.Images.Media.DATA
+                    },
+                    null,
+                    null,
+                    MediaStore.Images.Media.DATE_MODIFIED + " DESC");
+            if (curImage.moveToFirst()) {
+                FileImage fileImage;
+                int i = 0;
+                do {
+                    fileImage = new FileImage();
+                    fileImage.id = curImage.getInt(curImage.getColumnIndex(MediaStore.Images.Media._ID));
+                    fileImage.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
+                    fileImage.name = curImage.getString(curImage
+                            .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+                    this.images.put(i, fileImage);
+                    i++;
+                } while (curImage.moveToNext());
+            }
+            curImage.close();
+            return images;
+        }
+
+
+        @Override
+        protected void onPostExecute(SparseArray<?> sparseArray) {
+            mAdapterImage.setData(sparseArray);
         }
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-//        void onFragmentInteraction(Uri uri);
+    private class RefreshAudioList extends AsyncTask<Void, Void, SparseArray<?>> {
+        SparseArray<FileAudio> audios;
+
+        protected SparseArray<?> doInBackground(Void... params) {
+            audios = new SparseArray<FileAudio>();
+            Cursor curAudio = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, new String[]{
+                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DISPLAY_NAME
+            }, null, null, null);
+            if (curAudio.moveToFirst()) {
+                FileAudio fileAudio;
+                int i = 0;
+                do {
+                    fileAudio = new FileAudio();
+                    fileAudio.id = curAudio.getInt(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
+                    fileAudio.data = curAudio.getString(curAudio.getColumnIndex(MediaStore.Audio.Media.DATA));
+                    fileAudio.name = curAudio.getString(curAudio
+                            .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+                    this.audios.put(i++, fileAudio);
+                } while (curAudio.moveToNext());
+            }
+            curAudio.close();
+
+            return audios;
+        }
+
+
+        @Override
+        protected void onPostExecute(SparseArray<?> sparseArray) {
+//            super.onPostExecute(sparseArray);
+            mAdapterAudio.setData(sparseArray);
+        }
+    }
+
+    private class RefreshVideoList extends AsyncTask<Void, Void, SparseArray<?>> {
+        SparseArray<FileVideo> videos;
+
+        protected SparseArray<?> doInBackground(Void... params) {
+            videos = new SparseArray<FileVideo>();
+            Cursor curVideo = getActivity().getContentResolver().query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                            MediaStore.Video.Media._ID,
+                            MediaStore.Video.Media.DATA,
+                            MediaStore.Video.Media.DISPLAY_NAME
+                    },
+                    null,
+                    null,
+                    MediaStore.Video.Media.DATE_MODIFIED + " DESC");
+            if (curVideo.moveToFirst()) {
+                FileVideo fileVideo;
+                int i = 0;
+                do {
+                    fileVideo = new FileVideo();
+                    fileVideo.id = curVideo.getInt(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
+                    fileVideo.data = curVideo.getString(curVideo.getColumnIndex(MediaStore.Video.Media.DATA));
+                    fileVideo.name = curVideo.getString(curVideo
+                            .getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
+                    this.videos.put(i, fileVideo);
+                } while (curVideo.moveToNext());
+            }
+            curVideo.close();
+            return videos;
+        }
+
+
+        @Override
+        protected void onPostExecute(SparseArray<?> sparseArray) {
+//            super.onPostExecute(sparseArray);
+            mAdapterVideo.setData(sparseArray);
+        }
+
+    }
+
+    private class RefreshTextList extends AsyncTask<Void, Void, SparseArray<?>> {
+        SparseArray<FileText> texts;
+
+        @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+        protected SparseArray<?> doInBackground(Void... params) {
+            texts = new SparseArray<>();
+            Cursor curText = getActivity().getContentResolver().query(
+                    MediaStore.Files.getContentUri("external"),
+                    new String[]{
+                            MediaStore.Files.FileColumns._ID,
+                            MediaStore.Files.FileColumns.DATA,
+                            MediaStore.Files.FileColumns.MIME_TYPE
+                    },
+                    MediaStore.Files.FileColumns.MIME_TYPE + " LIKE ?",
+                    new String[]{"text/%"},
+                    null);
+            if (curText.moveToFirst()) {
+                FileText fileText;
+                int i = 0;
+                do {
+                    fileText = new FileText();
+                    fileText.id = curText.getInt(curText.getColumnIndex(MediaStore.Images.Media._ID));
+                    fileText.data = curText.getString(curText.getColumnIndex(MediaStore.Images.Media.DATA));
+                    fileText.name = fileText.data.substring(fileText.data.lastIndexOf("/") + 1);
+                    this.texts.put(i, fileText);
+                    i++;
+                } while (curText.moveToNext());
+            }
+            curText.close();
+            return texts;
+        }
+
+
+        @Override
+        protected void onPostExecute(SparseArray<?> sparseArray) {
+//            super.onPostExecute(sparseArray);
+            mAdapterText.setData(sparseArray);
+        }
+
     }
 
 }
