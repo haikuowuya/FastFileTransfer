@@ -6,12 +6,12 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.Set;
+
 import vision.fastfiletransfer.R;
-import vision.fastfiletransfer.ShareActivity;
 
 /**
  * Created by Vision on 15/6/30.<br>
@@ -20,9 +20,11 @@ import vision.fastfiletransfer.ShareActivity;
 public class AdapterText extends AdapterList {
 
     private SparseArray<FileText> texts;
+    private Set mSelectedList;
 
-    public AdapterText(Context context) {
+    public AdapterText(Context context, Set selectedList) {
         super(context);
+        this.mSelectedList = selectedList;
     }
 
     @Override
@@ -70,14 +72,17 @@ public class AdapterText extends AdapterList {
         }
         final FileText fileText = this.texts.get(position);
 
-        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                fileText.isSelected = isChecked;
-                if (isChecked) {
-                    ((ShareActivity) context).mTransmissionQueue.add(fileText);
+            public void onClick(View v) {
+                if (fileText.isSelected) {
+                    fileText.isSelected = false;
+                    mSelectedList.remove(fileText);
+                    holder.checkBox.setChecked(false);
                 } else {
-                    ((ShareActivity) context).mTransmissionQueue.remove(fileText);
+                    fileText.isSelected = true;
+                    mSelectedList.add(fileText);
+                    holder.checkBox.setChecked(true);
                 }
             }
         });

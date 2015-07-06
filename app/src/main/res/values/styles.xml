@@ -1,8 +1,16 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.Light">
-        <!-- Customize your theme here. -->
+    <style name="CustomWindowTitleBackground">
+        <!--item name="android:background">#ff767bd3</item-->
+        <item name="android:background">@mipmap/bg_top</item>
     </style>
+
+    <style name="AppTheme" parent="android:Theme.Light">
+        <item name="android:windowTitleSize">50dp</item>
+        <item name="android:windowTitleBackgroundStyle">
+            @style/CustomWindowTitleBackground
+        </item>
+    </style>
+
 
 </resources>

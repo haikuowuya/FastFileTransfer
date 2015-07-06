@@ -15,8 +15,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.Set;
+
+import vis.TransmissionQueue;
+import vis.UserFile;
 import vision.RM.AdapterAudio;
 import vision.RM.AdapterImage;
 import vision.RM.AdapterText;
@@ -40,6 +45,8 @@ public class RMFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    private Set mSelectedList;
+
     private ListFragment[] mFragments;
     private AdapterImage mAdapterImage;
     private AdapterAudio mAdapterAudio;
@@ -48,10 +55,11 @@ public class RMFragment extends Fragment {
 
     //    private OnFragmentInteractionListener mListener;
     private RMAdapter mViewPagerAdapter;
+    private TextView[] tab;
     private ViewPager vp;
+    private LinearLayout btnLinearLayout;
     private Button btnShare;
     private Button btnCancel;
-    private TextView[] tab;
 
     /**
      * Use this factory method to create a new instance of
@@ -62,11 +70,11 @@ public class RMFragment extends Fragment {
      * @return A new instance of fragment RMFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static RMFragment newInstance(String param1, String param2) {
+    public static RMFragment newInstance(Set param1, String param2) {
         RMFragment fragment = new RMFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, null);
+        args.putString(ARG_PARAM2, null);
         fragment.setArguments(args);
         return fragment;
     }
@@ -93,6 +101,7 @@ public class RMFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
         mFragments = new ListFragment[4];
         mFragments[0] = FragmentImage.newInstance(null, null);
         mFragments[1] = FragmentAudio.newInstance(null, null);
@@ -100,10 +109,11 @@ public class RMFragment extends Fragment {
         mFragments[3] = FragmentText.newInstance(null, null);
         mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
 
-        mAdapterImage = new AdapterImage(getActivity());
-        mAdapterAudio = new AdapterAudio(getActivity());
-        mAdapterVideo = new AdapterVideo(getActivity());
-        mAdapterText = new AdapterText(getActivity());
+        mSelectedList = ((ShareActivity) getActivity()).mTransmissionQueue;
+        mAdapterImage = new AdapterImage(getActivity(), mSelectedList);
+        mAdapterAudio = new AdapterAudio(getActivity(), mSelectedList);
+        mAdapterVideo = new AdapterVideo(getActivity(), mSelectedList);
+        mAdapterText = new AdapterText(getActivity(), mSelectedList);
         mFragments[0].setListAdapter(mAdapterImage);
         mFragments[1].setListAdapter(mAdapterAudio);
         mFragments[2].setListAdapter(mAdapterVideo);
@@ -131,6 +141,8 @@ public class RMFragment extends Fragment {
                 rootView.findViewById(R.id.tab_4);
         vp = (ViewPager)
                 rootView.findViewById(R.id.vp);
+        btnLinearLayout = (LinearLayout)
+                rootView.findViewById(R.id.btnLinearLayout);
         btnShare = (Button)
                 rootView.findViewById(R.id.btnShare);
         btnCancel = (Button)
@@ -164,6 +176,24 @@ public class RMFragment extends Fragment {
 
             }
         });
+
+        ((TransmissionQueue) mSelectedList).setOnAddedListener(new TransmissionQueue.OnAddedListener() {
+            @Override
+            public void onAddedListener(int size) {
+                btnLinearLayout.setVisibility(View.VISIBLE);
+                btnShare.setText("分享(" + size + ")");
+            }
+
+            @Override
+            public void onRemovedListener(int size) {
+                if (size == 0) {
+                    btnLinearLayout.setVisibility(View.GONE);
+                } else {
+                    btnShare.setText("分享(" + mSelectedList.size() + ")");
+                }
+            }
+        });
+
         btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -171,6 +201,26 @@ public class RMFragment extends Fragment {
                 ((ShareActivity) getActivity()).jumpToFragment(ShareActivity.SHARE_FRAGMENT);
             }
         });
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (Object object : mSelectedList) {
+                    ((UserFile) object).isSelected = false;
+                }
+                mSelectedList.removeAll(mSelectedList);
+                btnLinearLayout.setVisibility(View.GONE);
+                mAdapterImage.notifyDataSetChanged();
+                mAdapterAudio.notifyDataSetChanged();
+                mAdapterVideo.notifyDataSetChanged();
+                mAdapterText.notifyDataSetChanged();
+            }
+        });
+
+        tab[0].setOnClickListener(new TxListener(0));
+        tab[1].setOnClickListener(new TxListener(1));
+        tab[2].setOnClickListener(new TxListener(2));
+        tab[3].setOnClickListener(new TxListener(3));
+
     }
 
     @Override
@@ -205,12 +255,11 @@ public class RMFragment extends Fragment {
                 int i = 0;
                 do {
                     fileImage = new FileImage();
-                    fileImage.id = curImage.getInt(curImage.getColumnIndex(MediaStore.Images.Media._ID));
+                    fileImage.id = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media._ID));
                     fileImage.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
                     fileImage.name = curImage.getString(curImage
                             .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
-                    this.images.put(i, fileImage);
-                    i++;
+                    this.images.put(i++, fileImage);
                 } while (curImage.moveToNext());
             }
             curImage.close();
@@ -229,15 +278,19 @@ public class RMFragment extends Fragment {
 
         protected SparseArray<?> doInBackground(Void... params) {
             audios = new SparseArray<FileAudio>();
-            Cursor curAudio = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, new String[]{
-                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.DISPLAY_NAME
-            }, null, null, null);
+            Cursor curAudio = getActivity().getContentResolver().query(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                            MediaStore.Audio.Media._ID,
+                            MediaStore.Audio.Media.DATA,
+                            MediaStore.Audio.Media.DISPLAY_NAME
+                    }, null, null, null);
             if (curAudio.moveToFirst()) {
                 FileAudio fileAudio;
                 int i = 0;
                 do {
                     fileAudio = new FileAudio();
-                    fileAudio.id = curAudio.getInt(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
+                    fileAudio.id = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
                     fileAudio.data = curAudio.getString(curAudio.getColumnIndex(MediaStore.Audio.Media.DATA));
                     fileAudio.name = curAudio.getString(curAudio
                             .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
@@ -277,11 +330,11 @@ public class RMFragment extends Fragment {
                 int i = 0;
                 do {
                     fileVideo = new FileVideo();
-                    fileVideo.id = curVideo.getInt(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
+                    fileVideo.id = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
                     fileVideo.data = curVideo.getString(curVideo.getColumnIndex(MediaStore.Video.Media.DATA));
                     fileVideo.name = curVideo.getString(curVideo
                             .getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
-                    this.videos.put(i, fileVideo);
+                    this.videos.put(i++, fileVideo);
                 } while (curVideo.moveToNext());
             }
             curVideo.close();
@@ -318,11 +371,10 @@ public class RMFragment extends Fragment {
                 int i = 0;
                 do {
                     fileText = new FileText();
-                    fileText.id = curText.getInt(curText.getColumnIndex(MediaStore.Images.Media._ID));
+                    fileText.id = curText.getLong(curText.getColumnIndex(MediaStore.Images.Media._ID));
                     fileText.data = curText.getString(curText.getColumnIndex(MediaStore.Images.Media.DATA));
                     fileText.name = fileText.data.substring(fileText.data.lastIndexOf("/") + 1);
-                    this.texts.put(i, fileText);
-                    i++;
+                    this.texts.put(i++, fileText);
                 } while (curText.moveToNext());
             }
             curText.close();
@@ -338,4 +390,16 @@ public class RMFragment extends Fragment {
 
     }
 
+    public class TxListener implements View.OnClickListener {
+        private int index = 0;
+
+        public TxListener(int i) {
+            index = i;
+        }
+
+        @Override
+        public void onClick(View v) {
+            vp.setCurrentItem(index);
+        }
+    }
 }

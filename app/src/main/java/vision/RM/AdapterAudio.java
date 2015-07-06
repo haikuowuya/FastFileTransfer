@@ -5,12 +5,12 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.Set;
+
 import vision.fastfiletransfer.R;
-import vision.fastfiletransfer.ShareActivity;
 
 /**
  * Created by Vision on 15/7/1.<br>
@@ -19,9 +19,11 @@ import vision.fastfiletransfer.ShareActivity;
 public class AdapterAudio extends AdapterList {
 
     private SparseArray<FileAudio> audios;
+    private Set mSelectedList;
 
-    public AdapterAudio(Context context) {
+    public AdapterAudio(Context context, Set selectedList) {
         super(context);
+        this.mSelectedList = selectedList;
     }
 
     @Override
@@ -54,7 +56,7 @@ public class AdapterAudio extends AdapterList {
         final ViewHolder holder;
         if (null == convertView) {
             holder = new ViewHolder();
-            convertView = inflater.inflate(R.layout.listitem_music, null);
+            convertView = inflater.inflate(R.layout.listitem_audio, null);
             holder.layout = (LinearLayout) convertView
                     .findViewById(R.id.list_item_layout);
             holder.name = (TextView) convertView
@@ -67,17 +69,21 @@ public class AdapterAudio extends AdapterList {
         }
         final FileAudio fileAudio = this.audios.get(position);
 
-        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                fileAudio.isSelected = isChecked;
-                if (isChecked) {
-                    ((ShareActivity) context).mTransmissionQueue.add(fileAudio);
+            public void onClick(View v) {
+                if (fileAudio.isSelected) {
+                    fileAudio.isSelected = false;
+                    mSelectedList.remove(fileAudio);
+                    holder.checkBox.setChecked(false);
                 } else {
-                    ((ShareActivity) context).mTransmissionQueue.remove(fileAudio);
+                    fileAudio.isSelected = true;
+                    mSelectedList.add(fileAudio);
+                    holder.checkBox.setChecked(true);
                 }
             }
         });
+
         holder.name.setText(fileAudio.name);
         holder.checkBox.setChecked(fileAudio.isSelected);
 //        Drawable drawable = context.getResources().getDrawable(R.mipmap.app_icon);

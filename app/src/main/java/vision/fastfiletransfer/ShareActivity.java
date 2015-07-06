@@ -4,10 +4,18 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.util.SparseArray;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
 
 import vis.TransmissionQueue;
 import vis.UserDevice;
@@ -22,13 +30,13 @@ public class ShareActivity extends FragmentActivity
     public static final int RM_FRAGMENT = 0;
     public static final int SHARE_FRAGMENT = 1;
 
-    /**
-     * 发送队列
-     */
-    public TransmissionQueue<File> mTransmissionQueue;
-
     private APHelper mAPHelper;
     public  FFTService mFFTService;
+
+    /**
+     * 文件发送队列
+     */
+    public TransmissionQueue<File> mTransmissionQueue;
 
     private FragmentManager fragmentManager = getSupportFragmentManager();
     private RMFragment mRMFragment;
@@ -37,7 +45,28 @@ public class ShareActivity extends FragmentActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE); //声明使用自定义标题
         setContentView(R.layout.activity_share);
+        getWindow().setFeatureInt(
+                Window.FEATURE_CUSTOM_TITLE,  //设置此样式为自定义样式
+                R.layout.activity_titlebar //设置对应的布局
+        );//自定义布局赋值
+
+        Button btnTitleBarLeft = (Button) findViewById(R.id.titlebar_btnLeft);
+        btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Runtime runtime = Runtime.getRuntime();
+                    runtime.exec("input keyevent " + KeyEvent.KEYCODE_BACK);
+                } catch (IOException e) {
+                    Log.e("Exception when doBack", e.toString());
+                }
+            }
+        });        TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
+        tvTitle.setText("我要分享");
+
+        mTransmissionQueue = new TransmissionQueue<File>();
 
         mAPHelper = new APHelper(this);
         mFFTService = new FFTService(this, FFTService.SERVICE_SHARE);
@@ -51,7 +80,6 @@ public class ShareActivity extends FragmentActivity
             }
         });
 
-        mTransmissionQueue = new TransmissionQueue<File>();
         if (!mAPHelper.isApEnabled()) {
             //开启AP
             if (mAPHelper.setWifiApEnabled(APHelper.createWifiCfg(APHelper.SSID), true)) {
@@ -103,12 +131,12 @@ public class ShareActivity extends FragmentActivity
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         switch (fragmentType) {
             case RM_FRAGMENT: {
-                mRMFragment = RMFragment.newInstance("hello", "hi");
+                mRMFragment = RMFragment.newInstance(mTransmissionQueue, null);
                 fragmentTransaction.replace(R.id.shareContain, mRMFragment);
                 break;
             }
             case SHARE_FRAGMENT: {
-                mShareFragment = ShareFragment.newInstance("", "");
+                mShareFragment = ShareFragment.newInstance(null, null);
                 //隐藏
                 fragmentTransaction.hide(mRMFragment);
                 fragmentTransaction.add(R.id.shareContain, mShareFragment);

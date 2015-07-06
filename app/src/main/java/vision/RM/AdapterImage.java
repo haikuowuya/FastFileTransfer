@@ -9,13 +9,13 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.Set;
+
 import vision.fastfiletransfer.R;
-import vision.fastfiletransfer.ShareActivity;
 
 /**
  * Created by Vision on 15/6/30.<br>
@@ -24,11 +24,13 @@ import vision.fastfiletransfer.ShareActivity;
 public class AdapterImage extends AdapterList {
 
     private SparseArray<FileImage> images;
-    private Context context;
+    private Context mContext;
+    private Set mSelectedList;
 
-    public AdapterImage(Context context) {
+    public AdapterImage(Context context, Set selectedList) {
         super(context);
-        this.context = context;
+        this.mContext = context;
+        this.mSelectedList = selectedList;
     }
 
     @Override
@@ -78,18 +80,33 @@ public class AdapterImage extends AdapterList {
 
         final FileImage fileImage = this.images.get(position);
 
-        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                fileImage.isSelected = isChecked;
-//                Log.d("OnChecked","look at that");
-                if (isChecked) {
-                    ((ShareActivity) context).mTransmissionQueue.add(fileImage);
+            public void onClick(View v) {
+                if (fileImage.isSelected) {
+                    fileImage.isSelected = false;
+                    mSelectedList.remove(fileImage);
+                    holder.checkBox.setChecked(false);
                 } else {
-                    ((ShareActivity) context).mTransmissionQueue.remove(fileImage);
+                    fileImage.isSelected = true;
+                    mSelectedList.add(fileImage);
+                    holder.checkBox.setChecked(true);
                 }
             }
         });
+
+//        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                fileImage.isSelected = isChecked;
+////                Log.d("OnChecked","look at that");
+//                if (isChecked) {
+//                    mSelectedList.add(fileImage);
+//                } else {
+//                    mSelectedList.remove(fileImage);
+//                }
+//            }
+//        });
         holder.name.setText(fileImage.name);
         holder.checkBox.setChecked(fileImage.isSelected);
 //        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, fileImage.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);

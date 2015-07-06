@@ -138,7 +138,7 @@ public class UserFilesAdapter extends FFTAdapter {
                 UserFile userFile = (UserFile)
                         msg.obj;
                 if (ufa.dataList.size() <= userFile.id) {
-                    ufa.dataList.put(userFile.id, userFile);
+                    ufa.dataList.put(((int)userFile.id), userFile);
                 }
                 // notifyDataSetChanged会执行getView函数，更新所有可视item的数据
                 ufa.notifyDataSetChanged();

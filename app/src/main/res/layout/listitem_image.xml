@@ -3,10 +3,10 @@
     android:id="@+id/list_item_layout"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical"
     android:background="@drawable/style_listitem_background"
+    android:gravity="center_vertical"
     android:paddingBottom="5dp"
-    android:paddingTop="5dp" >
+    android:paddingTop="5dp">
 
     <ImageView
         android:id="@+id/image"
@@ -18,12 +18,11 @@
         android:src="@mipmap/explorer_c_icon_image_p" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="60dp"
         android:layout_marginLeft="5dp"
-        android:layout_weight="1"
         android:gravity="center_vertical"
-        android:orientation="vertical" >
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/name"
@@ -38,8 +37,15 @@
     </LinearLayout>
 
     <CheckBox
+        android:id="@+id/checkBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/checkBox" />
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/checkbox_off_normal" />
 
 </LinearLayout>

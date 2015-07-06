@@ -30,7 +30,7 @@ public class ShareFragment extends Fragment {
 //    private OnFragmentInteractionListener mListener;
 
     private Context context;
-//    private String filePath;
+    //    private String filePath;
     private TextView tvFileName;
     private Button btnSelectFile;
     private Button btnSend;
@@ -121,12 +121,12 @@ public class ShareFragment extends Fragment {
      * set好所有的东西
      */
     private void setAllTheThing() {
-        btnSelectFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                showFileChooser();
-            }
-        });
+//        btnSelectFile.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                showFileChooser();
+//            }
+//        });
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

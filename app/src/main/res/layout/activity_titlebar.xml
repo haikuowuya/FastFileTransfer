@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="horizontal">
+
+    <Button
+        android:id="@+id/titlebar_btnLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="12dp"
+        android:background="@drawable/style_btn_titlebar_back" />
+
+    <Button
+        android:id="@+id/titlebar_btnRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="12.0dip"
+        android:text="发布"
+        android:textSize="15.0sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/titlebar_tvtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/titlebar_btnRight"
+        android:layout_toRightOf="@+id/titlebar_btnLeft"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:textColor="#ffffffff"
+        android:textSize="22dp" />
+</RelativeLayout>  

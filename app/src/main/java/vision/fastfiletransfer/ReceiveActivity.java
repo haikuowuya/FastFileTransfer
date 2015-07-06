@@ -6,21 +6,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
-import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import vis.net.protocol.FFTService;
-import vis.net.wifi.ReceiveWifiManager;
 import vis.net.wifi.WifiHelper;
 
 
@@ -40,7 +42,27 @@ public class ReceiveActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE); //声明使用自定义标题
         setContentView(R.layout.activity_receive);
+        getWindow().setFeatureInt(
+                Window.FEATURE_CUSTOM_TITLE,  //设置此样式为自定义样式
+                R.layout.activity_titlebar //设置对应的布局
+        );//自定义布局赋值
+
+        Button btnTitleBarLeft = (Button) findViewById(R.id.titlebar_btnLeft);
+        btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    Runtime runtime=Runtime.getRuntime();
+                    runtime.exec("input keyevent " + KeyEvent.KEYCODE_BACK);
+                }catch(IOException e){
+                    Log.e("Exception when doBack", e.toString());
+                }
+            }
+        });
+        TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
+        tvTitle.setText("我要接收");
 
 //        mReceiveWifiManager = new ReceiveWifiManager(this);
         mWifiHelper = new WifiHelper(this);

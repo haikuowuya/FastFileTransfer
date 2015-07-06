@@ -8,13 +8,13 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.Set;
+
 import vision.fastfiletransfer.R;
-import vision.fastfiletransfer.ShareActivity;
 
 /**
  * Created by Vision on 15/7/1.<br>
@@ -23,9 +23,11 @@ import vision.fastfiletransfer.ShareActivity;
 public class AdapterVideo extends AdapterList {
 
     private SparseArray<FileVideo> videos;
+    private Set mSelectedList;
 
-    public AdapterVideo(Context context) {
+    public AdapterVideo(Context context, Set selectedList) {
         super(context);
+        this.mSelectedList = selectedList;
     }
 
     @Override
@@ -74,14 +76,17 @@ public class AdapterVideo extends AdapterList {
         }
         final FileVideo fileVideo = this.videos.get(position);
 
-        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                fileVideo.isSelected = isChecked;
-                if (isChecked) {
-                    ((ShareActivity) context).mTransmissionQueue.add(fileVideo);
+            public void onClick(View v) {
+                if (fileVideo.isSelected) {
+                    fileVideo.isSelected = false;
+                    mSelectedList.remove(fileVideo);
+                    holder.checkBox.setChecked(false);
                 } else {
-                    ((ShareActivity) context).mTransmissionQueue.remove(fileVideo);
+                    fileVideo.isSelected = true;
+                    mSelectedList.add(fileVideo);
+                    holder.checkBox.setChecked(true);
                 }
             }
         });

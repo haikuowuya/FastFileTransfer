@@ -1,38 +1,57 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
     android:id="@+id/fragment_container">
 
 
-    <Button
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="我要分享"
-        android:id="@+id/btnShare"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:textSize="60dp" />
+        android:id="@+id/imageView"
+        android:src="@mipmap/personal_center_profile_banner"
+        android:scaleType="fitStart" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/activity_main_btn_share"
+        android:text="我要分享"
+        android:id="@+id/btnShare"
+        android:textSize="25dp"
+        android:paddingLeft="80dp"
+        android:paddingRight="80dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:layout_above="@+id/btnReceive" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/activity_main_btn_rec"
         android:text="我要接收"
         android:id="@+id/btnReceive"
-        android:layout_below="@+id/btnShare"
+        android:textSize="25dp"
+        android:paddingLeft="80dp"
+        android:paddingRight="80dp"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
         android:layout_centerHorizontal="true"
-        android:textSize="60dp" />
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
         android:id="@+id/tvModel"
-        android:layout_alignParentTop="true"
+        android:textSize="20dp"
+        android:layout_alignWithParentIfMissing="false"
+        android:layout_above="@+id/btnShare"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="71dp"
-        android:textSize="30dp" />
+        android:layout_margin="10dp"
+        android:text="机型" />
+
 </RelativeLayout>
