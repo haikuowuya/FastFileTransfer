@@ -5,7 +5,7 @@ import android.content.Context;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -64,30 +64,40 @@ public class AdapterText extends AdapterList {
                     .findViewById(R.id.list_item_layout);
             holder.name = (TextView) convertView
                     .findViewById(R.id.name);
-            holder.checkBox = (CheckBox)
-                    convertView.findViewById(R.id.checkBox);
+            holder.size = (TextView)
+                    convertView.findViewById(R.id.tvSize);
+            holder.date = (TextView)
+                    convertView.findViewById(R.id.tvDate);
+            holder.ivCheckBox = (ImageView)
+                    convertView.findViewById(R.id.ivCheckBox);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final FileText fileText = this.texts.get(position);
+        final FileText file = this.texts.get(position);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (fileText.isSelected) {
-                    fileText.isSelected = false;
-                    mSelectedList.remove(fileText);
-                    holder.checkBox.setChecked(false);
+                if (file.isSelected) {
+                    file.isSelected = false;
+                    mSelectedList.remove(file);
+                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
                 } else {
-                    fileText.isSelected = true;
-                    mSelectedList.add(fileText);
-                    holder.checkBox.setChecked(true);
+                    file.isSelected = true;
+                    mSelectedList.add(file);
+                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
                 }
             }
         });
-        holder.name.setText(fileText.name);
-        holder.checkBox.setChecked(fileText.isSelected);
+        holder.name.setText(file.name);
+        holder.size.setText(file.strSize);
+        holder.date.setText(file.strDate);
+        if (file.isSelected) {
+            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+        } else {
+            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+        }
 //        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, fileText.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
 //        holder.image.setImageBitmap(bm);
         return convertView;
@@ -99,7 +109,9 @@ public class AdapterText extends AdapterList {
     static class ViewHolder {
         LinearLayout layout;
         TextView name;
-        CheckBox checkBox;
+        TextView size;
+        TextView date;
+        ImageView ivCheckBox;
     }
 
 

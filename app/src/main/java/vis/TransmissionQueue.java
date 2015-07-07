@@ -14,7 +14,7 @@ import vision.RM.FileVideo;
  */
 public class TransmissionQueue<E> extends HashSet {
 
-    private OnAddedListener onAddedListener;
+    private OnDataChangedListener onDataChangedListener;
 
     public TransmissionQueue() {
     }
@@ -38,19 +38,19 @@ public class TransmissionQueue<E> extends HashSet {
     @Override
     public boolean add(Object object) {
         boolean b = super.add(object);
-        this.onAddedListener.onAddedListener(this.size());
+        this.onDataChangedListener.onAddedListener(this.size());
         return b;
     }
 
     @Override
     public boolean remove(Object object) {
         boolean b = super.remove(object);
-        this.onAddedListener.onRemovedListener(this.size());
+        this.onDataChangedListener.onRemovedListener(this.size());
         return b;
     }
 
-    public void setOnAddedListener(OnAddedListener onAddedListener) {
-        this.onAddedListener = onAddedListener;
+    public void setOnDataChangedListener(OnDataChangedListener onDataChangedListener) {
+        this.onDataChangedListener = onDataChangedListener;
     }
 
     public String[] getPaths() {
@@ -62,7 +62,7 @@ public class TransmissionQueue<E> extends HashSet {
         return strings;
     }
 
-    public interface OnAddedListener {
+    public interface OnDataChangedListener {
         void onAddedListener(int size);
         void onRemovedListener(int size);
     }

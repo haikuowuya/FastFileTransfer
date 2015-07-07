@@ -23,7 +23,6 @@ import java.util.concurrent.Executors;
 
 import vis.UserDevice;
 import vis.UserFile;
-import vis.net.protocol.FFTService;
 
 /**
  * 文件传输类
@@ -31,6 +30,9 @@ import vis.net.protocol.FFTService;
  * Email:Vision.lsm.2012@gmail.com
  */
 public class FilesTransfer {
+
+    public static final int SERVICE_SHARE = 1;
+    public static final int SERVICE_RECEIVE = 2;
 
     private final ExecutorService executorService;
     private ServerSocket mServerSocket;
@@ -45,9 +47,9 @@ public class FilesTransfer {
 
     public FilesTransfer(Context context, int serviceType) {
         this.context = context;
-        if (FFTService.SERVICE_SHARE == serviceType) {
+        if (SERVICE_SHARE == serviceType) {
             executorService = Executors.newFixedThreadPool(3);
-        } else if (FFTService.SERVICE_RECEIVE == serviceType) {
+        } else if (SERVICE_RECEIVE == serviceType) {
             executorService = Executors.newSingleThreadExecutor();
         } else {
             executorService = null;

@@ -1,10 +1,8 @@
 package vis;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +21,7 @@ import vision.fastfiletransfer.R;
 
 public class UserDevicesAdapter extends FFTAdapter {
 
-    private SparseArray<UserDevice> mDevicesList = null;
+    private DevicesList<UserDevice> mDevicesList = null;
     private LayoutInflater inflater = null;
     private Context mContext;
 
@@ -58,10 +56,10 @@ public class UserDevicesAdapter extends FFTAdapter {
         }
     }
 
-    public UserDevicesAdapter(Context context) {
+    public UserDevicesAdapter(Context context, DevicesList<UserDevice> devicesList) {
         this.inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        this.mDevicesList = new SparseArray<UserDevice>();
+        this.mDevicesList = devicesList;
         this.mContext = context;
     }
 
@@ -108,8 +106,8 @@ public class UserDevicesAdapter extends FFTAdapter {
         //这里并不关心key，不能用get(key)
         final UserDevice userDevice = mDevicesList.valueAt(position);
         holder.name.setText(userDevice.name);
-        Drawable drawable = mContext.getResources().getDrawable(R.mipmap.app_icon);
-        holder.icon.setImageDrawable(drawable);
+//        Drawable drawable = mContext.getResources().getDrawable(R.mipmap.app_icon);
+//        holder.icon.setImageDrawable(drawable);
 
         switch (userDevice.state) {
             case UserDevice.TRANSFER_STATE_NORMAL:

@@ -15,7 +15,6 @@ import java.lang.ref.WeakReference;
 
 import vis.FFTAdapter;
 import vis.UserDevice;
-import vis.UserDevicesAdapter;
 import vis.UserFilesAdapter;
 import vis.net.CommandsTransfer;
 import vis.net.FilesTransfer;
@@ -92,17 +91,30 @@ public class FFTService {
         }
     }
 
+//    public FFTService(Context context, int serviceType, SparseArray<UserDevice> deviceArray) {
+//        mCommandsTransfer = new CommandsTransfer(2222);
+//        mFilesTransfer = new FilesTransfer(context, serviceType);
+//        if (SERVICE_SHARE == serviceType) {
+//            mAdapter = new UserDevicesAdapter(context, deviceArray);
+//        } else if (SERVICE_RECEIVE == serviceType) {
+//            mAdapter = new UserFilesAdapter(context);
+//        }
+//        //把适配器的handler交给mFilesTransfer，以便transfer控制适配器
+////        Log.d("FFTService", String.valueOf(mAdapter.getHandler()));
+//        mFilesTransfer.setCallbackHandler(mAdapter.getHandler());
+//    }
 
     public FFTService(Context context, int serviceType) {
         mCommandsTransfer = new CommandsTransfer(2222);
         mFilesTransfer = new FilesTransfer(context, serviceType);
         if (SERVICE_SHARE == serviceType) {
-            mAdapter = new UserDevicesAdapter(context);
+//            mAdapter = new UserDevicesAdapter(context, mDevicesList);
         } else if (SERVICE_RECEIVE == serviceType) {
             mAdapter = new UserFilesAdapter(context);
         }
         //把适配器的handler交给mFilesTransfer，以便transfer控制适配器
 //        Log.d("FFTService", String.valueOf(mAdapter.getHandler()));
+        //发送文件时可以控制进度条
         mFilesTransfer.setCallbackHandler(mAdapter.getHandler());
     }
 

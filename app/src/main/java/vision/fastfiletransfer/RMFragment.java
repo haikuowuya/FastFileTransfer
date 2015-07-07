@@ -107,6 +107,7 @@ public class RMFragment extends Fragment {
         mFragments[1] = FragmentAudio.newInstance(null, null);
         mFragments[2] = FragmentVideo.newInstance(null, null);
         mFragments[3] = FragmentText.newInstance(null, null);
+
         mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
 
         mSelectedList = ((ShareActivity) getActivity()).mTransmissionQueue;
@@ -122,7 +123,10 @@ public class RMFragment extends Fragment {
         new RefreshImageList().execute();
         new RefreshAudioList().execute();
         new RefreshVideoList().execute();
-        new RefreshTextList().execute();
+        if (android.os.Build.VERSION.SDK_INT >= 11) {
+            new RefreshTextList().execute();
+        }
+
     }
 
     @Override
@@ -177,7 +181,7 @@ public class RMFragment extends Fragment {
             }
         });
 
-        ((TransmissionQueue) mSelectedList).setOnAddedListener(new TransmissionQueue.OnAddedListener() {
+        ((TransmissionQueue) mSelectedList).setOnDataChangedListener(new TransmissionQueue.OnDataChangedListener() {
             @Override
             public void onAddedListener(int size) {
                 btnLinearLayout.setVisibility(View.VISIBLE);
@@ -212,14 +216,20 @@ public class RMFragment extends Fragment {
                 mAdapterImage.notifyDataSetChanged();
                 mAdapterAudio.notifyDataSetChanged();
                 mAdapterVideo.notifyDataSetChanged();
-                mAdapterText.notifyDataSetChanged();
+                if (android.os.Build.VERSION.SDK_INT >= 11) {
+                    mAdapterText.notifyDataSetChanged();
+                }
             }
         });
 
         tab[0].setOnClickListener(new TxListener(0));
         tab[1].setOnClickListener(new TxListener(1));
         tab[2].setOnClickListener(new TxListener(2));
-        tab[3].setOnClickListener(new TxListener(3));
+        if (android.os.Build.VERSION.SDK_INT >= 11) {
+            tab[3].setOnClickListener(new TxListener(3));
+        } else {
+            tab[3].setVisibility(View.GONE);
+        }
 
     }
 
@@ -244,8 +254,10 @@ public class RMFragment extends Fragment {
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     new String[]{
                             MediaStore.Images.Media._ID,
+                            MediaStore.Images.Media.DATA,
+                            MediaStore.Images.Media.SIZE,
                             MediaStore.Images.Media.DISPLAY_NAME,
-                            MediaStore.Images.Media.DATA
+                            MediaStore.Images.Media.DATE_MODIFIED
                     },
                     null,
                     null,
@@ -257,8 +269,12 @@ public class RMFragment extends Fragment {
                     fileImage = new FileImage();
                     fileImage.id = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media._ID));
                     fileImage.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
+                    fileImage.size = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.SIZE));
+                    fileImage.strSize = UserFile.bytes2kb(fileImage.size);
                     fileImage.name = curImage.getString(curImage
                             .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+                    fileImage.date = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED));
+                    fileImage.strDate = UserFile.dateFormat(fileImage.date);
                     this.images.put(i++, fileImage);
                 } while (curImage.moveToNext());
             }
@@ -283,7 +299,10 @@ public class RMFragment extends Fragment {
                     new String[]{
                             MediaStore.Audio.Media._ID,
                             MediaStore.Audio.Media.DATA,
-                            MediaStore.Audio.Media.DISPLAY_NAME
+                            MediaStore.Audio.Media.SIZE,
+                            MediaStore.Audio.Media.DISPLAY_NAME,
+                            MediaStore.Audio.Media.DATE_ADDED,
+                            MediaStore.Audio.Media.DATE_MODIFIED
                     }, null, null, null);
             if (curAudio.moveToFirst()) {
                 FileAudio fileAudio;
@@ -292,8 +311,15 @@ public class RMFragment extends Fragment {
                     fileAudio = new FileAudio();
                     fileAudio.id = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
                     fileAudio.data = curAudio.getString(curAudio.getColumnIndex(MediaStore.Audio.Media.DATA));
+                    fileAudio.size = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media.SIZE));
+                    fileAudio.strSize = UserFile.bytes2kb(fileAudio.size);
                     fileAudio.name = curAudio.getString(curAudio
                             .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+                    fileAudio.date = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED));
+//                    Log.d("date", String.valueOf(fileAudio.date));
+//                    Log.d("date1", String.valueOf(curAudio.getLong(curAudio
+//                            .getColumnIndex(MediaStore.Audio.Media.DATE_ADDED))));
+                    fileAudio.strDate = UserFile.dateFormat(fileAudio.date);
                     this.audios.put(i++, fileAudio);
                 } while (curAudio.moveToNext());
             }
@@ -320,7 +346,9 @@ public class RMFragment extends Fragment {
                     new String[]{
                             MediaStore.Video.Media._ID,
                             MediaStore.Video.Media.DATA,
-                            MediaStore.Video.Media.DISPLAY_NAME
+                            MediaStore.Video.Media.SIZE,
+                            MediaStore.Video.Media.DISPLAY_NAME,
+                            MediaStore.Video.Media.DATE_MODIFIED
                     },
                     null,
                     null,
@@ -332,8 +360,12 @@ public class RMFragment extends Fragment {
                     fileVideo = new FileVideo();
                     fileVideo.id = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
                     fileVideo.data = curVideo.getString(curVideo.getColumnIndex(MediaStore.Video.Media.DATA));
+                    fileVideo.size = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media.SIZE));
+                    fileVideo.strSize = UserFile.bytes2kb(fileVideo.size);
                     fileVideo.name = curVideo.getString(curVideo
                             .getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
+                    fileVideo.date = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED));
+                    fileVideo.strDate = UserFile.dateFormat(fileVideo.date);
                     this.videos.put(i++, fileVideo);
                 } while (curVideo.moveToNext());
             }
@@ -361,7 +393,9 @@ public class RMFragment extends Fragment {
                     new String[]{
                             MediaStore.Files.FileColumns._ID,
                             MediaStore.Files.FileColumns.DATA,
-                            MediaStore.Files.FileColumns.MIME_TYPE
+                            MediaStore.Files.FileColumns.SIZE,
+                            MediaStore.Files.FileColumns.MIME_TYPE,
+                            MediaStore.Files.FileColumns.DATE_MODIFIED
                     },
                     MediaStore.Files.FileColumns.MIME_TYPE + " LIKE ?",
                     new String[]{"text/%"},
@@ -371,9 +405,13 @@ public class RMFragment extends Fragment {
                 int i = 0;
                 do {
                     fileText = new FileText();
-                    fileText.id = curText.getLong(curText.getColumnIndex(MediaStore.Images.Media._ID));
-                    fileText.data = curText.getString(curText.getColumnIndex(MediaStore.Images.Media.DATA));
+                    fileText.id = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns._ID));
+                    fileText.data = curText.getString(curText.getColumnIndex(MediaStore.Files.FileColumns.DATA));
+                    fileText.size = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns.SIZE));
+                    fileText.strSize = UserFile.bytes2kb(fileText.size);
                     fileText.name = fileText.data.substring(fileText.data.lastIndexOf("/") + 1);
+                    fileText.date = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED));
+                    fileText.strDate = UserFile.dateFormat(fileText.date);
                     this.texts.put(i++, fileText);
                 } while (curText.moveToNext());
             }

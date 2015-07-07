@@ -2,33 +2,12 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" tools:context="vision.fastfiletransfer.ShareFragment">
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="false"
-        android:layout_centerHorizontal="true"
-        android:weightSum="4"
-        android:id="@+id/linearLayout"
-        android:layout_above="@+id/btnSend">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="文件名"
-            android:id="@+id/tvFileName"
-            android:layout_weight="3"
-            android:gravity="center_horizontal" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="选择文件"
-            android:id="@+id/btnSelectFile"
-            android:layout_weight="1"
-            android:visibility="gone" />
-    </LinearLayout>
+        android:layout_height="150dp"
+        android:id="@+id/imageView2"
+        android:src="@mipmap/personnal_center_side_face_to_face"
+        android:scaleType="centerCrop" />
 
     <Button
         android:layout_width="match_parent"
@@ -37,25 +16,63 @@
         android:id="@+id/btnSend"
         android:layout_centerHorizontal="true"
         android:layout_alignParentEnd="false"
-        android:layout_alignParentBottom="true" />
+        android:layout_alignParentBottom="true"
+        android:visibility="visible"
+        android:textSize="18dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="本设备名称"
+        android:id="@+id/tvTips"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal"
+        android:layout_alignBottom="@+id/imageView2"
+        android:textSize="20dp" />
 
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/lvDevices"
         android:layout_alignParentTop="false"
-        android:layout_centerHorizontal="true"
-        android:layout_above="@+id/linearLayout"
-        android:layout_below="@+id/tvTips" />
+        android:layout_alignParentLeft="false"
+        android:visibility="gone"
+        android:layout_below="@+id/imageView2"
+        android:layout_above="@+id/btnSend" />
 
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="本设备名称"
-        android:id="@+id/tvTips"
-        android:layout_centerHorizontal="true"
-        android:gravity="center_horizontal" />
+        android:layout_height="match_parent"
+        android:layout_below="@+id/imageView2"
+        android:layout_above="@+id/btnSend"
+        android:id="@+id/rlNobody">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView3"
+            android:src="@mipmap/listview_arrow"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentTop="false"
+            android:layout_centerInParent="true" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar"
+            android:layout_centerInParent="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="还没有人连接这里！"
+            android:id="@+id/textView"
+            android:layout_above="@+id/progressBar"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="15dp" />
+    </RelativeLayout>
 
 
 </RelativeLayout>

@@ -25,4 +25,6 @@ public abstract class AdapterList extends BaseAdapter {//CursorAdapter
     }
 
     abstract void setData(SparseArray<?> data);
+
+
 }

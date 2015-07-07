@@ -5,7 +5,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,26 +16,30 @@ import android.widget.Toast;
 
 import java.io.IOException;
 
+import vis.DevicesList;
 import vis.TransmissionQueue;
 import vis.UserDevice;
-import vis.net.protocol.FFTService;
+import vis.net.protocol.ShareServer;
 import vis.net.wifi.APHelper;
 import vision.RM.File;
 
 
-public class ShareActivity extends FragmentActivity
-{
+public class ShareActivity extends FragmentActivity {
 
     public static final int RM_FRAGMENT = 0;
     public static final int SHARE_FRAGMENT = 1;
 
     private APHelper mAPHelper;
-    public  FFTService mFFTService;
-
+    //    public FFTService mFFTService;
+    public ShareServer mShareServer;
     /**
      * 文件发送队列
      */
     public TransmissionQueue<File> mTransmissionQueue;
+    /**
+     * 用户设备接入列表
+     */
+    public DevicesList<UserDevice> mDevicesList;
 
     private FragmentManager fragmentManager = getSupportFragmentManager();
     private RMFragment mRMFragment;
@@ -63,22 +66,27 @@ public class ShareActivity extends FragmentActivity
                     Log.e("Exception when doBack", e.toString());
                 }
             }
-        });        TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
+        });
+        TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
         tvTitle.setText("我要分享");
 
         mTransmissionQueue = new TransmissionQueue<File>();
+//        mDevicesList = new SparseArray<UserDevice>();
+        mDevicesList = new DevicesList<UserDevice>();
 
         mAPHelper = new APHelper(this);
-        mFFTService = new FFTService(this, FFTService.SERVICE_SHARE);
-        mFFTService.enable();
-        mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
-            @Override
-            public void onDataReceived(SparseArray<UserDevice> devicesList) {
-                //必需set这个东西才能开始监听接收
-                //保留这个接口
-//                devicesListIsChanged(devicesList);
-            }
-        });
+        mShareServer = new ShareServer(this, mDevicesList);
+        mShareServer.enable();
+//        mFFTService = new FFTService(this, FFTService.SERVICE_SHARE, this.mDevicesList);
+//        mFFTService.enable();
+//        mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
+//            @Override
+//            public void onDataReceived(SparseArray<UserDevice> devicesList) {
+//                //必需set这个东西才能开始监听接收
+//                //保留这个接口
+////                devicesListIsChanged(devicesList);
+//            }
+//        });
 
         if (!mAPHelper.isApEnabled()) {
             //开启AP
@@ -94,9 +102,9 @@ public class ShareActivity extends FragmentActivity
 
     @Override
     protected void onDestroy() {
-        mFFTService.setOnDataReceivedListener(null);
-        mFFTService.disable();
-
+//        mFFTService.setOnDataReceivedListener(null);
+//        mFFTService.disable();
+        mShareServer.disable();
         //关闭AP
 //        if (mShareWifiManager.setWifiApEnabled(false)) {
         if (mAPHelper.setWifiApEnabled(null, false)) {

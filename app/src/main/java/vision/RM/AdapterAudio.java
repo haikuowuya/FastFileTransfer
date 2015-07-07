@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -61,8 +61,12 @@ public class AdapterAudio extends AdapterList {
                     .findViewById(R.id.list_item_layout);
             holder.name = (TextView) convertView
                     .findViewById(R.id.name);
-            holder.checkBox = (CheckBox)
-                    convertView.findViewById(R.id.checkBox);
+            holder.size = (TextView)
+                    convertView.findViewById(R.id.tvSize);
+            holder.date = (TextView)
+                    convertView.findViewById(R.id.tvDate);
+            holder.ivCheckBox = (ImageView)
+                    convertView.findViewById(R.id.ivCheckBox);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -75,23 +79,23 @@ public class AdapterAudio extends AdapterList {
                 if (fileAudio.isSelected) {
                     fileAudio.isSelected = false;
                     mSelectedList.remove(fileAudio);
-                    holder.checkBox.setChecked(false);
+                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
                 } else {
                     fileAudio.isSelected = true;
                     mSelectedList.add(fileAudio);
-                    holder.checkBox.setChecked(true);
+                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
                 }
             }
         });
 
         holder.name.setText(fileAudio.name);
-        holder.checkBox.setChecked(fileAudio.isSelected);
-//        Drawable drawable = context.getResources().getDrawable(R.mipmap.app_icon);
-//        holder.images.setImageDrawable(drawable);
-//        BitmapFactory.Options options = new BitmapFactory.Options();
-//        options.inSampleSize = 32;
-//        Bitmap bm = BitmapFactory.decodeFile(fileAudio.data, options);
-//        holder.image.setImageBitmap(bm);
+        holder.size.setText(fileAudio.strSize);
+        holder.date.setText(fileAudio.strDate);
+        if (fileAudio.isSelected) {
+            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+        } else {
+            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+        }
         return convertView;
     }
 
@@ -101,7 +105,9 @@ public class AdapterAudio extends AdapterList {
     static class ViewHolder {
         LinearLayout layout;
         TextView name;
-        CheckBox checkBox;
+        TextView size;
+        TextView date;
+        ImageView ivCheckBox;
     }
 
 }

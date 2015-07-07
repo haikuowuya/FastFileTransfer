@@ -2,7 +2,6 @@ package vis;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -82,8 +81,8 @@ public class UserFilesAdapter extends FFTAdapter {
         //这里并不关心key，不能用get(key)
         final UserFile userFile = dataList.valueAt(position);
         holder.name.setText(userFile.name);
-        Drawable drawable = mContext.getResources().getDrawable(R.mipmap.app_icon);
-        holder.icon.setImageDrawable(drawable);
+//        Drawable drawable = mContext.getResources().getDrawable(R.mipmap.app_icon);
+//        holder.icon.setImageDrawable(drawable);
 
         switch (userFile.state) {
             case UserFile.TRANSFER_STATE_NORMAL:

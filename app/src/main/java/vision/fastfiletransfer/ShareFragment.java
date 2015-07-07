@@ -9,8 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import vis.DevicesList;
+import vis.UserDevice;
+import vis.UserDevicesAdapter;
 import vis.net.protocol.FFTService;
 
 
@@ -31,11 +35,14 @@ public class ShareFragment extends Fragment {
 
     private Context context;
     //    private String filePath;
-    private TextView tvFileName;
-    private Button btnSelectFile;
+//    private TextView tvFileName;
+//    private Button btnSelectFile;
     private Button btnSend;
     private TextView tvName;
     private ListView lvDevices;
+    private RelativeLayout rlNobody;
+    private DevicesList<UserDevice> mDevicesList;
+    private UserDevicesAdapter mUserDevicesAdapter;
 
     /**
      * Use this factory method to create a new instance of
@@ -45,7 +52,6 @@ public class ShareFragment extends Fragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment ShareFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static ShareFragment newInstance(String param1, String param2) {
         ShareFragment fragment = new ShareFragment();
         Bundle args = new Bundle();
@@ -81,8 +87,10 @@ public class ShareFragment extends Fragment {
         View rootview = inflater.inflate(R.layout.fragment_share, container, false);
         tvName = (TextView) rootview.findViewById(R.id.tvTips);
         lvDevices = (ListView) rootview.findViewById(R.id.lvDevices);
-        tvFileName = (TextView) rootview.findViewById(R.id.tvFileName);
-        btnSelectFile = (Button) rootview.findViewById(R.id.btnSelectFile);
+//        tvFileName = (TextView) rootview.findViewById(R.id.tvFileName);
+//        btnSelectFile = (Button) rootview.findViewById(R.id.btnSelectFile);
+        rlNobody = (RelativeLayout)
+                rootview.findViewById(R.id.rlNobody);
         btnSend = (Button) rootview.findViewById(R.id.btnSend);
         return rootview;
     }
@@ -90,21 +98,56 @@ public class ShareFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        lvDevices.setAdapter(((ShareActivity) context).mFFTService.getAdapter());
-        tvName.setText("本机：" + new String(FFTService.LOCALNAME));
+
+        mDevicesList = ((ShareActivity) context).mDevicesList;
+        mUserDevicesAdapter = new UserDevicesAdapter(context, mDevicesList);
+        lvDevices.setAdapter(mUserDevicesAdapter);
+
+        //TODO 这里可以实现一个接口监听是ListView数据是否有变化，然后做相对应的改变
+        mDevicesList.setOnDataChangedListener(new DevicesList.OnDataChangedListener() {
+            @Override
+            public void onAddedListener(int size) {
+                lvDevices.setVisibility(View.VISIBLE);
+                rlNobody.setVisibility(View.GONE);
+                mUserDevicesAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onRemovedListener(int size) {
+                if (size == 0) {
+                    lvDevices.setVisibility(View.GONE);
+                    rlNobody.setVisibility(View.VISIBLE);
+                }
+                mUserDevicesAdapter.notifyDataSetChanged();
+            }
+        });
+
+//        lvDevices.setAdapter(((ShareActivity) context).mFFTService.getAdapter());
+        tvName.setText(new String(FFTService.LOCALNAME));
         setAllTheThing();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        ((ShareActivity) context).mFFTService.getAdapter().notifyDataSetChanged();
+//        ((ShareActivity) context).mFFTService.getAdapter().notifyDataSetChanged();
         if (((ShareActivity) context).mTransmissionQueue.isEmpty()) {
-            this.tvFileName.setText("没有选择文件");
+//            this.tvFileName.setText("没有选择文件");
+            this.lvDevices.setVisibility(View.VISIBLE);
+            this.rlNobody.setVisibility(View.GONE);
+            this.btnSend.setEnabled(false);
+            this.btnSend.setText("没有选择文件");
 //                    Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT)
 //                            .show();
         } else {
-            this.tvFileName.setText(
+//            this.tvFileName.setText(
+//                    "已选择" + ((ShareActivity) context)
+//                            .mTransmissionQueue.size() + "个文件"
+//            );
+            this.rlNobody.setVisibility(View.VISIBLE);
+            this.lvDevices.setVisibility(View.GONE);
+            this.btnSend.setEnabled(true);
+            this.btnSend.setText(
                     "已选择" + ((ShareActivity) context)
                             .mTransmissionQueue.size() + "个文件"
             );
@@ -131,7 +174,8 @@ public class ShareFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String[] paths = ((ShareActivity) context).mTransmissionQueue.getPaths();
-                ((ShareActivity) context).mFFTService.sendFlies(context, paths);
+//                ((ShareActivity) context).mFFTService.sendFlies(context, paths);
+                ((ShareActivity) context).mShareServer.sendFlies(context, paths);
             }
         });
     }

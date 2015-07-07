@@ -7,7 +7,6 @@ import android.provider.MediaStore;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -68,33 +67,42 @@ public class AdapterVideo extends AdapterList {
                     .findViewById(R.id.image);
             holder.name = (TextView) convertView
                     .findViewById(R.id.name);
-            holder.checkBox = (CheckBox)
-                    convertView.findViewById(R.id.checkBox);
+            holder.size = (TextView)
+                    convertView.findViewById(R.id.tvSize);
+            holder.date = (TextView)
+                    convertView.findViewById(R.id.tvDate);
+            holder.ivCheckBox = (ImageView)
+                    convertView.findViewById(R.id.ivCheckBox);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
+            holder.image.setImageResource(R.mipmap.ems_video);
         }
-        final FileVideo fileVideo = this.videos.get(position);
+        final FileVideo file = this.videos.get(position);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (fileVideo.isSelected) {
-                    fileVideo.isSelected = false;
-                    mSelectedList.remove(fileVideo);
-                    holder.checkBox.setChecked(false);
+                if (file.isSelected) {
+                    file.isSelected = false;
+                    mSelectedList.remove(file);
+                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
                 } else {
-                    fileVideo.isSelected = true;
-                    mSelectedList.add(fileVideo);
-                    holder.checkBox.setChecked(true);
+                    file.isSelected = true;
+                    mSelectedList.add(file);
+                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
                 }
             }
         });
-        holder.name.setText(fileVideo.name);
-        holder.checkBox.setChecked(fileVideo.isSelected);
-//        Bitmap bm = MediaStore.FileVideo.Thumbnails.getThumbnail(cr, fileVideo.id, MediaStore.FileVideo.Thumbnails.MICRO_KIND, null);
-//        holder.image.setImageBitmap(bm);
-        new LoadImage(holder.image, fileVideo.id)
+        holder.name.setText(file.name);
+        holder.size.setText(file.strSize);
+        holder.date.setText(file.strDate);
+        if (file.isSelected) {
+            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+        } else {
+            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+        }
+        new LoadImage(holder.image, file.id)
                 .execute();
 
         return convertView;
@@ -108,7 +116,9 @@ public class AdapterVideo extends AdapterList {
         LinearLayout layout;
         ImageView image;
         TextView name;
-        CheckBox checkBox;
+        TextView size;
+        TextView date;
+        ImageView ivCheckBox;
     }
 
     private class LoadImage extends AsyncTask<Void, Void, Void> {
