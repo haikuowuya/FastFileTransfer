@@ -1,5 +1,4 @@
-package vision.RM;
-
+package vision.resourcemanager;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -17,33 +16,32 @@ import java.util.Set;
 import vision.fastfiletransfer.R;
 
 /**
- * Created by Vision on 15/6/30.<br>
+ * Created by Vision on 15/7/1.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class AdapterImage extends AdapterList {
+public class AdapterVideo extends AdapterList {
 
-    private SparseArray<FileImage> images;
-    private Context mContext;
+    private SparseArray<FileVideo> videos;
     private Set mSelectedList;
 
-    public AdapterImage(Context context, Set selectedList) {
+    public AdapterVideo(Context context, Set selectedList) {
         super(context);
-        this.mContext = context;
         this.mSelectedList = selectedList;
     }
 
     @Override
     public void setData(SparseArray<?> data) {
-        this.images = (SparseArray<FileImage>) data;
+        this.videos = (SparseArray<FileVideo>) data;
         notifyDataSetChanged();
     }
 
+
     @Override
     public int getCount() {
-        if (null == images) {
+        if (null == videos) {
             return 0;
         } else {
-            return images.size();
+            return videos.size();
         }
     }
 
@@ -62,7 +60,7 @@ public class AdapterImage extends AdapterList {
         final ViewHolder holder;
         if (null == convertView) {
             holder = new ViewHolder();
-            convertView = inflater.inflate(R.layout.listitem_image, null);
+            convertView = inflater.inflate(R.layout.listitem_video, null);
             holder.layout = (LinearLayout) convertView
                     .findViewById(R.id.list_item_layout);
             holder.image = (ImageView) convertView
@@ -78,10 +76,9 @@ public class AdapterImage extends AdapterList {
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
-            holder.image.setImageResource(R.mipmap.ems_photo);
+            holder.image.setImageResource(R.mipmap.ems_video);
         }
-
-        final FileImage file = this.images.get(position);
+        final FileVideo file = this.videos.get(position);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,7 +94,6 @@ public class AdapterImage extends AdapterList {
                 }
             }
         });
-
         holder.name.setText(file.name);
         holder.size.setText(file.strSize);
         holder.date.setText(file.strDate);
@@ -106,12 +102,12 @@ public class AdapterImage extends AdapterList {
         } else {
             holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
         }
-
-        holder.image.setTag(file.id);
         new LoadImage(holder.image, file.id)
                 .execute();
+
         return convertView;
     }
+
 
     /**
      * 暂存变量类
@@ -138,15 +134,13 @@ public class AdapterImage extends AdapterList {
 
         @Override
         protected Void doInBackground(Void... params) {
-            bm = MediaStore.Images.Thumbnails.getThumbnail(cr, origId, MediaStore.Images.Thumbnails.MICRO_KIND, null);
+            bm = MediaStore.Video.Thumbnails.getThumbnail(cr, origId, MediaStore.Video.Thumbnails.MICRO_KIND, null);
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            if (iv.getTag() != null && ((long) iv.getTag()) == origId) {
-                iv.setImageBitmap(bm);
-            }
+            iv.setImageBitmap(bm);
 //            super.onPostExecute(aVoid);
         }
     }

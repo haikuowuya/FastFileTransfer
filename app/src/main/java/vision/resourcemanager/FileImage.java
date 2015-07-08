@@ -1,4 +1,4 @@
-package vision.RM;
+package vision.resourcemanager;
 
 /**
  * Created by Vision on 15/7/3.<br>

@@ -2,13 +2,14 @@ package vis;
 
 import java.util.HashSet;
 
-import vision.RM.File;
-import vision.RM.FileAudio;
-import vision.RM.FileImage;
-import vision.RM.FileText;
-import vision.RM.FileVideo;
+import vision.resourcemanager.File;
+import vision.resourcemanager.FileAudio;
+import vision.resourcemanager.FileImage;
+import vision.resourcemanager.FileText;
+import vision.resourcemanager.FileVideo;
 
 /**
+ * 已经选择的文件队列
  * Created by Vision on 15/7/2.<br>
  * Email:Vision.lsm.2012@gmail.com
  */

@@ -30,6 +30,12 @@ public class MainActivity extends FragmentActivity {
                 R.layout.activity_titlebar //设置对应的布局
         );//自定义布局赋值
         Button btnTitleBarLeft = (Button) findViewById(R.id.titlebar_btnLeft);
+        btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
         tvTitle.setText("文件快传");
 
@@ -50,12 +56,6 @@ public class MainActivity extends FragmentActivity {
             public void onClick(View v) {
                 Intent receiveIntent = new Intent(MainActivity.this, ReceiveActivity.class);
                 startActivity(receiveIntent);
-            }
-        });
-        btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
             }
         });
     }

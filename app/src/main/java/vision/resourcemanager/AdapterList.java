@@ -1,4 +1,4 @@
-package vision.RM;
+package vision.resourcemanager;
 
 import android.content.ContentResolver;
 import android.content.Context;

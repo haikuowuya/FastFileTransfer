@@ -1,23 +1,15 @@
 package vis;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
-import java.lang.ref.WeakReference;
 
 import vis.widget.TextProgress;
 import vision.fastfiletransfer.R;
@@ -26,16 +18,16 @@ import vision.fastfiletransfer.R;
  * 用户列表的数据适配器
  */
 
-public class UserFilesAdapter extends FFTAdapter {
+public class UserFilesAdapter extends BaseAdapter {
 
-    private SparseArray<UserFile> dataList = null;
+    private FilesList<UserFile> dataList = null;
     private LayoutInflater inflater = null;
     private Context mContext;
 
-    public UserFilesAdapter(Context context) {
+    public UserFilesAdapter(Context context, FilesList<UserFile> fileList) {
         this.inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        this.dataList = new SparseArray<UserFile>();
+        this.dataList = fileList;
         this.mContext = context;
     }
 
@@ -79,7 +71,7 @@ public class UserFilesAdapter extends FFTAdapter {
         // 这里position和app.id的值是相等的
 //        final UserDevice userDevice = dataList.get(position);
         //这里并不关心key，不能用get(key)
-        final UserFile userFile = dataList.valueAt(position);
+        final UserFile userFile = (UserFile) dataList.valueAt(position);
         holder.name.setText(userFile.name);
 //        Drawable drawable = mContext.getResources().getDrawable(R.mipmap.app_icon);
 //        holder.icon.setImageDrawable(drawable);
@@ -103,7 +95,7 @@ public class UserFilesAdapter extends FFTAdapter {
                     public void onClick(View v) {
                         Toast.makeText(mContext, userFile.name, Toast.LENGTH_SHORT)
                                 .show();
-                        openFile(userFile.name);
+                        OpenFile.openFile(mContext,userFile.name);
                     }
                 });
                 break;
@@ -121,62 +113,6 @@ public class UserFilesAdapter extends FFTAdapter {
         TextView tips;
         TextProgress size;
         Button btn;
-    }
-
-    private static class MyHandler extends Handler {
-        private final WeakReference<UserFilesAdapter> mUserFilesAdapter;
-
-        public MyHandler(UserFilesAdapter ufa) {
-            mUserFilesAdapter = new WeakReference<UserFilesAdapter>(ufa);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            UserFilesAdapter ufa = mUserFilesAdapter.get();
-            if (ufa != null) {
-                UserFile userFile = (UserFile)
-                        msg.obj;
-                if (ufa.dataList.size() <= userFile.id) {
-                    ufa.dataList.put(((int)userFile.id), userFile);
-                }
-                // notifyDataSetChanged会执行getView函数，更新所有可视item的数据
-                ufa.notifyDataSetChanged();
-                // 只更新指定item的数据，提高了性能
-//            updateView(msg.what);
-            }
-        }
-    }
-
-    /**
-     * 交给其它线程控制的Handler
-     */
-    private final MyHandler mHandler = new MyHandler(this);
-
-    public Handler getHandler() {
-        return mHandler;
-    }
-
-    public void put(int key, Object obj) {
-
-    }
-
-    public void remove(int address) {
-    }
-
-    public Object getObject(int index) {
-        return null;
-    }
-
-    private void openFile(String filename) {
-        Intent intent = new Intent("android.intent.action.VIEW");
-        intent.addCategory("android.intent.category.DEFAULT");
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        Uri uri = Uri.fromFile(new File(Environment.getExternalStorageDirectory().getPath() + "/FFT/" + filename));
-        {
-            //暂时只能打开图片
-            intent.setDataAndType(uri, "image/*");
-        }
-        mContext.startActivity(intent);
     }
 
 }

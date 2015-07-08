@@ -33,15 +33,6 @@ public class ShareServer {
      */
     DevicesList<UserDevice> mDevicesList;
 
-    /**
-     * 接收文件 或 已连接用户 列表适配器
-     * <p>发送：key为IP，value为设备名</p>
-     * <p>用户：</p>
-     */
-//    private FFTAdapter mAdapter;
-
-//    private OnDataReceivedListener mOnDataReceivedListener;
-
     private Handler mCommandHandler = new MyHandler(this);
 
     private static class MyHandler extends Handler {
@@ -66,15 +57,12 @@ public class ShareServer {
                     us.name = new String(sp.getData());
                     int ip = byteArray2Int(address);
                     shareServer.mDevicesList.put(ip, us);
-//                    shareServer.mAdapter.put(ip, us);
                     Log.d("Login", us.ip + "->" + new String(sp.getData()));
                 } else if (sp.getCmdByByte() == SwapPackage.LOGOUT) {
                     int ip = byteArray2Int(address);
-//                    shareServer.mAdapter.remove(ip);
                     shareServer.mDevicesList.remove(ip);
                     Log.d("Logout", new String(address) + "->" + new String(sp.getData()));
                 }
-//                shareServer.mOnDataReceivedListener.onDataReceived(null);
             }
         }
     }
@@ -88,8 +76,9 @@ public class ShareServer {
         //把适配器的handler交给mFilesTransfer，以便transfer控制适配器
 //        Log.d("FFTService", String.valueOf(mAdapter.getHandler()));
 
-        //FIXME 这里有问题，adapter已经不在这里了，最好应该在这里传个DevicesList
-//        mFilesTransfer.setCallbackHandler(mAdapter.getHandler());
+        // 这里adapter已经不在这里了，在这里传个DevicesList，
+        // 当数据发生变化时，通知DevicesList，然后再刷新界面
+        mFilesTransfer.setCallbackHandler(devicesList.getHandler());
     }
 
     public void sendFlies(Context context, String[] paths) {
@@ -112,7 +101,6 @@ public class ShareServer {
      * @param files   文件
      */
     public void sendFlies(Context context, File[] files) {
-        //FIXME 这里应该禁止发送期间同一个地址多次发送
         if (null == files) {
             Toast.makeText(context, "没有选择文件", Toast.LENGTH_SHORT).show();
 //        } else if (mAdapter.getCount() == 0) {
@@ -135,21 +123,6 @@ public class ShareServer {
         }
     }
 
-
-//    /**
-//     * 设置接收到数据时的监听器<br>
-//     *
-//     * @param listener 监听器
-//     */
-//    public void setOnDataReceivedListener(OnDataReceivedListener listener) {
-////        this.mOnDataReceivedListener = listener;
-//        if (listener == null) {
-//            mCommandsTransfer.setCallbackHandler(null);
-//        } else {
-//            mCommandsTransfer.setCallbackHandler(this.mCommandHandler);
-//        }
-//    }
-
     public void enable() {
         mCommandsTransfer.setCallbackHandler(this.mCommandHandler);
     }
@@ -158,17 +131,6 @@ public class ShareServer {
         mCommandsTransfer.setCallbackHandler(null);
     }
 
-//    /**
-//     * 接收到数据时的监听接口
-//     */
-//    public interface OnDataReceivedListener {
-//        /**
-//         * 有数据时回调
-//         *
-//         * @param devicesList 设备连接集合
-//         */
-//        void onDataReceived(SparseArray<UserDevice> devicesList);
-//    }
 
     /**
      * @param array

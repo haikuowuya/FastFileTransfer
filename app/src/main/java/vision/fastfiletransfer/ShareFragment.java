@@ -15,19 +15,17 @@ import android.widget.TextView;
 import vis.DevicesList;
 import vis.UserDevice;
 import vis.UserDevicesAdapter;
-import vis.net.protocol.FFTService;
+import vis.net.protocol.ReceiveServer;
 
 
 public class ShareFragment extends Fragment {
 
-    private static final int FILE_SELECT_CODE = 55;
+//    private static final int FILE_SELECT_CODE = 55;
 
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -103,27 +101,30 @@ public class ShareFragment extends Fragment {
         mUserDevicesAdapter = new UserDevicesAdapter(context, mDevicesList);
         lvDevices.setAdapter(mUserDevicesAdapter);
 
-        //TODO 这里可以实现一个接口监听是ListView数据是否有变化，然后做相对应的改变
+        //这里实现一个接口监听是ListView数据是否有变化，然后做相对应的改变
         mDevicesList.setOnDataChangedListener(new DevicesList.OnDataChangedListener() {
             @Override
-            public void onAddedListener(int size) {
+            public void onAdded(int size) {
                 lvDevices.setVisibility(View.VISIBLE);
                 rlNobody.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onDataChanged() {
                 mUserDevicesAdapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onRemovedListener(int size) {
+            public void onRemoved(int size) {
                 if (size == 0) {
                     lvDevices.setVisibility(View.GONE);
                     rlNobody.setVisibility(View.VISIBLE);
                 }
-                mUserDevicesAdapter.notifyDataSetChanged();
             }
         });
 
 //        lvDevices.setAdapter(((ShareActivity) context).mFFTService.getAdapter());
-        tvName.setText(new String(FFTService.LOCALNAME));
+        tvName.setText(new String(ReceiveServer.LOCALNAME));
         setAllTheThing();
     }
 
@@ -180,9 +181,9 @@ public class ShareFragment extends Fragment {
         });
     }
 
-    /**
-     * 显示文件选择器
-     */
+//    /**
+//     * 显示文件选择器
+//     */
 //    private void showFileChooser() {
 //        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 //        intent.setType("*/*");

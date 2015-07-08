@@ -1,16 +1,14 @@
-package vision.RM;
+package vision.resourcemanager;
 
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.widget.ListAdapter;
 
 public class FragmentImage extends ListFragment {
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -26,7 +24,6 @@ public class FragmentImage extends ListFragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment FragmentImage.
      */
-    // TODO: Rename and change types and number of parameters
     public static FragmentImage newInstance(ListAdapter adapter, String param2) {
         FragmentImage fragment = new FragmentImage();
         Bundle args = new Bundle();
@@ -79,7 +76,6 @@ public class FragmentImage extends ListFragment {
 //        new RefreshList().execute();
 //    }
 
-//    // TODO: Rename method, update argument and hook method into UI event
 //    public void onButtonPressed(Uri uri) {
 //        if (mListener != null) {
 //            mListener.onSelectionChanged();

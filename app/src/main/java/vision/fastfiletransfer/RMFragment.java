@@ -22,26 +22,24 @@ import java.util.Set;
 
 import vis.TransmissionQueue;
 import vis.UserFile;
-import vision.RM.AdapterAudio;
-import vision.RM.AdapterImage;
-import vision.RM.AdapterText;
-import vision.RM.AdapterVideo;
-import vision.RM.FileAudio;
-import vision.RM.FileImage;
-import vision.RM.FileText;
-import vision.RM.FileVideo;
-import vision.RM.FragmentAudio;
-import vision.RM.FragmentImage;
-import vision.RM.FragmentText;
-import vision.RM.FragmentVideo;
+import vision.resourcemanager.AdapterAudio;
+import vision.resourcemanager.AdapterImage;
+import vision.resourcemanager.AdapterText;
+import vision.resourcemanager.AdapterVideo;
+import vision.resourcemanager.FileAudio;
+import vision.resourcemanager.FileImage;
+import vision.resourcemanager.FileText;
+import vision.resourcemanager.FileVideo;
+import vision.resourcemanager.FragmentAudio;
+import vision.resourcemanager.FragmentImage;
+import vision.resourcemanager.FragmentText;
+import vision.resourcemanager.FragmentVideo;
 
 public class RMFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -69,7 +67,6 @@ public class RMFragment extends Fragment {
      * @param param2 Parameter 2.
      * @return A new instance of fragment RMFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static RMFragment newInstance(Set param1, String param2) {
         RMFragment fragment = new RMFragment();
         Bundle args = new Bundle();

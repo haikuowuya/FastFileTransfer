@@ -1,6 +1,5 @@
 package vision.fastfiletransfer;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,93 +7,87 @@ import android.content.IntentFilter;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
-import vis.net.protocol.FFTService;
+import vis.FilesList;
+import vis.UserFile;
+import vis.net.protocol.ReceiveServer;
 import vis.net.wifi.WifiHelper;
 
 
-public class ReceiveActivity extends Activity {
-    //    private ReceiveWifiManager mReceiveWifiManager;
+public class ReceiveActivity extends FragmentActivity {
+
+    private FragmentManager mFragmentManager;
+    private ReceiveScanFragment mReceiveScanFragment;
+    private ReceiveFragment mReceiveFragment;
+
     private WifiHelper mWifiHelper;
-    private FFTService mFFTService;
+    private ReceiveServer mReceiveServer;
     private WifiStateChangedReceiver wscr;
     private NetworkStateChangeReceiver nscr;
     private ScanResultsAvailableReceiver srar;
-    private TextView tvTips;
-    private TextView tvName;
-    private ListView lvFiles;
     private boolean isConnected = false;
     private String ssid;
+    public FilesList<UserFile> mFilesList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE); //声明使用自定义标题
+        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         setContentView(R.layout.activity_receive);
         getWindow().setFeatureInt(
-                Window.FEATURE_CUSTOM_TITLE,  //设置此样式为自定义样式
-                R.layout.activity_titlebar //设置对应的布局
-        );//自定义布局赋值
+                Window.FEATURE_CUSTOM_TITLE,
+                R.layout.activity_titlebar
+        );
 
+        mFragmentManager = getSupportFragmentManager();
         Button btnTitleBarLeft = (Button) findViewById(R.id.titlebar_btnLeft);
         btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try{
-                    Runtime runtime=Runtime.getRuntime();
-                    runtime.exec("input keyevent " + KeyEvent.KEYCODE_BACK);
-                }catch(IOException e){
-                    Log.e("Exception when doBack", e.toString());
+                if (mFragmentManager.getBackStackEntryCount() > 0) {
+                    mFragmentManager.popBackStack();
+                } else {
+                    finish();
                 }
             }
         });
         TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
         tvTitle.setText("我要接收");
 
-//        mReceiveWifiManager = new ReceiveWifiManager(this);
         mWifiHelper = new WifiHelper(this);
-        mFFTService = new FFTService(this, FFTService.SERVICE_RECEIVE);
 
-        tvTips = (TextView) findViewById(R.id.tvTips);
-        tvName = (TextView) findViewById(R.id.tvName);
-        tvName.setText(new String(FFTService.LOCALNAME));
-        lvFiles = (ListView) findViewById(R.id.lvFiles);
-        lvFiles.setAdapter(mFFTService.getAdapter());
+        mFilesList = new FilesList<UserFile>();
+        mReceiveServer = new ReceiveServer(this, mFilesList);
+        mReceiveScanFragment = ReceiveScanFragment.newInstance(null, null);
 
-        wscr = new WifiStateChangedReceiver();
-        registerReceiver(wscr, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
-//        mReceiveWifiManager.setWifiEnabled(true);
-        mWifiHelper.setWifiEnabled(true);
-        tvTips.setText("正在打开wifi……");
+        // 载入第一个Fragment
+        jumpToFragment(0);
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        mFFTService.sendLogout();
+        if (isConnected) {
+            mReceiveServer.sendLogin(mWifiHelper.getServerAddressByStr());
+        } else {
+            wscr = new WifiStateChangedReceiver();
+            registerReceiver(wscr, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+            mWifiHelper.setWifiEnabled(true);
+        }
     }
 
     @Override
@@ -105,6 +98,8 @@ public class ReceiveActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
+        mReceiveServer.sendLogout();
+        isConnected = false;
     }
 
     @Override
@@ -147,55 +142,37 @@ public class ReceiveActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    class ScanResultsAvailableReceiver extends BroadcastReceiver {
-
-        private final String TAG = ScanResultsAvailableReceiver.class.getName();
-        private int noFindCount = 0;
-        private boolean bln = false;
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-//            Log.d(TAG, "ScanResultsAvailableReceiver");
-//            ArrayList<String> al = mReceiveWifiManager.findSSID("YDZS_*");
-//           List<ScanResult> wifiList = mWifiManager.getScanResults();
-            ArrayList<String> al = mWifiHelper.findSSID("YDZS_*");
-//                Toast.makeText(ReceiveActivity.this, "找到AP了！", Toast.LENGTH_SHORT).show();
-            Log.d(TAG, String.valueOf(al.size()));
-            for (int i = 0; i < al.size(); i++) {
-                ssid = al.get(i);
-                tvTips.setText("尝试连接" + ssid);
-                Log.d(TAG, String.valueOf("尝试连接" + ssid));
-                if (mWifiHelper.addNetwork(WifiHelper.createWifiCfg(ssid))) {
-                    bln = mWifiHelper.enableNetwork(true);
-                    //注销搜索广播接收
-//                    srar !=null
-                    unregisterReceiver(this);
-                    srar = null;
-                    //注册接收网络变化
-                    nscr = new NetworkStateChangeReceiver();
-                    registerReceiver(nscr, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
-                    Log.d("bln", String.valueOf(bln));
-                }
-//                boolean bln = mReceiveWifiManager.addNetworkWithoutPasswork(ssid);
+    public void jumpToFragment(int fragmentType) {
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        switch (fragmentType) {
+            case 0: {
+                fragmentTransaction.replace(R.id.receiveContain, mReceiveScanFragment);
+                break;
             }
-            if (!bln) {
-                Log.d("noFindCount", String.valueOf(noFindCount));
-                if (++noFindCount < 30) {
-                    tvTips.setText("第" + (noFindCount + 1) + "次扫描没有发现，开始第" + (noFindCount + 2) + "次扫描……");
-//                    mReceiveWifiManager.startScan();
-                    mWifiHelper.startScan();
-                } else {
-                    tvTips.setText("扫描了30次，没有发现可以连接的热点。");
-                    Toast.makeText(ReceiveActivity.this, "没有发现AP", Toast.LENGTH_SHORT).show();
-                    srar = null;
-                    unregisterReceiver(this);
-                }
+            case 1: {
+                mReceiveFragment = ReceiveFragment.newInstance(null, null);
+                fragmentTransaction.replace(R.id.receiveContain, mReceiveFragment);
+                //隐藏
+//                fragmentTransaction.hide(mRMFragment);
+//                fragmentTransaction.add(R.id.shareContain, mShareFragment);
+                //这里可以回退
+//                fragmentTransaction.addToBackStack(null);
+                break;
             }
-
+            default: {
+                return;
+            }
         }
+        fragmentTransaction.commit();
     }
 
+
     class WifiStateChangedReceiver extends BroadcastReceiver {
+
+        public WifiStateChangedReceiver() {
+            mReceiveScanFragment.setTips("正在打开wifi……");
+        }
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -213,13 +190,63 @@ public class ReceiveActivity extends Activity {
                     srar = new ScanResultsAvailableReceiver();
                     registerReceiver(srar,
                             new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-//                    Toast.makeText(ReceiveActivity.this, "正在扫描附近AP", Toast.LENGTH_SHORT).show();
-                    tvTips.setText("正在扫描附近热点……");
-//                    mReceiveWifiManager.startScan();
+                    mReceiveScanFragment.setTips("正在扫描附近热点…");
                     mWifiHelper.startScan();
                     break;
                 case WifiManager.WIFI_STATE_UNKNOWN:
                     break;
+            }
+        }
+    }
+
+    class ScanResultsAvailableReceiver extends BroadcastReceiver {
+
+        private final String TAG = ScanResultsAvailableReceiver.class.getName();
+        private int noFindCount = 0;
+        private boolean bln = false;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+//            if (isConnected) {
+//                jumpToFragment(0);
+//                isConnected = false;
+//            }
+            bln = false;
+            ArrayList<String> al = mWifiHelper.findSSID("YDZS_*");
+            Log.d(TAG, String.valueOf(al.size()));
+            for (int i = 0; i < al.size(); i++) {
+                ssid = al.get(i);
+                mReceiveScanFragment.setTips("尝试连接" + ssid);
+                Log.d(TAG, String.valueOf("尝试连接" + ssid));
+                if (mWifiHelper.addNetwork(WifiHelper.createWifiCfg(ssid))) {   //尝试加入网络
+                    bln = mWifiHelper.enableNetwork(true);      //尝试使能网络
+                    Log.d("bln", String.valueOf(bln));
+                }
+            }
+            if (!bln) {         //使能网络不成功
+                Log.d("noFindCount", String.valueOf(noFindCount));
+                if (++noFindCount < 30) {
+//                  mReceiveScanFragment.setTips("第" + (noFindCount + 1) + "次扫描没有发现，开始第" + (noFindCount + 2) + "次扫描……");
+                    mReceiveScanFragment.setTips("正在扫描(" + noFindCount + ")…");
+//                  mReceiveWifiManager.startScan();
+                    mWifiHelper.startScan();
+                } else {
+                    mReceiveScanFragment.setTips("没有发现可以连接的热点(" + noFindCount + ")");
+                    Toast.makeText(ReceiveActivity.this, "没有发现AP", Toast.LENGTH_SHORT).show();
+//                    srar = null;
+//                    unregisterReceiver(this);
+                }
+            } else {        //成功使能网络
+                //注销搜索广播接收
+//                unregisterReceiver(srar);
+//                srar = null;
+                Toast.makeText(ReceiveActivity.this, "使能网络成功", Toast.LENGTH_SHORT).show();
+
+                //注册接收网络变化
+                if (nscr == null) {
+                    nscr = new NetworkStateChangeReceiver();
+                    registerReceiver(nscr, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));
+                }
             }
         }
     }
@@ -233,14 +260,13 @@ public class ReceiveActivity extends Activity {
                 Log.d(this.getClass().getName(), String.valueOf(info.getState()));
                 isConnected = true;
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
-//                tvTips.setText("已连接:" + ssid);
-                tvTips.setText("等待" + ssid.substring(5, ssid.length() - 6) + "发送文件");
-                mFFTService.enable();
-//                mFFTService.sendLogin(mReceiveWifiManager.getServerAddressByStr());
-                mFFTService.sendLogin(mWifiHelper.getServerAddressByStr());
+                jumpToFragment(1);
+//                mReceiveFragment.setTips("等待" + ssid.substring(5, ssid.length() - 6) + "发送文件");
+                mReceiveServer.sendLogin(mWifiHelper.getServerAddressByStr());
             } else if (isConnected && NetworkInfo.State.DISCONNECTED.equals(info.getState()) && !info.isConnected()) {
                 Log.d(this.getClass().getName(), String.valueOf(info.getState()));
-                mFFTService.disable();
+                isConnected = false;
+//                mFFTService.disable();
 //                isConnected = false;
 //                unregisterReceiver(this);
 //                nscr = null;
@@ -250,5 +276,7 @@ public class ReceiveActivity extends Activity {
             }
         }
     }
+
+    //TODO 这里真是没有办法再监听wifi是否连接成功再发送登入登出数据了，改用心跳包！！！！！！！分享端一直发送包包，接收端一直监听，接收到发分享端的包包就回一个回应包。
 
 }

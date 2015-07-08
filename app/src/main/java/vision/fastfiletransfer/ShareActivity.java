@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,14 +12,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
-
 import vis.DevicesList;
 import vis.TransmissionQueue;
 import vis.UserDevice;
 import vis.net.protocol.ShareServer;
 import vis.net.wifi.APHelper;
-import vision.RM.File;
+import vision.resourcemanager.File;
 
 
 public class ShareActivity extends FragmentActivity {
@@ -41,7 +37,7 @@ public class ShareActivity extends FragmentActivity {
      */
     public DevicesList<UserDevice> mDevicesList;
 
-    private FragmentManager fragmentManager = getSupportFragmentManager();
+    private FragmentManager fragmentManager;
     private RMFragment mRMFragment;
     private ShareFragment mShareFragment;
 
@@ -55,15 +51,15 @@ public class ShareActivity extends FragmentActivity {
                 R.layout.activity_titlebar //设置对应的布局
         );//自定义布局赋值
 
+        fragmentManager = getSupportFragmentManager();
         Button btnTitleBarLeft = (Button) findViewById(R.id.titlebar_btnLeft);
         btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    Runtime runtime = Runtime.getRuntime();
-                    runtime.exec("input keyevent " + KeyEvent.KEYCODE_BACK);
-                } catch (IOException e) {
-                    Log.e("Exception when doBack", e.toString());
+                if (fragmentManager.getBackStackEntryCount() > 0) {
+                    fragmentManager.popBackStack();
+                } else {
+                    finish();
                 }
             }
         });
@@ -77,16 +73,6 @@ public class ShareActivity extends FragmentActivity {
         mAPHelper = new APHelper(this);
         mShareServer = new ShareServer(this, mDevicesList);
         mShareServer.enable();
-//        mFFTService = new FFTService(this, FFTService.SERVICE_SHARE, this.mDevicesList);
-//        mFFTService.enable();
-//        mFFTService.setOnDataReceivedListener(new FFTService.OnDataReceivedListener() {
-//            @Override
-//            public void onDataReceived(SparseArray<UserDevice> devicesList) {
-//                //必需set这个东西才能开始监听接收
-//                //保留这个接口
-////                devicesListIsChanged(devicesList);
-//            }
-//        });
 
         if (!mAPHelper.isApEnabled()) {
             //开启AP
@@ -137,6 +123,7 @@ public class ShareActivity extends FragmentActivity {
 
     public void jumpToFragment(int fragmentType) {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         switch (fragmentType) {
             case RM_FRAGMENT: {
                 mRMFragment = RMFragment.newInstance(mTransmissionQueue, null);

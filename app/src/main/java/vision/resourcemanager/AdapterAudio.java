@@ -1,4 +1,4 @@
-package vision.RM;
+package vision.resourcemanager;
 
 import android.content.Context;
 import android.util.SparseArray;

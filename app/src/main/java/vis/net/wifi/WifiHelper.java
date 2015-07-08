@@ -31,10 +31,10 @@ public class WifiHelper {
     /**
      * 打开/关闭WIFI
      */
-    public void setWifiEnabled(boolean isEnable) {
-        if (isEnable != mWifiManager.isWifiEnabled()) {
-            mWifiManager.setWifiEnabled(isEnable);
-        }
+    public boolean setWifiEnabled(boolean isEnable) {
+//        if (isEnable != mWifiManager.isWifiEnabled()) {
+        return mWifiManager.setWifiEnabled(isEnable);
+//        }
     }
 
     public boolean startScan() {
@@ -82,7 +82,6 @@ public class WifiHelper {
      */
 //    public String findSSID(String pattern) {
     public ArrayList<String> findSSID(String pattern) {
-//        String foundSSID = null;
         ArrayList<String> al = new ArrayList<String>();
         List<ScanResult> wifiList = mWifiManager.getScanResults();
         Pattern p = Pattern.compile(pattern);
