@@ -15,7 +15,7 @@
         android:layout_marginLeft="5dip"
         android:adjustViewBounds="false"
         android:padding="5dp"
-        android:src="@mipmap/ems_video" />
+        android:src="@mipmap/listitem_icon_video" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -71,7 +71,7 @@
         android:id="@+id/ivCheckBox"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:src="@mipmap/checkbox_off_normal"
+        android:src="@mipmap/listitem_checkbox_off_normal"
         android:visibility="visible"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="20dp" />

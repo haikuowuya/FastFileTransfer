@@ -14,7 +14,7 @@
         android:layout_height="50dp"
         android:layout_marginLeft="5dp"
         android:adjustViewBounds="false"
-        android:src="@mipmap/icon_phone"
+        android:src="@mipmap/listitem_share_icon_phone"
         android:layout_marginRight="5dp" />
 
     <LinearLayout

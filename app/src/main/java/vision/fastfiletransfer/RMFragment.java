@@ -1,6 +1,8 @@
 package vision.fastfiletransfer;
 
 import android.annotation.TargetApi;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -10,6 +12,7 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,30 +21,40 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 import vis.TransmissionQueue;
 import vis.UserFile;
+import vision.resourcemanager.AdapterApp;
 import vision.resourcemanager.AdapterAudio;
 import vision.resourcemanager.AdapterImage;
 import vision.resourcemanager.AdapterText;
 import vision.resourcemanager.AdapterVideo;
+import vision.resourcemanager.FileApp;
 import vision.resourcemanager.FileAudio;
 import vision.resourcemanager.FileImage;
 import vision.resourcemanager.FileText;
 import vision.resourcemanager.FileVideo;
-import vision.resourcemanager.FragmentAudio;
-import vision.resourcemanager.FragmentImage;
-import vision.resourcemanager.FragmentText;
-import vision.resourcemanager.FragmentVideo;
 
 public class RMFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM1 = "type";
+    private static final String ARG_PARAM2 = "page";
 
-    private String mParam1;
-    private String mParam2;
+    public static final byte TYPE_RESOURCE_MANAGER = 1;
+    public static final byte TYPE_FILE_TRANSFER = 2;
+
+    public static final byte PAGE_IMAGE = 0x01;
+    public static final byte PAGE_AUDIO = 0x02;
+    public static final byte PAGE_VIDEO = 0x04;
+    public static final byte PAGE_TEXT = 0x08;
+    public static final byte PAGE_APP = 0x10;
+
+    private byte type;
+    private byte page;
+    private int pageCount;
 
     private Set mSelectedList;
 
@@ -50,8 +63,8 @@ public class RMFragment extends Fragment {
     private AdapterAudio mAdapterAudio;
     private AdapterVideo mAdapterVideo;
     private AdapterText mAdapterText;
+    private AdapterApp mAdapterApp;
 
-    //    private OnFragmentInteractionListener mListener;
     private RMAdapter mViewPagerAdapter;
     private TextView[] tab;
     private ViewPager vp;
@@ -63,15 +76,15 @@ public class RMFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param type 使用类型.
+     * @param page Parameter 2.
      * @return A new instance of fragment RMFragment.
      */
-    public static RMFragment newInstance(Set param1, String param2) {
+    public static RMFragment newInstance(byte type, byte page) {
         RMFragment fragment = new RMFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, null);
-        args.putString(ARG_PARAM2, null);
+        args.putByte(ARG_PARAM1, type);
+        args.putByte(ARG_PARAM2, page);
         fragment.setArguments(args);
         return fragment;
     }
@@ -80,30 +93,27 @@ public class RMFragment extends Fragment {
         // Required empty public constructor
     }
 
-//    @Override
-//    public void onAttach(Activity activity) {
-//        super.onAttach(activity);
-//        try {
-//            mListener = (OnFragmentInteractionListener) activity;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(activity.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
-//    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            type = getArguments().getByte(ARG_PARAM1);
+            page = getArguments().getByte(ARG_PARAM2);
         }
 
-        mFragments = new ListFragment[4];
-        mFragments[0] = FragmentImage.newInstance(null, null);
-        mFragments[1] = FragmentAudio.newInstance(null, null);
-        mFragments[2] = FragmentVideo.newInstance(null, null);
-        mFragments[3] = FragmentText.newInstance(null, null);
+        this.pageCount = NumCount2(page);
+        Log.d("", String.valueOf(this.pageCount));
+
+        mFragments = new ListFragment[ this.pageCount ];
+
+        for (int i = 0; i < this.pageCount; i++) {
+            mFragments[i] = new ListFragment();
+        }
+//        mFragments[0] = new ListFragment();
+//        mFragments[1] = new ListFragment();
+//        mFragments[2] = new ListFragment();
+//        mFragments[3] = new ListFragment();
+//        mFragments[4] = new ListFragment();
 
         mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
 
@@ -112,17 +122,21 @@ public class RMFragment extends Fragment {
         mAdapterAudio = new AdapterAudio(getActivity(), mSelectedList);
         mAdapterVideo = new AdapterVideo(getActivity(), mSelectedList);
         mAdapterText = new AdapterText(getActivity(), mSelectedList);
+        mAdapterApp = new AdapterApp(getActivity(), mSelectedList);
         mFragments[0].setListAdapter(mAdapterImage);
         mFragments[1].setListAdapter(mAdapterAudio);
         mFragments[2].setListAdapter(mAdapterVideo);
         mFragments[3].setListAdapter(mAdapterText);
+        mFragments[4].setListAdapter(mAdapterApp);
 
         new RefreshImageList().execute();
         new RefreshAudioList().execute();
         new RefreshVideoList().execute();
         if (android.os.Build.VERSION.SDK_INT >= 11) {
+            //FIXME 低版本手机兼容
             new RefreshTextList().execute();
         }
+        new RefreshAppList().execute();
 
     }
 
@@ -131,7 +145,7 @@ public class RMFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_manager, container, false);
-        tab = new TextView[4];
+        tab = new TextView[5];
         tab[0] = (TextView)
                 rootView.findViewById(R.id.tab_1);
         tab[1] = (TextView)
@@ -140,6 +154,7 @@ public class RMFragment extends Fragment {
                 rootView.findViewById(R.id.tab_3);
         tab[3] = (TextView)
                 rootView.findViewById(R.id.tab_4);
+        tab[4] = (TextView) rootView.findViewById(R.id.tab_5);
         vp = (ViewPager)
                 rootView.findViewById(R.id.vp);
         btnLinearLayout = (LinearLayout)
@@ -198,7 +213,6 @@ public class RMFragment extends Fragment {
         btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                onButtonPressed(null);
                 ((ShareActivity) getActivity()).jumpToFragment(ShareActivity.SHARE_FRAGMENT);
             }
         });
@@ -227,6 +241,7 @@ public class RMFragment extends Fragment {
         } else {
             tab[3].setVisibility(View.GONE);
         }
+        tab[4].setOnClickListener(new TxListener((4)));
 
     }
 
@@ -238,6 +253,7 @@ public class RMFragment extends Fragment {
         mAdapterAudio = null;
         mAdapterVideo = null;
         mAdapterText = null;
+        mAdapterApp = null;
         mViewPagerAdapter = null;
     }
 
@@ -313,9 +329,6 @@ public class RMFragment extends Fragment {
                     fileAudio.name = curAudio.getString(curAudio
                             .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
                     fileAudio.date = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED));
-//                    Log.d("date", String.valueOf(fileAudio.date));
-//                    Log.d("date1", String.valueOf(curAudio.getLong(curAudio
-//                            .getColumnIndex(MediaStore.Audio.Media.DATE_ADDED))));
                     fileAudio.strDate = UserFile.dateFormat(fileAudio.date);
                     this.audios.put(i++, fileAudio);
                 } while (curAudio.moveToNext());
@@ -379,6 +392,9 @@ public class RMFragment extends Fragment {
 
     }
 
+    /**
+     *
+     */
     private class RefreshTextList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileText> texts;
 
@@ -425,6 +441,51 @@ public class RMFragment extends Fragment {
 
     }
 
+    private class RefreshAppList extends AsyncTask<Void, Void, SparseArray<?>> {
+        SparseArray<FileApp> apps;
+
+        protected SparseArray<?> doInBackground(Void... params) {
+            apps = new SparseArray<FileApp>();
+            PackageManager packageManager = getActivity().getPackageManager();
+            List<ApplicationInfo> applicationInfos = packageManager.getInstalledApplications(0);
+
+            FileApp fileApp;
+
+            ApplicationInfo applicationInfo;
+            for (int i = 0, j = 0; i < applicationInfos.size(); i++) {
+                applicationInfo = applicationInfos.get(i);
+                boolean isUserApp = false;
+                if ((applicationInfo.flags & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0) {
+                    isUserApp = true;
+                } else if ((applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+                    isUserApp = true;
+                }
+                if (isUserApp) {
+                    fileApp = new FileApp();
+                    fileApp.icon = packageManager.getApplicationIcon(applicationInfo);
+                    fileApp.name = (String) packageManager.getApplicationLabel(applicationInfo);
+                    fileApp.data = applicationInfo.publicSourceDir;
+                    fileApp.strSize = UserFile.bytes2kb(new File(fileApp.data).length());
+                    fileApp.strDate = fileApp.data.substring(fileApp.data.lastIndexOf("/") + 1);
+                    try {
+                        fileApp.data = getActivity().getPackageManager().getApplicationInfo("vision.fastfiletransfer", 0).sourceDir;
+                    } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    apps.put(j++, fileApp);
+                }
+            }
+            return apps;
+        }
+
+        @Override
+        protected void onPostExecute(SparseArray<?> sparseArray) {
+//            super.onPostExecute(sparseArray);
+            mAdapterApp.setData(sparseArray);
+        }
+
+    }
+
     public class TxListener implements View.OnClickListener {
         private int index = 0;
 
@@ -436,5 +497,14 @@ public class RMFragment extends Fragment {
         public void onClick(View v) {
             vp.setCurrentItem(index);
         }
+    }
+
+    public static int NumCount2(int a) {
+        int num = 0;
+        while (a != 0) {
+            a &= (a - 1);
+            num++;
+        }
+        return num;
     }
 }

@@ -13,31 +13,31 @@ import java.util.Set;
 import vision.fastfiletransfer.R;
 
 /**
- * Created by Vision on 15/7/1.<br>
+ * Created by Vision on 15/7/9.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class AdapterAudio extends AdapterList {
+public class AdapterApp extends AdapterList {
 
-    private SparseArray<FileAudio> audios;
+    private SparseArray<FileApp> apps;
     private Set mSelectedList;
 
-    public AdapterAudio(Context context, Set selectedList) {
+    public AdapterApp(Context context, Set selectedList) {
         super(context);
         this.mSelectedList = selectedList;
     }
 
     @Override
     public void setData(SparseArray<?> data) {
-        this.audios = (SparseArray<FileAudio>) data;
+        this.apps = (SparseArray<FileApp>) data;
         notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        if (null == audios) {
+        if (null == apps) {
             return 0;
         } else {
-            return audios.size();
+            return apps.size();
         }
     }
 
@@ -56,42 +56,39 @@ public class AdapterAudio extends AdapterList {
         final ViewHolder holder;
         if (null == convertView) {
             holder = new ViewHolder();
-            convertView = inflater.inflate(R.layout.listitem_audio, null);
+            convertView = inflater.inflate(R.layout.listitem_app, null);
             holder.layout = (LinearLayout) convertView
                     .findViewById(R.id.list_item_layout);
-            holder.name = (TextView) convertView
-                    .findViewById(R.id.name);
-            holder.size = (TextView)
-                    convertView.findViewById(R.id.tvSize);
-            holder.date = (TextView)
-                    convertView.findViewById(R.id.tvDate);
-            holder.ivCheckBox = (ImageView)
-                    convertView.findViewById(R.id.ivCheckBox);
+            holder.icon = (ImageView) convertView.findViewById(R.id.image);
+            holder.name = (TextView) convertView.findViewById(R.id.name);
+            holder.size = (TextView) convertView.findViewById(R.id.tvSize);
+            holder.date = (TextView) convertView.findViewById(R.id.tvDate);
+            holder.ivCheckBox = (ImageView) convertView.findViewById(R.id.ivCheckBox);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final FileAudio fileAudio = this.audios.get(position);
+        final FileApp fileApp = this.apps.get(position);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (fileAudio.isSelected) {
-                    fileAudio.isSelected = false;
-                    mSelectedList.remove(fileAudio);
+                if (fileApp.isSelected) {
+                    fileApp.isSelected = false;
+                    mSelectedList.remove(fileApp);
                     holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
                 } else {
-                    fileAudio.isSelected = true;
-                    mSelectedList.add(fileAudio);
+                    fileApp.isSelected = true;
+                    mSelectedList.add(fileApp);
                     holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
                 }
             }
         });
-
-        holder.name.setText(fileAudio.name);
-        holder.size.setText(fileAudio.strSize);
-        holder.date.setText(fileAudio.strDate);
-        if (fileAudio.isSelected) {
+        holder.icon.setImageDrawable(fileApp.icon);
+        holder.name.setText(fileApp.name);
+        holder.size.setText(fileApp.strSize);
+        holder.date.setText(fileApp.strDate);
+        if (fileApp.isSelected) {
             holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
         } else {
             holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
@@ -104,6 +101,7 @@ public class AdapterAudio extends AdapterList {
      */
     static class ViewHolder {
         LinearLayout layout;
+        ImageView icon;
         TextView name;
         TextView size;
         TextView date;

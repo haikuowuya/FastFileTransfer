@@ -1,25 +1,49 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="vision.fastfiletransfer.ReceiveFragment">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="vision.fastfiletransfer.ReceiveFragment">
 
-    <TextView android:text="请稍候…" android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:id="@+id/tvTips"
-        android:layout_below="@+id/tvName" />
-
-    <TextView
+    <RelativeLayout
+        android:id="@+id/title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Large Text"
-        android:id="@+id/tvName"
-        android:gravity="center_horizontal" />
+        android:layout_height="100dp">
+
+        <TextView
+            android:id="@+id/tvTips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="false"
+            android:gravity="center_horizontal"
+            android:text="可以往这里发送文件啦..."
+            android:textColor="#ffa1a1a1"
+            android:layout_below="@+id/tvName" />
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="Large Text"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#ff000000"
+            android:layout_centerInParent="true" />
+
+    </RelativeLayout>
 
     <ListView
+        android:id="@+id/lvFiles"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/lvFiles"
-        android:layout_below="@+id/tvTips" />
+        android:layout_below="@+id/title"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/arrow"
+        android:src="@mipmap/receive_fragment_down_arrow"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

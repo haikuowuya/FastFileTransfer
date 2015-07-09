@@ -11,7 +11,7 @@ import android.widget.BaseAdapter;
  * Created by Vision on 15/7/1.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public abstract class AdapterList extends BaseAdapter {//CursorAdapter
+public abstract class AdapterList extends BaseAdapter {
 
     protected Context context;
     protected LayoutInflater inflater = null;

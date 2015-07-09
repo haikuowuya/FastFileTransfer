@@ -79,9 +79,11 @@ public class UserFilesAdapter extends BaseAdapter {
         switch (userFile.state) {
             case UserFile.TRANSFER_STATE_NORMAL:
                 holder.tips.setText("就绪");
+                holder.btn.setVisibility(View.GONE);
                 break;
             case UserFile.TRANSFER_STATE_TRANSFERRING:
                 holder.size.setVisibility(View.VISIBLE);
+                holder.btn.setVisibility(View.GONE);
                 holder.tips.setVisibility(View.GONE);
                 holder.size.setProgress((int) (userFile.completed * 100 / userFile.size));
                 break;

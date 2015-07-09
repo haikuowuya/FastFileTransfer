@@ -71,7 +71,7 @@ public class ReceiveActivity extends FragmentActivity {
 
         mFilesList = new FilesList<UserFile>();
         mReceiveServer = new ReceiveServer(this, mFilesList);
-        mReceiveScanFragment = ReceiveScanFragment.newInstance(null, null);
+        mReceiveScanFragment = ReceiveScanFragment.newInstance();
 
         // 载入第一个Fragment
         jumpToFragment(0);
@@ -99,7 +99,6 @@ public class ReceiveActivity extends FragmentActivity {
     protected void onStop() {
         super.onStop();
         mReceiveServer.sendLogout();
-        isConnected = false;
     }
 
     @Override
@@ -151,7 +150,7 @@ public class ReceiveActivity extends FragmentActivity {
                 break;
             }
             case 1: {
-                mReceiveFragment = ReceiveFragment.newInstance(null, null);
+                mReceiveFragment = ReceiveFragment.newInstance();
                 fragmentTransaction.replace(R.id.receiveContain, mReceiveFragment);
                 //隐藏
 //                fragmentTransaction.hide(mRMFragment);
@@ -207,10 +206,6 @@ public class ReceiveActivity extends FragmentActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-//            if (isConnected) {
-//                jumpToFragment(0);
-//                isConnected = false;
-//            }
             bln = false;
             ArrayList<String> al = mWifiHelper.findSSID("YDZS_*");
             Log.d(TAG, String.valueOf(al.size()));
@@ -226,9 +221,7 @@ public class ReceiveActivity extends FragmentActivity {
             if (!bln) {         //使能网络不成功
                 Log.d("noFindCount", String.valueOf(noFindCount));
                 if (++noFindCount < 30) {
-//                  mReceiveScanFragment.setTips("第" + (noFindCount + 1) + "次扫描没有发现，开始第" + (noFindCount + 2) + "次扫描……");
                     mReceiveScanFragment.setTips("正在扫描(" + noFindCount + ")…");
-//                  mReceiveWifiManager.startScan();
                     mWifiHelper.startScan();
                 } else {
                     mReceiveScanFragment.setTips("没有发现可以连接的热点(" + noFindCount + ")");
@@ -240,7 +233,7 @@ public class ReceiveActivity extends FragmentActivity {
                 //注销搜索广播接收
 //                unregisterReceiver(srar);
 //                srar = null;
-                Toast.makeText(ReceiveActivity.this, "使能网络成功", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(ReceiveActivity.this, "使能网络成功", Toast.LENGTH_SHORT).show();
 
                 //注册接收网络变化
                 if (nscr == null) {
@@ -261,10 +254,10 @@ public class ReceiveActivity extends FragmentActivity {
                 isConnected = true;
                 Toast.makeText(ReceiveActivity.this, String.valueOf(info.getState()), Toast.LENGTH_SHORT).show();
                 jumpToFragment(1);
-//                mReceiveFragment.setTips("等待" + ssid.substring(5, ssid.length() - 6) + "发送文件");
                 mReceiveServer.sendLogin(mWifiHelper.getServerAddressByStr());
             } else if (isConnected && NetworkInfo.State.DISCONNECTED.equals(info.getState()) && !info.isConnected()) {
                 Log.d(this.getClass().getName(), String.valueOf(info.getState()));
+                jumpToFragment(0);
                 isConnected = false;
 //                mFFTService.disable();
 //                isConnected = false;
@@ -276,7 +269,5 @@ public class ReceiveActivity extends FragmentActivity {
             }
         }
     }
-
-    //TODO 这里真是没有办法再监听wifi是否连接成功再发送登入登出数据了，改用心跳包！！！！！！！分享端一直发送包包，接收端一直监听，接收到发分享端的包包就回一个回应包。
 
 }

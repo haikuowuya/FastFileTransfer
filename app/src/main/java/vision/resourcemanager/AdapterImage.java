@@ -78,7 +78,7 @@ public class AdapterImage extends AdapterList {
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
-            holder.image.setImageResource(R.mipmap.ems_photo);
+            holder.image.setImageResource(R.mipmap.listitem_icon_image);
         }
 
         final FileImage file = this.images.get(position);
@@ -89,11 +89,11 @@ public class AdapterImage extends AdapterList {
                 if (file.isSelected) {
                     file.isSelected = false;
                     mSelectedList.remove(file);
-                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
                 } else {
                     file.isSelected = true;
                     mSelectedList.add(file);
-                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
                 }
             }
         });
@@ -102,9 +102,9 @@ public class AdapterImage extends AdapterList {
         holder.size.setText(file.strSize);
         holder.date.setText(file.strDate);
         if (file.isSelected) {
-            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
         } else {
-            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
         }
 
         holder.image.setTag(file.id);
@@ -147,7 +147,6 @@ public class AdapterImage extends AdapterList {
             if (iv.getTag() != null && ((long) iv.getTag()) == origId) {
                 iv.setImageBitmap(bm);
             }
-//            super.onPostExecute(aVoid);
         }
     }
 

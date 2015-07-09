@@ -33,6 +33,9 @@ public class FilesList<E> extends SparseArray {
                         msg.obj;
                 if (filesList.size() <= userFile.id) {
                     filesList.put(((int) userFile.id), userFile);
+                    if (null != filesList.onDataChangedListener) {
+                        filesList.onDataChangedListener.onAdded(filesList.size());
+                    }
                 }
                 // notifyDataSetChanged会执行getView函数，更新所有可视item的数据
 //                filesList.notifyDataSetChanged();
@@ -54,7 +57,8 @@ public class FilesList<E> extends SparseArray {
     }
 
     public interface OnDataChangedListener {
-        //        void onAdded(int size);
+        void onAdded(int size);
+
         void onDataChanged();
 //        void onRemoved(int size);
     }

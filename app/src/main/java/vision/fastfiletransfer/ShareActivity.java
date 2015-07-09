@@ -126,7 +126,10 @@ public class ShareActivity extends FragmentActivity {
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         switch (fragmentType) {
             case RM_FRAGMENT: {
-                mRMFragment = RMFragment.newInstance(mTransmissionQueue, null);
+                mRMFragment = RMFragment.newInstance(
+                        RMFragment.TYPE_FILE_TRANSFER,
+                        (byte) (RMFragment.PAGE_AUDIO | RMFragment.PAGE_IMAGE | RMFragment.PAGE_APP | RMFragment.PAGE_VIDEO | RMFragment.PAGE_TEXT));
+
                 fragmentTransaction.replace(R.id.shareContain, mRMFragment);
                 break;
             }

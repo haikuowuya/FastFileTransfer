@@ -6,7 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:id="@+id/imageView2"
-        android:src="@mipmap/personnal_center_side_face_to_face"
+        android:src="@mipmap/share_fragment_banner"
         android:scaleType="centerCrop" />
 
     <Button
@@ -51,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/imageView3"
-            android:src="@mipmap/listview_arrow"
+            android:src="@mipmap/share_fragment_arrow"
             android:layout_alignParentLeft="false"
             android:layout_alignParentTop="false"
             android:layout_centerInParent="true" />

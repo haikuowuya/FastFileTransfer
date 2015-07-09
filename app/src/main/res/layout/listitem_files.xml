@@ -14,7 +14,7 @@
         android:layout_height="50dp"
         android:layout_marginLeft="5dip"
         android:adjustViewBounds="false"
-        android:src="@mipmap/new_admin_other_func_2"
+        android:src="@mipmap/listitem_receive_download"
         android:layout_marginRight="5dp" />
 
     <LinearLayout

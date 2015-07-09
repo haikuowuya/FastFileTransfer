@@ -76,7 +76,7 @@ public class AdapterVideo extends AdapterList {
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
-            holder.image.setImageResource(R.mipmap.ems_video);
+            holder.image.setImageResource(R.mipmap.listitem_icon_video);
         }
         final FileVideo file = this.videos.get(position);
 
@@ -86,11 +86,11 @@ public class AdapterVideo extends AdapterList {
                 if (file.isSelected) {
                     file.isSelected = false;
                     mSelectedList.remove(file);
-                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
                 } else {
                     file.isSelected = true;
                     mSelectedList.add(file);
-                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
                 }
             }
         });
@@ -98,9 +98,9 @@ public class AdapterVideo extends AdapterList {
         holder.size.setText(file.strSize);
         holder.date.setText(file.strDate);
         if (file.isSelected) {
-            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
         } else {
-            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
         }
         new LoadImage(holder.image, file.id)
                 .execute();
@@ -141,7 +141,6 @@ public class AdapterVideo extends AdapterList {
         @Override
         protected void onPostExecute(Void aVoid) {
             iv.setImageBitmap(bm);
-//            super.onPostExecute(aVoid);
         }
     }
 

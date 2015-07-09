@@ -82,11 +82,11 @@ public class AdapterText extends AdapterList {
                 if (file.isSelected) {
                     file.isSelected = false;
                     mSelectedList.remove(file);
-                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
                 } else {
                     file.isSelected = true;
                     mSelectedList.add(file);
-                    holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
                 }
             }
         });
@@ -94,12 +94,10 @@ public class AdapterText extends AdapterList {
         holder.size.setText(file.strSize);
         holder.date.setText(file.strDate);
         if (file.isSelected) {
-            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_on_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
         } else {
-            holder.ivCheckBox.setImageResource(R.mipmap.checkbox_off_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
         }
-//        Bitmap bm = MediaStore.Images.Thumbnails.getThumbnail(cr, fileText.id, MediaStore.Images.Thumbnails.MICRO_KIND, null);
-//        holder.image.setImageBitmap(bm);
         return convertView;
     }
 
