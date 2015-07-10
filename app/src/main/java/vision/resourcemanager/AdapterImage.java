@@ -12,8 +12,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Set;
-
+import vis.SelectedFilesQueue;
 import vision.fastfiletransfer.R;
 
 /**
@@ -24,9 +23,9 @@ public class AdapterImage extends AdapterList {
 
     private SparseArray<FileImage> images;
     private Context mContext;
-    private Set mSelectedList;
+    private SelectedFilesQueue mSelectedList;
 
-    public AdapterImage(Context context, Set selectedList) {
+    public AdapterImage(Context context, SelectedFilesQueue selectedList) {
         super(context);
         this.mContext = context;
         this.mSelectedList = selectedList;
@@ -81,8 +80,7 @@ public class AdapterImage extends AdapterList {
             holder.image.setImageResource(R.mipmap.listitem_icon_image);
         }
 
-        final FileImage file = this.images.get(position);
-
+        final FileImage file = this.images.valueAt(position);
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -110,6 +108,7 @@ public class AdapterImage extends AdapterList {
         holder.image.setTag(file.id);
         new LoadImage(holder.image, file.id)
                 .execute();
+
         return convertView;
     }
 

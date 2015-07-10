@@ -18,11 +18,12 @@ public class UserFile {
     public static final int TYPE_AUDIO = 1;
     public static final int TYPE_VIDEO = 2;
     public static final int TYPE_TEXT = 3;
+    public static final int TYPE_APP = 4;
 
     /**
      * id
      */
-    public long id;
+    public int id;
     /**
      * file 名
      */

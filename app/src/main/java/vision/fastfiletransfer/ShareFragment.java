@@ -132,7 +132,7 @@ public class ShareFragment extends Fragment {
     public void onResume() {
         super.onResume();
 //        ((ShareActivity) context).mFFTService.getAdapter().notifyDataSetChanged();
-        if (((ShareActivity) context).mTransmissionQueue.isEmpty()) {
+        if (((ShareActivity) context).mSelectedFilesQueue.isEmpty()) {
 //            this.tvFileName.setText("没有选择文件");
             this.lvDevices.setVisibility(View.VISIBLE);
             this.rlNobody.setVisibility(View.GONE);
@@ -143,14 +143,14 @@ public class ShareFragment extends Fragment {
         } else {
 //            this.tvFileName.setText(
 //                    "已选择" + ((ShareActivity) context)
-//                            .mTransmissionQueue.size() + "个文件"
+//                            .mSelectedFilesQueue.size() + "个文件"
 //            );
             this.rlNobody.setVisibility(View.VISIBLE);
             this.lvDevices.setVisibility(View.GONE);
             this.btnSend.setEnabled(true);
             this.btnSend.setText(
                     "已选择" + ((ShareActivity) context)
-                            .mTransmissionQueue.size() + "个文件"
+                            .mSelectedFilesQueue.size() + "个文件"
             );
         }
     }
@@ -174,7 +174,7 @@ public class ShareFragment extends Fragment {
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] paths = ((ShareActivity) context).mTransmissionQueue.getPaths();
+                String[] paths = ((ShareActivity) context).mSelectedFilesQueue.getPaths();
 //                ((ShareActivity) context).mFFTService.sendFlies(context, paths);
                 ((ShareActivity) context).mShareServer.sendFlies(context, paths);
             }

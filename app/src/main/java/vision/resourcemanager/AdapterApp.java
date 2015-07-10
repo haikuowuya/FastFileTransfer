@@ -8,8 +8,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Set;
-
+import vis.SelectedFilesQueue;
 import vision.fastfiletransfer.R;
 
 /**
@@ -19,9 +18,9 @@ import vision.fastfiletransfer.R;
 public class AdapterApp extends AdapterList {
 
     private SparseArray<FileApp> apps;
-    private Set mSelectedList;
+    private SelectedFilesQueue mSelectedList;
 
-    public AdapterApp(Context context, Set selectedList) {
+    public AdapterApp(Context context, SelectedFilesQueue selectedList) {
         super(context);
         this.mSelectedList = selectedList;
     }
@@ -69,7 +68,6 @@ public class AdapterApp extends AdapterList {
             holder = (ViewHolder) convertView.getTag();
         }
         final FileApp fileApp = this.apps.get(position);
-
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -10,46 +10,28 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import vis.DevicesList;
 import vis.SelectedFilesQueue;
-import vis.UserDevice;
-import vis.net.protocol.ShareServer;
-import vis.net.wifi.APHelper;
 import vision.resourcemanager.File;
 
 
-public class ShareActivity extends FragmentActivity {
-
-    public static final int RM_FRAGMENT = 0;
-    public static final int SHARE_FRAGMENT = 1;
-
-    private APHelper mAPHelper;
-    //    public FFTService mFFTService;
-    public ShareServer mShareServer;
+public class ResourceManagerActivity extends FragmentActivity {
+    private FragmentManager fragmentManager;
+    private RMFragment mRMFragment;
     /**
      * 文件选择队列
      */
     public SelectedFilesQueue<File> mSelectedFilesQueue;
-    /**
-     * 用户设备接入列表
-     */
-    public DevicesList<UserDevice> mDevicesList;
-
-    private FragmentManager fragmentManager;
-    private RMFragment mRMFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-        setContentView(R.layout.activity_share);
+        setContentView(R.layout.activity_resource_manager);
         getWindow().setFeatureInt(
                 Window.FEATURE_CUSTOM_TITLE,
                 R.layout.activity_titlebar
         );
-
         fragmentManager = getSupportFragmentManager();
         Button btnTitleBarLeft = (Button) findViewById(R.id.titlebar_btnLeft);
         btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
@@ -63,45 +45,16 @@ public class ShareActivity extends FragmentActivity {
             }
         });
         TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
-        tvTitle.setText("我要分享");
+        tvTitle.setText("资源管理");
 
         mSelectedFilesQueue = new SelectedFilesQueue<File>();
-//        mDevicesList = new SparseArray<UserDevice>();
-        mDevicesList = new DevicesList<UserDevice>();
-
-        mAPHelper = new APHelper(this);
-        mShareServer = new ShareServer(this, mDevicesList);
-        mShareServer.enable();
-
-        if (!mAPHelper.isApEnabled()) {
-            //开启AP
-            if (mAPHelper.setWifiApEnabled(APHelper.createWifiCfg(APHelper.SSID), true)) {
-                Toast.makeText(ShareActivity.this, "热点开启", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(ShareActivity.this, "打开热点失败", Toast.LENGTH_SHORT).show();
-            }
-        }
-        jumpToFragment(RM_FRAGMENT);
-    }
-
-
-    @Override
-    protected void onDestroy() {
-//        mFFTService.setOnDataReceivedListener(null);
-//        mFFTService.disable();
-        mShareServer.disable();
-        //关闭AP
-//        if (mShareWifiManager.setWifiApEnabled(false)) {
-        if (mAPHelper.setWifiApEnabled(null, false)) {
-            Toast.makeText(ShareActivity.this, "热点关闭", Toast.LENGTH_SHORT).show();
-        }
-        super.onDestroy();
+        jumpToFragment(0);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_share, menu);
+        getMenuInflater().inflate(R.menu.menu_resource_manager, menu);
         return true;
     }
 
@@ -124,22 +77,13 @@ public class ShareActivity extends FragmentActivity {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         switch (fragmentType) {
-            case RM_FRAGMENT: {
+            case 0: {
                 mRMFragment = RMFragment.newInstance(
-                        RMFragment.TYPE_FILE_TRANSFER,
-                        /*RMFragment.TYPE_RESOURCE_MANAGER,*/
-                        RMFragment.PAGE_AUDIO | RMFragment.PAGE_IMAGE | RMFragment.PAGE_APP | RMFragment.PAGE_VIDEO | RMFragment.PAGE_TEXT);
+                        /*RMFragment.TYPE_FILE_TRANSFER,*/
+                        RMFragment.TYPE_RESOURCE_MANAGER,
+                        RMFragment.PAGE_AUDIO | RMFragment.PAGE_IMAGE /*| RMFragment.PAGE_APP*/ | RMFragment.PAGE_VIDEO | RMFragment.PAGE_TEXT);
 
-                fragmentTransaction.replace(R.id.shareContain, mRMFragment);
-                break;
-            }
-            case SHARE_FRAGMENT: {
-                ShareFragment mShareFragment = ShareFragment.newInstance(null, null);
-                //隐藏
-                fragmentTransaction.hide(mRMFragment);
-                fragmentTransaction.add(R.id.shareContain, mShareFragment);
-                //这里可以回退
-                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.replace(R.id.rmContain, mRMFragment);
                 break;
             }
             default: {

@@ -38,7 +38,7 @@ public class MainActivity extends FragmentActivity {
         tvTitle.setText("文件快传");
 
         tvModel = (TextView) findViewById(R.id.tvModel);
-        btnShare = (Button) findViewById(R.id.btnShare);
+        btnShare = (Button) findViewById(R.id.btnLeft);
         btnReceive = (Button) findViewById(R.id.btnReceive);
         tvModel.setText("本机: " + android.os.Build.MODEL.replaceAll("\\s|-", ""));
         Log.d("SSID:", android.os.Build.MODEL.replaceAll("\\s|-", ""));

@@ -11,8 +11,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Set;
-
+import vis.SelectedFilesQueue;
 import vision.fastfiletransfer.R;
 
 /**
@@ -22,9 +21,9 @@ import vision.fastfiletransfer.R;
 public class AdapterVideo extends AdapterList {
 
     private SparseArray<FileVideo> videos;
-    private Set mSelectedList;
+    private SelectedFilesQueue mSelectedList;
 
-    public AdapterVideo(Context context, Set selectedList) {
+    public AdapterVideo(Context context, SelectedFilesQueue selectedList) {
         super(context);
         this.mSelectedList = selectedList;
     }

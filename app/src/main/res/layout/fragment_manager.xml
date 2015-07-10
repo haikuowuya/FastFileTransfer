@@ -10,9 +10,10 @@
         android:layout_height="wrap_content"
         android:focusableInTouchMode="false"
         android:layout_below="@+id/TAB"
-        android:layout_alignParentBottom="true"
+        android:layout_alignParentBottom="false"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true">
+        android:layout_alignParentRight="true"
+        android:layout_above="@+id/btnLinearLayout">
     </android.support.v4.view.ViewPager>
 
     <LinearLayout
@@ -30,7 +31,8 @@
             android:id="@+id/tab_1"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
-            android:textSize="20dp" />
+            android:textSize="20dp"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -40,7 +42,8 @@
             android:id="@+id/tab_2"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
-            android:textSize="20dp" />
+            android:textSize="20dp"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -50,7 +53,8 @@
             android:id="@+id/tab_3"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
-            android:textSize="20dp" />
+            android:textSize="20dp"
+            android:visibility="gone" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -59,7 +63,8 @@
             android:id="@+id/tab_4"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
-            android:textSize="20dp" />
+            android:textSize="20dp"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -69,7 +74,8 @@
             android:id="@+id/tab_5"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
-            android:textSize="20dp" />
+            android:textSize="20dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 
@@ -78,7 +84,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:weightSum="2"
         android:id="@+id/btnLinearLayout"
         android:visibility="gone">
 
@@ -86,7 +91,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="分享"
-            android:id="@+id/btnShare"
+            android:id="@+id/btnLeft"
             android:layout_weight="1"
             android:background="@drawable/style_btn_sharefragment_share"
             android:paddingTop="10dp"
@@ -97,7 +102,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="取消"
-            android:id="@+id/btnCancel"
+            android:id="@+id/btnRight"
             android:layout_weight="1"
             android:background="@drawable/style_btn_sharefragment_cancel"
             android:paddingTop="10dp"

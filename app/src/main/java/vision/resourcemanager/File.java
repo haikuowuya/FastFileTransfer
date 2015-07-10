@@ -7,6 +7,7 @@ import vis.UserFile;
  * Email:Vision.lsm.2012@gmail.com
  */
 public abstract class File extends UserFile {
+    public boolean isDeleted = false;
     public String strSize = "";
     public String strDate = "";
 }

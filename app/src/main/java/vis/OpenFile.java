@@ -1,9 +1,10 @@
 package vis;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Environment;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -17,13 +18,15 @@ public class OpenFile {
         Intent intent = new Intent("android.intent.action.VIEW");
         intent.addCategory("android.intent.category.DEFAULT");
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        File file = new File(Environment.getExternalStorageDirectory().getPath() + "/FFT/" + filename);
+        File file = new File(filename);
         String type = getMIMEType(file);
-        {
-            //暂时只能打开图片
-            intent.setDataAndType(Uri.fromFile(file), type);
+        intent.setDataAndType(Uri.fromFile(file), type);
+        try {
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException exception) {
+            Toast.makeText(context,"本机未安装相关应用",Toast.LENGTH_SHORT)
+                    .show();
         }
-        context.startActivity(intent);
     }
 
     /**

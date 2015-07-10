@@ -9,8 +9,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Set;
-
+import vis.SelectedFilesQueue;
 import vision.fastfiletransfer.R;
 
 /**
@@ -20,9 +19,9 @@ import vision.fastfiletransfer.R;
 public class AdapterText extends AdapterList {
 
     private SparseArray<FileText> texts;
-    private Set mSelectedList;
+    private SelectedFilesQueue mSelectedList;
 
-    public AdapterText(Context context, Set selectedList) {
+    public AdapterText(Context context, SelectedFilesQueue selectedList) {
         super(context);
         this.mSelectedList = selectedList;
     }

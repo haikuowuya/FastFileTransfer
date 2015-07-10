@@ -24,7 +24,7 @@ public abstract class AdapterList extends BaseAdapter {
         cr = context.getContentResolver();
     }
 
-    abstract void setData(SparseArray<?> data);
+    public abstract void setData(SparseArray<?> data);
 
 
 }

@@ -1,6 +1,8 @@
 package vision.fastfiletransfer;
 
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -12,7 +14,6 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,16 +21,18 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 
-import vis.TransmissionQueue;
+import vis.OpenFile;
+import vis.SelectedFilesQueue;
 import vis.UserFile;
 import vision.resourcemanager.AdapterApp;
 import vision.resourcemanager.AdapterAudio;
 import vision.resourcemanager.AdapterImage;
+import vision.resourcemanager.AdapterList;
 import vision.resourcemanager.AdapterText;
 import vision.resourcemanager.AdapterVideo;
 import vision.resourcemanager.FileApp;
@@ -39,52 +42,62 @@ import vision.resourcemanager.FileText;
 import vision.resourcemanager.FileVideo;
 
 public class RMFragment extends Fragment {
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "type";
     private static final String ARG_PARAM2 = "page";
 
     public static final byte TYPE_RESOURCE_MANAGER = 1;
     public static final byte TYPE_FILE_TRANSFER = 2;
 
-    public static final byte PAGE_IMAGE = 0x01;
-    public static final byte PAGE_AUDIO = 0x02;
-    public static final byte PAGE_VIDEO = 0x04;
-    public static final byte PAGE_TEXT = 0x08;
-    public static final byte PAGE_APP = 0x10;
+    public static final int PAGE_IMAGE = 0x01;
+    public static final int PAGE_AUDIO = 0x02;
+    public static final int PAGE_VIDEO = 0x04;
+    public static final int PAGE_TEXT = 0x08;
+    public static final int PAGE_APP = 0x10;
 
     private byte type;
-    private byte page;
+    private int page;
     private int pageCount;
 
-    private Set mSelectedList;
+    private SelectedFilesQueue<vision.resourcemanager.File> mSelectedList;
 
     private ListFragment[] mFragments;
-    private AdapterImage mAdapterImage;
-    private AdapterAudio mAdapterAudio;
-    private AdapterVideo mAdapterVideo;
-    private AdapterText mAdapterText;
-    private AdapterApp mAdapterApp;
+    private AdapterList[] mAdapterLists;
+    private SparseArray<FileImage> mFileImage;
+    private SparseArray<FileAudio> mFileAudio;
+    private SparseArray<FileVideo> mFileVideo;
+    private SparseArray<FileText> mFileText;
+    private SparseArray<FileApp> mFileApp;
 
     private RMAdapter mViewPagerAdapter;
     private TextView[] tab;
     private ViewPager vp;
     private LinearLayout btnLinearLayout;
-    private Button btnShare;
-    private Button btnCancel;
+    private Button btnLeft;
+    private Button btnRight;
+
+    private View.OnClickListener mShareListener;
+    private View.OnClickListener mCancelListener;
+    private View.OnClickListener mOpenFileListener;
+    private View.OnClickListener mDeleteFileListener;
 
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
+     * <p>用法： RMFragment.newInstance(
+     * RMFragment.TYPE_FILE_TRANSFER,
+     * RMFragment.PAGE_AUDIO | RMFragment.PAGE_IMAGE | RMFragment.PAGE_APP | RMFragment.PAGE_VIDEO | RMFragment.PAGE_TEXT);
+     * </p>
+     * <p>另外，在父Activity中必需要声明和实例化一个公共类：SelectedFilesQueue<vision.resourcemanager.File> mSelectedList，以存放用户选择的文件类。</p>
      *
      * @param type 使用类型.
-     * @param page Parameter 2.
+     * @param page 需要显示的页面
      * @return A new instance of fragment RMFragment.
      */
-    public static RMFragment newInstance(byte type, byte page) {
+    public static RMFragment newInstance(byte type, int page) {
         RMFragment fragment = new RMFragment();
         Bundle args = new Bundle();
         args.putByte(ARG_PARAM1, type);
-        args.putByte(ARG_PARAM2, page);
+        args.putInt(ARG_PARAM2, page);
         fragment.setArguments(args);
         return fragment;
     }
@@ -98,45 +111,116 @@ public class RMFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             type = getArguments().getByte(ARG_PARAM1);
-            page = getArguments().getByte(ARG_PARAM2);
+            page = getArguments().getInt(ARG_PARAM2);
+        }
+
+        if (android.os.Build.VERSION.SDK_INT < 11) {
+            //FIXME 低版本手机兼容
+            if ((page & PAGE_TEXT) != 0) {
+                //去掉PAGE_TEXT位
+                page &= ~PAGE_TEXT;
+            }
         }
 
         this.pageCount = NumCount2(page);
-        Log.d("", String.valueOf(this.pageCount));
 
-        mFragments = new ListFragment[ this.pageCount ];
+        mFragments = new ListFragment[this.pageCount];
+        mAdapterLists = new AdapterList[this.pageCount];
+
 
         for (int i = 0; i < this.pageCount; i++) {
             mFragments[i] = new ListFragment();
         }
-//        mFragments[0] = new ListFragment();
-//        mFragments[1] = new ListFragment();
-//        mFragments[2] = new ListFragment();
-//        mFragments[3] = new ListFragment();
-//        mFragments[4] = new ListFragment();
 
-        mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
-
-        mSelectedList = ((ShareActivity) getActivity()).mTransmissionQueue;
-        mAdapterImage = new AdapterImage(getActivity(), mSelectedList);
-        mAdapterAudio = new AdapterAudio(getActivity(), mSelectedList);
-        mAdapterVideo = new AdapterVideo(getActivity(), mSelectedList);
-        mAdapterText = new AdapterText(getActivity(), mSelectedList);
-        mAdapterApp = new AdapterApp(getActivity(), mSelectedList);
-        mFragments[0].setListAdapter(mAdapterImage);
-        mFragments[1].setListAdapter(mAdapterAudio);
-        mFragments[2].setListAdapter(mAdapterVideo);
-        mFragments[3].setListAdapter(mAdapterText);
-        mFragments[4].setListAdapter(mAdapterApp);
-
-        new RefreshImageList().execute();
-        new RefreshAudioList().execute();
-        new RefreshVideoList().execute();
-        if (android.os.Build.VERSION.SDK_INT >= 11) {
-            //FIXME 低版本手机兼容
-            new RefreshTextList().execute();
+        if (TYPE_FILE_TRANSFER == type) {
+            mSelectedList = ((ShareActivity) getActivity()).mSelectedFilesQueue;
+        } else if (TYPE_RESOURCE_MANAGER == type) {
+            mSelectedList = ((ResourceManagerActivity) getActivity()).mSelectedFilesQueue;
         }
-        new RefreshAppList().execute();
+
+        if (TYPE_FILE_TRANSFER == type) {
+            mShareListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ((ShareActivity) getActivity()).jumpToFragment(ShareActivity.SHARE_FRAGMENT);
+                }
+            };
+        } else if (TYPE_RESOURCE_MANAGER == type) {
+            mOpenFileListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    OpenFile.openFile(getActivity(), mSelectedList.getPaths()[0]);
+                }
+            };
+            mDeleteFileListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                            .setTitle("确认删除吗？")
+                            .setIcon(android.R.drawable.ic_dialog_info)
+                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // 点击“确认”后的操作
+                                    boolean delete = false;
+                                    for (vision.resourcemanager.File file : mSelectedList.data) {
+                                        File trueFile = new File(file.data);
+                                        if (trueFile.exists() && trueFile.delete()) {
+                                            //FIXME 删不了啊~~~~~~
+                                            file.isDeleted = true;
+                                            switch (file.type) {
+                                                case UserFile.TYPE_IMAGE: {
+                                                    mFileImage.remove(file.id);
+                                                    break;
+                                                }
+                                                case UserFile.TYPE_AUDIO: {
+                                                    mFileAudio.remove(file.id);
+                                                    break;
+                                                }
+                                                case UserFile.TYPE_VIDEO: {
+                                                    mFileVideo.remove(file.id);
+                                                    break;
+                                                }
+                                                case UserFile.TYPE_TEXT: {
+                                                    mFileText.remove(file.id);
+                                                    break;
+                                                }
+                                                case UserFile.TYPE_APP:{
+                                                    mFileApp.remove(file.id);
+                                                    break;
+                                                }
+                                            }
+                                            delete = true;
+                                            mSelectedList.remove(file);
+                                        }
+                                    }
+                                    if (delete) {
+                                        Toast.makeText(getActivity(), "删除成功", Toast.LENGTH_SHORT).show();
+                                        refreshAll();
+                                    } else {
+                                        Toast.makeText(getActivity(), "删除失败", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            })
+                            .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // 点击“返回”后的操作,这里不设置没有任何操作
+                                }
+                            })
+                            .create();
+                    dialog.show();
+                }
+            };
+        }
+
+        mCancelListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cancelAll();
+            }
+        };
 
     }
 
@@ -145,24 +229,20 @@ public class RMFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_manager, container, false);
-        tab = new TextView[5];
-        tab[0] = (TextView)
-                rootView.findViewById(R.id.tab_1);
-        tab[1] = (TextView)
-                rootView.findViewById(R.id.tab_2);
-        tab[2] = (TextView)
-                rootView.findViewById(R.id.tab_3);
-        tab[3] = (TextView)
-                rootView.findViewById(R.id.tab_4);
-        tab[4] = (TextView) rootView.findViewById(R.id.tab_5);
+        tab = new TextView[this.pageCount];
+        for (int i = 0; i < this.pageCount; i++) {
+            tab[i] = (TextView) rootView.findViewById(R.id.tab_1 + i);
+            tab[i].setOnClickListener(new TxListener(i));
+            tab[i].setVisibility(View.VISIBLE);
+        }
         vp = (ViewPager)
                 rootView.findViewById(R.id.vp);
         btnLinearLayout = (LinearLayout)
                 rootView.findViewById(R.id.btnLinearLayout);
-        btnShare = (Button)
-                rootView.findViewById(R.id.btnShare);
-        btnCancel = (Button)
-                rootView.findViewById(R.id.btnCancel);
+        btnLeft = (Button)
+                rootView.findViewById(R.id.btnLeft);
+        btnRight = (Button)
+                rootView.findViewById(R.id.btnRight);
         return rootView;
     }
 
@@ -170,9 +250,48 @@ public class RMFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
         vp.setAdapter(mViewPagerAdapter);
 
+        int pageIndex = 0;
+        if ((page & PAGE_IMAGE) != 0) {
+            mAdapterLists[pageIndex] = new AdapterImage(getActivity(), mSelectedList);
+            tab[pageIndex].setText("图片");
+            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
+            new RefreshImageList(mAdapterLists[pageIndex]).execute();
+            pageIndex++;
+        }
+        if ((page & PAGE_AUDIO) != 0) {
+            mAdapterLists[pageIndex] = new AdapterAudio(getActivity(), mSelectedList);
+            tab[pageIndex].setText("音乐");
+            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
+            new RefreshAudioList(mAdapterLists[pageIndex]).execute();
+            pageIndex++;
+        }
+        if ((page & PAGE_VIDEO) != 0) {
+            mAdapterLists[pageIndex] = new AdapterVideo(getActivity(), mSelectedList);
+            tab[pageIndex].setText("视频");
+            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
+            new RefreshVideoList(mAdapterLists[pageIndex]).execute();
+            pageIndex++;
+        }
+        if ((page & PAGE_TEXT) != 0) {
+            mAdapterLists[pageIndex] = new AdapterText(getActivity(), mSelectedList);
+            tab[pageIndex].setText("文档");
+            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
+            new RefreshTextList(mAdapterLists[pageIndex]).execute();
+            pageIndex++;
+        }
+        if ((page & PAGE_APP) != 0) {
+            mAdapterLists[pageIndex] = new AdapterApp(getActivity(), mSelectedList);
+            tab[pageIndex].setText("应用");
+            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
+            new RefreshAppList(mAdapterLists[pageIndex]).execute();
+        }
+
+        vp.setCurrentItem(0);
         tab[0].setTextColor(Color.parseColor("#ffffff"));
+
         vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -193,73 +312,76 @@ public class RMFragment extends Fragment {
             }
         });
 
-        ((TransmissionQueue) mSelectedList).setOnDataChangedListener(new TransmissionQueue.OnDataChangedListener() {
+        if (TYPE_FILE_TRANSFER == type) {
+            btnLeft.setOnClickListener(mShareListener);
+            btnRight.setOnClickListener(mCancelListener);
+        } else if (TYPE_RESOURCE_MANAGER == type) {
+            btnRight.setOnClickListener(mDeleteFileListener);
+        }
+
+        mSelectedList.setOnDataChangedListener(new SelectedFilesQueue.OnDataChangedListener() {
             @Override
             public void onAddedListener(int size) {
                 btnLinearLayout.setVisibility(View.VISIBLE);
-                btnShare.setText("分享(" + size + ")");
+                if (TYPE_FILE_TRANSFER == type) {
+                    btnLeft.setText("分享(" + size + ")");
+                } else if (TYPE_RESOURCE_MANAGER == type) {
+                    if (size == 1) {
+                        btnLeft.setText("打开");
+                        btnLeft.setOnClickListener(mOpenFileListener);
+                    } else {
+                        btnLeft.setText("取消");
+                        btnLeft.setOnClickListener(mCancelListener);
+                    }
+                    btnRight.setText("删除(" + size + ")");
+                }
             }
 
             @Override
             public void onRemovedListener(int size) {
                 if (size == 0) {
                     btnLinearLayout.setVisibility(View.GONE);
-                } else {
-                    btnShare.setText("分享(" + mSelectedList.size() + ")");
+                    return;
+                }
+                if (type == TYPE_FILE_TRANSFER) {
+                    btnLeft.setText("分享(" + mSelectedList.size() + ")");
+                } else if (TYPE_RESOURCE_MANAGER == type) {
+                    if (size == 1) {
+                        btnLeft.setText("打开");
+                        btnLeft.setOnClickListener(mOpenFileListener);
+                    } else {
+                        btnLeft.setText("取消");
+                        btnLeft.setOnClickListener(mCancelListener);
+                    }
+                    btnRight.setText("删除(" + size + ")");
                 }
             }
         });
 
-        btnShare.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((ShareActivity) getActivity()).jumpToFragment(ShareActivity.SHARE_FRAGMENT);
-            }
-        });
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                for (Object object : mSelectedList) {
-                    ((UserFile) object).isSelected = false;
-                }
-                mSelectedList.removeAll(mSelectedList);
-                btnLinearLayout.setVisibility(View.GONE);
-                mAdapterImage.notifyDataSetChanged();
-                mAdapterAudio.notifyDataSetChanged();
-                mAdapterVideo.notifyDataSetChanged();
-                if (android.os.Build.VERSION.SDK_INT >= 11) {
-                    mAdapterText.notifyDataSetChanged();
-                }
-            }
-        });
+    }
 
-        tab[0].setOnClickListener(new TxListener(0));
-        tab[1].setOnClickListener(new TxListener(1));
-        tab[2].setOnClickListener(new TxListener(2));
-        if (android.os.Build.VERSION.SDK_INT >= 11) {
-            tab[3].setOnClickListener(new TxListener(3));
-        } else {
-            tab[3].setVisibility(View.GONE);
+    public void cancelAll() {
+        for (vision.resourcemanager.File file : mSelectedList.data) {
+            file.isSelected = false;
         }
-        tab[4].setOnClickListener(new TxListener((4)));
-
+        mSelectedList.removeAll();
+        btnLinearLayout.setVisibility(View.GONE);
+        refreshAll();
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mFragments = null;
-        mAdapterImage = null;
-        mAdapterAudio = null;
-        mAdapterVideo = null;
-        mAdapterText = null;
-        mAdapterApp = null;
-        mViewPagerAdapter = null;
+    public void refreshAll() {
+        for (AdapterList adapterList : mAdapterLists) {
+            adapterList.notifyDataSetChanged();
+        }
     }
-
 
     private class RefreshImageList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileImage> images;
+        private AdapterList mAdapterList;
+
+        public RefreshImageList(AdapterList adapterList) {
+            this.mAdapterList = adapterList;
+        }
 
         protected SparseArray<?> doInBackground(Void... params) {
             images = new SparseArray<FileImage>();
@@ -276,34 +398,45 @@ public class RMFragment extends Fragment {
                     null,
                     MediaStore.Images.Media.DATE_MODIFIED + " DESC");
             if (curImage.moveToFirst()) {
-                FileImage fileImage;
+                FileImage file;
                 int i = 0;
                 do {
-                    fileImage = new FileImage();
-                    fileImage.id = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media._ID));
-                    fileImage.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
-                    fileImage.size = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.SIZE));
-                    fileImage.strSize = UserFile.bytes2kb(fileImage.size);
-                    fileImage.name = curImage.getString(curImage
+                    file = new FileImage();
+//                    fileImage.id = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media._ID));
+                    file.id = i;
+                    file.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
+                    if (!new File(file.data).exists()) {
+                        continue;
+                    }
+                    file.type = UserFile.TYPE_IMAGE;
+                    file.size = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.SIZE));
+                    file.strSize = UserFile.bytes2kb(file.size);
+                    file.name = curImage.getString(curImage
                             .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
-                    fileImage.date = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED));
-                    fileImage.strDate = UserFile.dateFormat(fileImage.date);
-                    this.images.put(i++, fileImage);
+                    file.date = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED));
+                    file.strDate = UserFile.dateFormat(file.date);
+                    this.images.put(i++, file);
                 } while (curImage.moveToNext());
             }
             curImage.close();
+            mFileImage = images;
             return images;
         }
 
 
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
-            mAdapterImage.setData(sparseArray);
+            mAdapterList.setData(sparseArray);
         }
     }
 
     private class RefreshAudioList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileAudio> audios;
+        private AdapterList mAdapterList;
+
+        public RefreshAudioList(AdapterList adapterList) {
+            this.mAdapterList = adapterList;
+        }
 
         protected SparseArray<?> doInBackground(Void... params) {
             audios = new SparseArray<FileAudio>();
@@ -318,23 +451,28 @@ public class RMFragment extends Fragment {
                             MediaStore.Audio.Media.DATE_MODIFIED
                     }, null, null, null);
             if (curAudio.moveToFirst()) {
-                FileAudio fileAudio;
+                FileAudio file;
                 int i = 0;
                 do {
-                    fileAudio = new FileAudio();
-                    fileAudio.id = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
-                    fileAudio.data = curAudio.getString(curAudio.getColumnIndex(MediaStore.Audio.Media.DATA));
-                    fileAudio.size = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media.SIZE));
-                    fileAudio.strSize = UserFile.bytes2kb(fileAudio.size);
-                    fileAudio.name = curAudio.getString(curAudio
+                    file = new FileAudio();
+//                    fileAudio.id = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media._ID));
+                    file.id = i;
+                    file.data = curAudio.getString(curAudio.getColumnIndex(MediaStore.Audio.Media.DATA));
+                    if (!new File(file.data).exists()) {
+                        continue;
+                    }
+                    file.type = UserFile.TYPE_AUDIO;
+                    file.size = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media.SIZE));
+                    file.strSize = UserFile.bytes2kb(file.size);
+                    file.name = curAudio.getString(curAudio
                             .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
-                    fileAudio.date = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED));
-                    fileAudio.strDate = UserFile.dateFormat(fileAudio.date);
-                    this.audios.put(i++, fileAudio);
+                    file.date = curAudio.getLong(curAudio.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED));
+                    file.strDate = UserFile.dateFormat(file.date);
+                    this.audios.put(i++, file);
                 } while (curAudio.moveToNext());
             }
             curAudio.close();
-
+            mFileAudio = audios;
             return audios;
         }
 
@@ -342,12 +480,17 @@ public class RMFragment extends Fragment {
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
 //            super.onPostExecute(sparseArray);
-            mAdapterAudio.setData(sparseArray);
+            mAdapterList.setData(sparseArray);
         }
     }
 
     private class RefreshVideoList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileVideo> videos;
+        private AdapterList mAdapterList;
+
+        public RefreshVideoList(AdapterList adapterList) {
+            mAdapterList = adapterList;
+        }
 
         protected SparseArray<?> doInBackground(Void... params) {
             videos = new SparseArray<FileVideo>();
@@ -364,22 +507,28 @@ public class RMFragment extends Fragment {
                     null,
                     MediaStore.Video.Media.DATE_MODIFIED + " DESC");
             if (curVideo.moveToFirst()) {
-                FileVideo fileVideo;
+                FileVideo file;
                 int i = 0;
                 do {
-                    fileVideo = new FileVideo();
-                    fileVideo.id = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
-                    fileVideo.data = curVideo.getString(curVideo.getColumnIndex(MediaStore.Video.Media.DATA));
-                    fileVideo.size = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media.SIZE));
-                    fileVideo.strSize = UserFile.bytes2kb(fileVideo.size);
-                    fileVideo.name = curVideo.getString(curVideo
+                    file = new FileVideo();
+//                    file.id = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
+                    file.id = i;
+                    file.data = curVideo.getString(curVideo.getColumnIndex(MediaStore.Video.Media.DATA));
+                    if (!new File(file.data).exists()) {
+                        continue;
+                    }
+                    file.type = UserFile.TYPE_VIDEO;
+                    file.size = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media.SIZE));
+                    file.strSize = UserFile.bytes2kb(file.size);
+                    file.name = curVideo.getString(curVideo
                             .getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME));
-                    fileVideo.date = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED));
-                    fileVideo.strDate = UserFile.dateFormat(fileVideo.date);
-                    this.videos.put(i++, fileVideo);
+                    file.date = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Audio.Media.DATE_MODIFIED));
+                    file.strDate = UserFile.dateFormat(file.date);
+                    this.videos.put(i++, file);
                 } while (curVideo.moveToNext());
             }
             curVideo.close();
+            mFileVideo = videos;
             return videos;
         }
 
@@ -387,7 +536,7 @@ public class RMFragment extends Fragment {
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
 //            super.onPostExecute(sparseArray);
-            mAdapterVideo.setData(sparseArray);
+            mAdapterList.setData(sparseArray);
         }
 
     }
@@ -397,6 +546,11 @@ public class RMFragment extends Fragment {
      */
     private class RefreshTextList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileText> texts;
+        private AdapterList mAdapterList;
+
+        public RefreshTextList(AdapterList adapterList) {
+            mAdapterList = adapterList;
+        }
 
         @TargetApi(Build.VERSION_CODES.HONEYCOMB)
         protected SparseArray<?> doInBackground(Void... params) {
@@ -414,42 +568,51 @@ public class RMFragment extends Fragment {
                     new String[]{"text/%"},
                     null);
             if (curText.moveToFirst()) {
-                FileText fileText;
+                FileText file;
                 int i = 0;
                 do {
-                    fileText = new FileText();
-                    fileText.id = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns._ID));
-                    fileText.data = curText.getString(curText.getColumnIndex(MediaStore.Files.FileColumns.DATA));
-                    fileText.size = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns.SIZE));
-                    fileText.strSize = UserFile.bytes2kb(fileText.size);
-                    fileText.name = fileText.data.substring(fileText.data.lastIndexOf("/") + 1);
-                    fileText.date = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED));
-                    fileText.strDate = UserFile.dateFormat(fileText.date);
-                    this.texts.put(i++, fileText);
+                    file = new FileText();
+//                    file.id = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns._ID));
+                    file.id = i;
+                    file.data = curText.getString(curText.getColumnIndex(MediaStore.Files.FileColumns.DATA));
+                    if (!new File(file.data).exists()) {
+                        continue;
+                    }
+                    file.type = UserFile.TYPE_TEXT;
+                    file.size = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns.SIZE));
+                    file.strSize = UserFile.bytes2kb(file.size);
+                    file.name = file.data.substring(file.data.lastIndexOf("/") + 1);
+                    file.date = curText.getLong(curText.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED));
+                    file.strDate = UserFile.dateFormat(file.date);
+                    this.texts.put(i++, file);
                 } while (curText.moveToNext());
             }
             curText.close();
+            mFileText = texts;
             return texts;
         }
 
-
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
-//            super.onPostExecute(sparseArray);
-            mAdapterText.setData(sparseArray);
+            mAdapterList.setData(sparseArray);
         }
 
     }
 
     private class RefreshAppList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileApp> apps;
+        private AdapterList mAdapterList;
+
+        public RefreshAppList(AdapterList adapterList) {
+            mAdapterList = adapterList;
+        }
 
         protected SparseArray<?> doInBackground(Void... params) {
             apps = new SparseArray<FileApp>();
             PackageManager packageManager = getActivity().getPackageManager();
             List<ApplicationInfo> applicationInfos = packageManager.getInstalledApplications(0);
 
-            FileApp fileApp;
+            FileApp file;
 
             ApplicationInfo applicationInfo;
             for (int i = 0, j = 0; i < applicationInfos.size(); i++) {
@@ -461,27 +624,32 @@ public class RMFragment extends Fragment {
                     isUserApp = true;
                 }
                 if (isUserApp) {
-                    fileApp = new FileApp();
-                    fileApp.icon = packageManager.getApplicationIcon(applicationInfo);
-                    fileApp.name = (String) packageManager.getApplicationLabel(applicationInfo);
-                    fileApp.data = applicationInfo.publicSourceDir;
-                    fileApp.strSize = UserFile.bytes2kb(new File(fileApp.data).length());
-                    fileApp.strDate = fileApp.data.substring(fileApp.data.lastIndexOf("/") + 1);
+                    file = new FileApp();
+                    file.id = i;
+                    file.icon = packageManager.getApplicationIcon(applicationInfo);
+                    file.name = (String) packageManager.getApplicationLabel(applicationInfo);
+                    file.data = applicationInfo.publicSourceDir;
+                    if (!new File(file.data).exists()) {
+                        continue;
+                    }
+                    file.type = UserFile.TYPE_APP;
+                    file.strSize = UserFile.bytes2kb(new File(file.data).length());
+                    file.strDate = file.data.substring(file.data.lastIndexOf("/") + 1);
                     try {
-                        fileApp.data = getActivity().getPackageManager().getApplicationInfo("vision.fastfiletransfer", 0).sourceDir;
+                        file.data = getActivity().getPackageManager().getApplicationInfo("vision.fastfiletransfer", 0).sourceDir;
                     } catch (PackageManager.NameNotFoundException e) {
                         e.printStackTrace();
                     }
-                    apps.put(j++, fileApp);
+                    apps.put(j++, file);
                 }
             }
+            mFileApp = apps;
             return apps;
         }
 
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
-//            super.onPostExecute(sparseArray);
-            mAdapterApp.setData(sparseArray);
+            mAdapterList.setData(sparseArray);
         }
 
     }

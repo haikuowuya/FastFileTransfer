@@ -8,8 +8,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Set;
-
+import vis.SelectedFilesQueue;
 import vision.fastfiletransfer.R;
 
 /**
@@ -19,9 +18,9 @@ import vision.fastfiletransfer.R;
 public class AdapterAudio extends AdapterList {
 
     private SparseArray<FileAudio> audios;
-    private Set mSelectedList;
+    private SelectedFilesQueue mSelectedList;
 
-    public AdapterAudio(Context context, Set selectedList) {
+    public AdapterAudio(Context context, SelectedFilesQueue selectedList) {
         super(context);
         this.mSelectedList = selectedList;
     }

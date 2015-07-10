@@ -1,6 +1,7 @@
 package vis;
 
 import android.content.Context;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -97,7 +98,7 @@ public class UserFilesAdapter extends BaseAdapter {
                     public void onClick(View v) {
                         Toast.makeText(mContext, userFile.name, Toast.LENGTH_SHORT)
                                 .show();
-                        OpenFile.openFile(mContext,userFile.name);
+                        OpenFile.openFile(mContext, Environment.getExternalStorageDirectory().getPath() + "/FFT/" + userFile.name);
                     }
                 });
                 break;
