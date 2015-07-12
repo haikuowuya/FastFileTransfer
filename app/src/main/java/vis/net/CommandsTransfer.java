@@ -20,7 +20,7 @@ import vis.net.protocol.SwapPackage;
  * 使用前必须先调用enable使能，使用完毕必须再调用disable失能；
  * 发送直接调用 {@code send()} ；
  * 接收只需要设置好监听 {@code setCallbackHandler()} 就能开启，设置为Null即关闭<br>
- * <p/>
+ * <p>
  * <br>
  * Created by Vision on 15/6/9.<br>
  * Email:Vision.lsm.2012@gmail.com
