@@ -22,10 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import vis.UserDevice;
-import vis.UserDevicesAdapter;
 import vis.UserFile;
-import vis.UserFilesAdapter;
-import vis.net.protocol.FFTService;
 
 /**
  * 文件传输类
@@ -33,6 +30,9 @@ import vis.net.protocol.FFTService;
  * Email:Vision.lsm.2012@gmail.com
  */
 public class FilesTransfer {
+
+    public static final int SERVICE_SHARE = 1;
+    public static final int SERVICE_RECEIVE = 2;
 
     private final ExecutorService executorService;
     private ServerSocket mServerSocket;
@@ -47,9 +47,9 @@ public class FilesTransfer {
 
     public FilesTransfer(Context context, int serviceType) {
         this.context = context;
-        if (FFTService.SERVICE_SHARE == serviceType) {
+        if (SERVICE_SHARE == serviceType) {
             executorService = Executors.newFixedThreadPool(3);
-        } else if (FFTService.SERVICE_RECEIVE == serviceType) {
+        } else if (SERVICE_RECEIVE == serviceType) {
             executorService = Executors.newSingleThreadExecutor();
         } else {
             executorService = null;
@@ -61,14 +61,15 @@ public class FilesTransfer {
     }
 
     /**
-     * 发送文件，最多可同时发送3个
+     * 发送文件，最多可同时发往3个地址
      *
-     * @param file    要发送的文件
+     * @param index   目标用户序号
+     * @param files   要发送的文件
      * @param address 要发送往的地址
      * @param port    目标地址的端口
      */
-    public void sendFile(int index, File file, String address, int port) {
-        executorService.execute(new Sender(index, file, address, port));
+    public void sendFile(int index, File[] files, String address, int port) {
+        executorService.execute(new Sender(index, files, address, port));
     }
 
     /**
@@ -204,7 +205,7 @@ public class FilesTransfer {
         private DataOutputStream dout = null;
         private FileInputStream fin = null;
 
-        private File file;
+        private File[] files;
         private String address;
         private int port;
 
@@ -212,58 +213,67 @@ public class FilesTransfer {
         private int index;
         private int completionPercentage;
 
-        public Sender(int index, File file, String address, int port) {
+        /**
+         * @param index   目标用户序号
+         * @param files   要发送的文件
+         * @param address 要发送往的地址
+         * @param port    目标地址的端口
+         */
+        public Sender(int index, File[] files, String address, int port) {
             this.index = index;
-            this.file = file;
+            this.files = files;
             this.address = address;
             this.port = port;
         }
 
         @Override
         public void run() {
-            Log.d(this.getClass().getName(), "start send file :" + file.length());
-            try {
-                socket = new Socket();
-                socket.connect(new InetSocketAddress(address, port), 10 * 1000);
-                dout = new DataOutputStream(socket.getOutputStream());
-//                File file = new File("E:\\TU\\DSCF0320.JPG");
-                fin = new FileInputStream(file);
-                sendByte = new byte[1024];
-                dout.writeUTF(file.getName());
-                dout.writeLong(file.length());
-                while ((length = fin.read(sendByte, 0, sendByte.length)) > 0) {
-                    dout.write(sendByte, 0, length);
-                    dout.flush();
-                    sendLength += length;
-                    int transferred = (int) (sendLength * 100 / file.length());
-                    if (completionPercentage < transferred) {       //减少发送message
-//                        Log.d("completed", String.valueOf(completionPercentage));
-                        completionPercentage = transferred;
-                        msg = Message.obtain();
-                        msg.what = this.index;
-                        msg.arg1 = completionPercentage;
-                        if (100 > completionPercentage) {
-                            msg.arg2 = UserDevice.TRANSFER_STATE_TRANSFERRING;
-                        } else {
-                            msg.arg2 = UserDevice.TRANSFER_STATE_FINISH;
-                        }
-                        mHandler.sendMessage(msg);
-                    }
-//                    Log.d("sendLength:", String.valueOf(sendLength));
-                }
-            } catch (IOException e) {
-
-            } finally {
-                Log.d(this.getClass().getName(), "end send");
+            for (File file : files) {
+                sendLength = completionPercentage = 0;
+                Log.d(this.getClass().getName(), "start send files :" + file.length());
                 try {
-                    if (dout != null)
-                        dout.close();
-                    if (fin != null)
-                        fin.close();
-                    if (socket != null)
-                        socket.close();
+                    socket = new Socket();
+                    socket.connect(new InetSocketAddress(address, port), 10 * 1000);
+                    dout = new DataOutputStream(socket.getOutputStream());
+//                File files = new File("E:\\TU\\DSCF0320.JPG");
+                    fin = new FileInputStream(file);
+                    sendByte = new byte[1024];
+                    dout.writeUTF(file.getName());
+                    dout.writeLong(file.length());
+                    while ((length = fin.read(sendByte, 0, sendByte.length)) > 0) {
+                        dout.write(sendByte, 0, length);
+                        dout.flush();
+                        sendLength += length;
+                        int transferred = (int) (sendLength * 100 / file.length());
+                        if (completionPercentage < transferred) {       //减少发送message
+//                        Log.d("completed", String.valueOf(completionPercentage));
+                            completionPercentage = transferred;
+                            msg = Message.obtain();
+                            msg.what = this.index;
+                            msg.arg1 = completionPercentage;
+                            if (100 > completionPercentage) {
+                                msg.arg2 = UserDevice.TRANSFER_STATE_TRANSFERRING;
+                            } else {
+                                msg.arg2 = UserDevice.TRANSFER_STATE_FINISH;
+                            }
+                            mHandler.sendMessage(msg);
+                        }
+//                    Log.d("sendLength:", String.valueOf(sendLength));
+                    }
                 } catch (IOException e) {
-                    e.printStackTrace();
+
+                } finally {
+                    Log.d(this.getClass().getName(), "end send");
+                    try {
+                        if (dout != null)
+                            dout.close();
+                        if (fin != null)
+                            fin.close();
+                        if (socket != null)
+                            socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
