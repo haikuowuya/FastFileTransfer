@@ -101,7 +101,9 @@ public class AdapterVideo extends AdapterList {
         } else {
             holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
         }
-        new LoadImage(holder.image, file.id)
+
+        holder.image.setTag(file.oid);
+        new LoadImage(holder.image, file.oid)
                 .execute();
 
         return convertView;
@@ -139,7 +141,9 @@ public class AdapterVideo extends AdapterList {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            iv.setImageBitmap(bm);
+            if (iv.getTag() != null && ((long) iv.getTag()) == origId) {
+                iv.setImageBitmap(bm);
+            }
         }
     }
 

@@ -105,8 +105,8 @@ public class AdapterImage extends AdapterList {
             holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
         }
 
-        holder.image.setTag(file.id);
-        new LoadImage(holder.image, file.id)
+        holder.image.setTag(file.oid);
+        new LoadImage(holder.image, file.oid)
                 .execute();
 
         return convertView;

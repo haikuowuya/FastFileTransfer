@@ -167,8 +167,6 @@ public class RMFragment extends Fragment {
                                     for (vision.resourcemanager.File file : mSelectedList.data) {
                                         File trueFile = new File(file.data);
                                         if (trueFile.exists() && trueFile.delete()) {
-                                            //FIXME 删不了啊~~~~~~
-                                            file.isDeleted = true;
                                             switch (file.type) {
                                                 case UserFile.TYPE_IMAGE: {
                                                     mFileImage.remove(file.id);
@@ -402,7 +400,7 @@ public class RMFragment extends Fragment {
                 int i = 0;
                 do {
                     file = new FileImage();
-//                    fileImage.id = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media._ID));
+                    file.oid = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media._ID));
                     file.id = i;
                     file.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
                     if (!new File(file.data).exists()) {
@@ -511,7 +509,7 @@ public class RMFragment extends Fragment {
                 int i = 0;
                 do {
                     file = new FileVideo();
-//                    file.id = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
+                    file.oid = curVideo.getLong(curVideo.getColumnIndex(MediaStore.Video.Media._ID));
                     file.id = i;
                     file.data = curVideo.getString(curVideo.getColumnIndex(MediaStore.Video.Media.DATA));
                     if (!new File(file.data).exists()) {
