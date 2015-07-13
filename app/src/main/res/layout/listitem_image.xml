@@ -72,6 +72,7 @@
         android:id="@+id/ivCheckBox"
         android:layout_width="20dp"
         android:layout_height="20dp"
+        android:focusable="true"
         android:src="@mipmap/listitem_checkbox_off_normal"
         android:visibility="visible"
         android:layout_marginRight="10dp"

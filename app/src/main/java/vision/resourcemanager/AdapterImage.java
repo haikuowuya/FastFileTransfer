@@ -81,7 +81,7 @@ public class AdapterImage extends AdapterList {
         }
 
         final FileImage file = this.images.valueAt(position);
-        holder.layout.setOnClickListener(new View.OnClickListener() {
+        holder.ivCheckBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (file.isSelected) {
@@ -93,6 +93,12 @@ public class AdapterImage extends AdapterList {
                     mSelectedList.add(file);
                     holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
                 }
+            }
+        });
+        holder.layout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((ResourceManagerInterface) mContext).onFragmentInteraction(2, file.name);
             }
         });
 

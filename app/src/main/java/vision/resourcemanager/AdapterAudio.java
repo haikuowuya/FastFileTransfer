@@ -70,7 +70,7 @@ public class AdapterAudio extends AdapterList {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final FileAudio fileAudio = this.audios.get(position);
+        final FileAudio fileAudio = this.audios.valueAt(position);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override

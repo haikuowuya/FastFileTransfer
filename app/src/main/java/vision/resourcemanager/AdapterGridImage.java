@@ -1,46 +1,46 @@
 package vision.resourcemanager;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.util.SparseArray;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.RelativeLayout;
 
 import vis.SelectedFilesQueue;
 import vision.fastfiletransfer.R;
 
 /**
- * Created by Vision on 15/7/1.<br>
+ * Created by Vision on 15/7/13.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class AdapterVideo extends AdapterList {
+public class AdapterGridImage extends BaseAdapter {
 
-    private SparseArray<FileVideo> videos;
+    private final LayoutInflater inflater;
+    protected ContentResolver cr;
+    private SparseArray<FileImage> fileImageSparseArray;
     private SelectedFilesQueue mSelectedList;
 
-    public AdapterVideo(Context context, SelectedFilesQueue selectedList) {
-        super(context);
+
+    public AdapterGridImage(Context context, SelectedFilesQueue selectedList) {
+        this.inflater = (LayoutInflater) context
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        cr = context.getContentResolver();
         this.mSelectedList = selectedList;
     }
 
     @Override
-    public void setData(SparseArray<?> data) {
-        this.videos = (SparseArray<FileVideo>) data;
-        notifyDataSetChanged();
-    }
-
-
-    @Override
     public int getCount() {
-        if (null == videos) {
-            return 0;
+        if (null != fileImageSparseArray) {
+            return fileImageSparseArray.size();
         } else {
-            return videos.size();
+            return 0;
         }
     }
 
@@ -57,27 +57,18 @@ public class AdapterVideo extends AdapterList {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         final ViewHolder holder;
-        if (null == convertView) {
+        if (convertView == null) {
             holder = new ViewHolder();
-            convertView = inflater.inflate(R.layout.listitem_video, null);
-            holder.layout = (LinearLayout) convertView
-                    .findViewById(R.id.list_item_layout);
-            holder.image = (ImageView) convertView
-                    .findViewById(R.id.image);
-            holder.name = (TextView) convertView
-                    .findViewById(R.id.name);
-            holder.size = (TextView)
-                    convertView.findViewById(R.id.tvSize);
-            holder.date = (TextView)
-                    convertView.findViewById(R.id.tvDate);
-            holder.ivCheckBox = (ImageView)
-                    convertView.findViewById(R.id.ivCheckBox);
+            convertView = this.inflater.inflate(R.layout.griditem_image, null);
+            holder.layout = (RelativeLayout) convertView.findViewById(R.id.grid_image_layout);
+            holder.image = (ImageView) convertView.findViewById(R.id.grid_item_iv);
+            holder.ivCheckBox = (ImageView) convertView.findViewById(R.id.grid_item_cb);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
-            holder.image.setImageResource(R.mipmap.listitem_icon_video);
         }
-        final FileVideo file = this.videos.valueAt(position);
+
+        final FileImage file = this.fileImageSparseArray.valueAt(position);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,33 +84,28 @@ public class AdapterVideo extends AdapterList {
                 }
             }
         });
-        holder.name.setText(file.name);
-        holder.size.setText(file.strSize);
-        holder.date.setText(file.strDate);
+
         if (file.isSelected) {
             holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
         } else {
             holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
         }
-
+        holder.image.setImageResource(R.mipmap.listitem_icon_image);
         holder.image.setTag(file.oid);
         new LoadImage(holder.image, file.oid)
                 .execute();
-
         return convertView;
     }
 
-
-    /**
-     * 暂存变量类
-     */
-    static class ViewHolder {
-        LinearLayout layout;
+    private class ViewHolder {
+        RelativeLayout layout;
         ImageView image;
-        TextView name;
-        TextView size;
-        TextView date;
         ImageView ivCheckBox;
+    }
+
+    public void setData(SparseArray<FileImage> sparseArray) {
+        this.fileImageSparseArray = sparseArray;
+        this.notifyDataSetChanged();
     }
 
     private class LoadImage extends AsyncTask<Void, Void, Void> {
@@ -135,7 +121,7 @@ public class AdapterVideo extends AdapterList {
 
         @Override
         protected Void doInBackground(Void... params) {
-            bm = MediaStore.Video.Thumbnails.getThumbnail(cr, origId, MediaStore.Video.Thumbnails.MICRO_KIND, null);
+            bm = MediaStore.Images.Thumbnails.getThumbnail(cr, origId, MediaStore.Images.Thumbnails.MICRO_KIND, null);
             return null;
         }
 
@@ -148,4 +134,3 @@ public class AdapterVideo extends AdapterList {
     }
 
 }
-

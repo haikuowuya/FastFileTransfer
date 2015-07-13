@@ -1,6 +1,7 @@
 package vision.fastfiletransfer;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -13,9 +14,11 @@ import android.widget.TextView;
 
 import vis.SelectedFilesQueue;
 import vision.resourcemanager.File;
+import vision.resourcemanager.GridImageFragment;
+import vision.resourcemanager.ResourceManagerInterface;
 
 
-public class ResourceManagerActivity extends FragmentActivity {
+public class ResourceManagerActivity extends FragmentActivity implements ResourceManagerInterface {
     private FragmentManager fragmentManager;
     private RMFragment mRMFragment;
     /**
@@ -48,7 +51,7 @@ public class ResourceManagerActivity extends FragmentActivity {
         tvTitle.setText("资源管理");
 
         mSelectedFilesQueue = new SelectedFilesQueue<File>();
-        jumpToFragment(0);
+        jumpToFragment(0, null);
     }
 
     @Override
@@ -73,17 +76,24 @@ public class ResourceManagerActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void jumpToFragment(int fragmentType) {
+    @Override
+    public void jumpToFragment(int fragmentType, @Nullable String bucket) {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         switch (fragmentType) {
-            case 0: {
+            case RM_FRAGMENT: {
                 mRMFragment = RMFragment.newInstance(
                         /*RMFragment.TYPE_FILE_TRANSFER,*/
                         RMFragment.TYPE_RESOURCE_MANAGER,
                         RMFragment.PAGE_AUDIO | RMFragment.PAGE_IMAGE /*| RMFragment.PAGE_APP*/ | RMFragment.PAGE_VIDEO | RMFragment.PAGE_TEXT);
-
                 fragmentTransaction.replace(R.id.rmContain, mRMFragment);
+                break;
+            }
+            case RM_IMAGE_GRID: {
+                GridImageFragment gridImageFragment = GridImageFragment.newInstance(bucket, null);
+                fragmentTransaction.hide(mRMFragment);
+                fragmentTransaction.add(R.id.rmContain, gridImageFragment);
+                fragmentTransaction.addToBackStack(null);
                 break;
             }
             default: {
@@ -93,4 +103,13 @@ public class ResourceManagerActivity extends FragmentActivity {
         fragmentTransaction.commit();
     }
 
+    @Override
+    public void onFragmentInteraction(int arg1, String bucket) {
+        jumpToFragment(arg1, bucket);
+    }
+
+    @Override
+    public SelectedFilesQueue<File> getSelectedFilesQueue() {
+        return this.mSelectedFilesQueue;
+    }
 }

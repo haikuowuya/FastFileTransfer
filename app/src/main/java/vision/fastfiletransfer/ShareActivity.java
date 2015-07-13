@@ -1,6 +1,7 @@
 package vision.fastfiletransfer;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -18,15 +19,14 @@ import vis.UserDevice;
 import vis.net.protocol.ShareServer;
 import vis.net.wifi.APHelper;
 import vision.resourcemanager.File;
+import vision.resourcemanager.GridImageFragment;
+import vision.resourcemanager.ResourceManagerInterface;
 
 
-public class ShareActivity extends FragmentActivity {
+public class ShareActivity extends FragmentActivity implements ResourceManagerInterface {
 
-    public static final int RM_FRAGMENT = 0;
-    public static final int SHARE_FRAGMENT = 1;
 
     private APHelper mAPHelper;
-    //    public FFTService mFFTService;
     public ShareServer mShareServer;
     /**
      * 文件选择队列
@@ -39,6 +39,7 @@ public class ShareActivity extends FragmentActivity {
 
     private FragmentManager fragmentManager;
     private RMFragment mRMFragment;
+    private TextView tvTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,11 +63,10 @@ public class ShareActivity extends FragmentActivity {
                 }
             }
         });
-        TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
+        tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
         tvTitle.setText("我要分享");
 
         mSelectedFilesQueue = new SelectedFilesQueue<File>();
-//        mDevicesList = new SparseArray<UserDevice>();
         mDevicesList = new DevicesList<UserDevice>();
 
         mAPHelper = new APHelper(this);
@@ -81,17 +81,14 @@ public class ShareActivity extends FragmentActivity {
                 Toast.makeText(ShareActivity.this, "打开热点失败", Toast.LENGTH_SHORT).show();
             }
         }
-        jumpToFragment(RM_FRAGMENT);
+        jumpToFragment(RM_FRAGMENT, null);
     }
 
 
     @Override
     protected void onDestroy() {
-//        mFFTService.setOnDataReceivedListener(null);
-//        mFFTService.disable();
         mShareServer.disable();
         //关闭AP
-//        if (mShareWifiManager.setWifiApEnabled(false)) {
         if (mAPHelper.setWifiApEnabled(null, false)) {
             Toast.makeText(ShareActivity.this, "热点关闭", Toast.LENGTH_SHORT).show();
         }
@@ -120,7 +117,8 @@ public class ShareActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void jumpToFragment(int fragmentType) {
+    @Override
+    public void jumpToFragment(int fragmentType, @Nullable String bucket) {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         switch (fragmentType) {
@@ -142,6 +140,13 @@ public class ShareActivity extends FragmentActivity {
                 fragmentTransaction.addToBackStack(null);
                 break;
             }
+            case RM_IMAGE_GRID: {
+                GridImageFragment gridImageFragment = GridImageFragment.newInstance(bucket, null);
+                fragmentTransaction.hide(mRMFragment);
+                fragmentTransaction.add(R.id.shareContain, gridImageFragment);
+                fragmentTransaction.addToBackStack(null);
+                break;
+            }
             default: {
                 return;
             }
@@ -149,4 +154,13 @@ public class ShareActivity extends FragmentActivity {
         fragmentTransaction.commit();
     }
 
+    @Override
+    public void onFragmentInteraction(int arg1, String bucket) {
+        jumpToFragment(arg1, bucket);
+    }
+
+    @Override
+    public SelectedFilesQueue<File> getSelectedFilesQueue() {
+        return this.mSelectedFilesQueue;
+    }
 }

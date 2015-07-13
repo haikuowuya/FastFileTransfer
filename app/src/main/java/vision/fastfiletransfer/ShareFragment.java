@@ -29,7 +29,7 @@ public class ShareFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-//    private OnFragmentInteractionListener mListener;
+//    private ResourceManagerInterface mListener;
 
     private Context context;
     //    private String filePath;

@@ -1,6 +1,7 @@
 package vision.fastfiletransfer;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 
 import vis.OpenFile;
@@ -40,6 +42,7 @@ import vision.resourcemanager.FileAudio;
 import vision.resourcemanager.FileImage;
 import vision.resourcemanager.FileText;
 import vision.resourcemanager.FileVideo;
+import vision.resourcemanager.ResourceManagerInterface;
 
 public class RMFragment extends Fragment {
     private static final String ARG_PARAM1 = "type";
@@ -80,6 +83,8 @@ public class RMFragment extends Fragment {
     private View.OnClickListener mOpenFileListener;
     private View.OnClickListener mDeleteFileListener;
 
+    private ResourceManagerInterface mListener;
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -107,6 +112,18 @@ public class RMFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (ResourceManagerInterface) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement ResourceManagerInterface");
+        }
+    }
+
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
@@ -115,7 +132,7 @@ public class RMFragment extends Fragment {
         }
 
         if (android.os.Build.VERSION.SDK_INT < 11) {
-            //FIXME 低版本手机兼容
+            // 低版本手机兼容
             if ((page & PAGE_TEXT) != 0) {
                 //去掉PAGE_TEXT位
                 page &= ~PAGE_TEXT;
@@ -127,22 +144,17 @@ public class RMFragment extends Fragment {
         mFragments = new ListFragment[this.pageCount];
         mAdapterLists = new AdapterList[this.pageCount];
 
-
         for (int i = 0; i < this.pageCount; i++) {
             mFragments[i] = new ListFragment();
         }
 
-        if (TYPE_FILE_TRANSFER == type) {
-            mSelectedList = ((ShareActivity) getActivity()).mSelectedFilesQueue;
-        } else if (TYPE_RESOURCE_MANAGER == type) {
-            mSelectedList = ((ResourceManagerActivity) getActivity()).mSelectedFilesQueue;
-        }
+        mSelectedList = mListener.getSelectedFilesQueue();
 
         if (TYPE_FILE_TRANSFER == type) {
             mShareListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ((ShareActivity) getActivity()).jumpToFragment(ShareActivity.SHARE_FRAGMENT);
+                    mListener.onFragmentInteraction(ResourceManagerInterface.SHARE_FRAGMENT, null);
                 }
             };
         } else if (TYPE_RESOURCE_MANAGER == type) {
@@ -155,7 +167,6 @@ public class RMFragment extends Fragment {
             mDeleteFileListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
                     AlertDialog dialog = new AlertDialog.Builder(getActivity())
                             .setTitle("确认删除吗？")
                             .setIcon(android.R.drawable.ic_dialog_info)
@@ -164,7 +175,10 @@ public class RMFragment extends Fragment {
                                 public void onClick(DialogInterface dialog, int which) {
                                     // 点击“确认”后的操作
                                     boolean delete = false;
-                                    for (vision.resourcemanager.File file : mSelectedList.data) {
+                                    Iterator selectedList = mSelectedList.data.iterator();
+                                    vision.resourcemanager.File file;
+                                    while (selectedList.hasNext()) {
+                                        file = (vision.resourcemanager.File) selectedList.next();
                                         File trueFile = new File(file.data);
                                         if (trueFile.exists() && trueFile.delete()) {
                                             switch (file.type) {
@@ -184,14 +198,17 @@ public class RMFragment extends Fragment {
                                                     mFileText.remove(file.id);
                                                     break;
                                                 }
-                                                case UserFile.TYPE_APP:{
+                                                case UserFile.TYPE_APP: {
                                                     mFileApp.remove(file.id);
                                                     break;
                                                 }
                                             }
                                             delete = true;
-                                            mSelectedList.remove(file);
                                         }
+                                        selectedList.remove();
+                                        //这里只为刷新界面
+                                        mSelectedList.remove(null);
+//                                        mListener.getSelectedFilesQueue().remove(null);
                                     }
                                     if (delete) {
                                         Toast.makeText(getActivity(), "删除成功", Toast.LENGTH_SHORT).show();
@@ -212,14 +229,12 @@ public class RMFragment extends Fragment {
                 }
             };
         }
-
         mCancelListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 cancelAll();
             }
         };
-
     }
 
     @Override
@@ -252,6 +267,13 @@ public class RMFragment extends Fragment {
         vp.setAdapter(mViewPagerAdapter);
 
         int pageIndex = 0;
+        if ((page & PAGE_APP) != 0) {
+            mAdapterLists[pageIndex] = new AdapterApp(getActivity(), mSelectedList);
+            tab[pageIndex].setText("应用");
+            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
+            new RefreshAppList(mAdapterLists[pageIndex]).execute();
+            pageIndex++;
+        }
         if ((page & PAGE_IMAGE) != 0) {
             mAdapterLists[pageIndex] = new AdapterImage(getActivity(), mSelectedList);
             tab[pageIndex].setText("图片");
@@ -278,13 +300,6 @@ public class RMFragment extends Fragment {
             tab[pageIndex].setText("文档");
             mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
             new RefreshTextList(mAdapterLists[pageIndex]).execute();
-            pageIndex++;
-        }
-        if ((page & PAGE_APP) != 0) {
-            mAdapterLists[pageIndex] = new AdapterApp(getActivity(), mSelectedList);
-            tab[pageIndex].setText("应用");
-            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
-            new RefreshAppList(mAdapterLists[pageIndex]).execute();
         }
 
         vp.setCurrentItem(0);
@@ -386,13 +401,15 @@ public class RMFragment extends Fragment {
             Cursor curImage = getActivity().getContentResolver().query(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     new String[]{
-                            MediaStore.Images.Media._ID,
-                            MediaStore.Images.Media.DATA,
-                            MediaStore.Images.Media.SIZE,
-                            MediaStore.Images.Media.DISPLAY_NAME,
-                            MediaStore.Images.Media.DATE_MODIFIED
+                            MediaStore.Images.ImageColumns._ID,
+                            MediaStore.Images.ImageColumns.DATA,
+                            MediaStore.Images.ImageColumns.SIZE,
+                            MediaStore.Images.ImageColumns.DISPLAY_NAME,
+                            MediaStore.Images.ImageColumns.DATE_MODIFIED,
+                            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+                            "COUNT(*) AS files_count"
                     },
-                    null,
+                    "0==0) GROUP BY (" + MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
                     null,
                     MediaStore.Images.Media.DATE_MODIFIED + " DESC");
             if (curImage.moveToFirst()) {
@@ -407,10 +424,8 @@ public class RMFragment extends Fragment {
                         continue;
                     }
                     file.type = UserFile.TYPE_IMAGE;
-                    file.size = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.SIZE));
-                    file.strSize = UserFile.bytes2kb(file.size);
-                    file.name = curImage.getString(curImage
-                            .getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+                    file.strSize = String.valueOf(curImage.getInt(curImage.getColumnIndex("files_count"))) + "个";
+                    file.name = curImage.getString(curImage.getColumnIndex(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME));
                     file.date = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED));
                     file.strDate = UserFile.dateFormat(file.date);
                     this.images.put(i++, file);
@@ -533,7 +548,6 @@ public class RMFragment extends Fragment {
 
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
-//            super.onPostExecute(sparseArray);
             mAdapterList.setData(sparseArray);
         }
 

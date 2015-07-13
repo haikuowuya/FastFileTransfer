@@ -73,7 +73,7 @@ public class AdapterText extends AdapterList {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final FileText file = this.texts.get(position);
+        final FileText file = this.texts.valueAt(position);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override

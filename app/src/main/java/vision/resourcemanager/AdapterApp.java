@@ -67,7 +67,7 @@ public class AdapterApp extends AdapterList {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        final FileApp fileApp = this.apps.get(position);
+        final FileApp fileApp = this.apps.valueAt(position);
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
