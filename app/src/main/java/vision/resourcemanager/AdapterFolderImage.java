@@ -19,13 +19,13 @@ import vision.fastfiletransfer.R;
  * Created by Vision on 15/6/30.<br>
  * Email:Vision.lsm.2012@gmail.com
  */
-public class AdapterImage extends AdapterList {
+public class AdapterFolderImage extends AdapterList {
 
-    private SparseArray<FileImage> images;
+    private SparseArray<FileFolder> imagesFolder;
     private Context mContext;
     private SelectedFilesQueue mSelectedList;
 
-    public AdapterImage(Context context, SelectedFilesQueue selectedList) {
+    public AdapterFolderImage(Context context, SelectedFilesQueue selectedList) {
         super(context);
         this.mContext = context;
         this.mSelectedList = selectedList;
@@ -33,16 +33,16 @@ public class AdapterImage extends AdapterList {
 
     @Override
     public void setData(SparseArray<?> data) {
-        this.images = (SparseArray<FileImage>) data;
+        this.imagesFolder = (SparseArray<FileFolder>) data;
         notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        if (null == images) {
+        if (null == imagesFolder) {
             return 0;
         } else {
-            return images.size();
+            return imagesFolder.size();
         }
     }
 
@@ -80,31 +80,34 @@ public class AdapterImage extends AdapterList {
             holder.image.setImageResource(R.mipmap.listitem_icon_image);
         }
 
-        final FileImage file = this.images.valueAt(position);
+        final FileFolder file = this.imagesFolder.valueAt(position);
         holder.ivCheckBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (file.isSelected) {
-                    file.isSelected = false;
-                    mSelectedList.remove(file);
+                    file.cancelAll(mSelectedList);
                     holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
                 } else {
-                    file.isSelected = true;
-                    mSelectedList.add(file);
+                    file.selectAll(mSelectedList);
                     holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
                 }
+                notifyDataSetChanged();
             }
         });
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((ResourceManagerInterface) mContext).onFragmentInteraction(2, file.name);
+                ((ResourceManagerInterface) mContext).jumpToFragment(ResourceManagerInterface.RM_IMAGE_GRID, file.id);
             }
         });
 
         holder.name.setText(file.name);
-        holder.size.setText(file.strSize);
-        holder.date.setText(file.strDate);
+        holder.size.setText("共" + file.mImages.size() + "个");
+        if (file.selected > 0) {
+            holder.date.setText("已选择" + file.selected + "个");
+        } else {
+            holder.date.setText("");
+        }
         if (file.isSelected) {
             holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
         } else {

@@ -20,13 +20,13 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE); //声明使用自定义标题
+        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         setContentView(R.layout.activity_main);
-        //设置窗体样式
+
         getWindow().setFeatureInt(
-                Window.FEATURE_CUSTOM_TITLE,  //设置此样式为自定义样式
-                R.layout.activity_titlebar //设置对应的布局
-        );//自定义布局赋值
+                Window.FEATURE_CUSTOM_TITLE,
+                R.layout.activity_titlebar
+        );
         Button btnTitleBarLeft = (Button) findViewById(R.id.titlebar_btnLeft);
         btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
             @Override

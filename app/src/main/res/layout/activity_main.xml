@@ -6,10 +6,10 @@
 
 
     <ImageView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/imageView"
-        android:src="@mipmap/activity_main_banner"
+        android:src="@mipmap/activity_main_banner_2"
         android:scaleType="fitStart" />
 
     <Button
@@ -25,7 +25,8 @@
         android:paddingBottom="8dp"
         android:layout_centerHorizontal="true"
         android:layout_margin="10dp"
-        android:layout_above="@+id/btnReceive" />
+        android:layout_above="@+id/btnReceive"
+        android:textColor="#ffffffff" />
 
     <Button
         android:layout_width="wrap_content"
@@ -41,7 +42,8 @@
         android:layout_centerHorizontal="true"
         android:layout_alignParentEnd="false"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="30dp" />
+        android:layout_marginBottom="40dp"
+        android:textColor="#ffffffff" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -53,5 +55,16 @@
         android:layout_centerHorizontal="true"
         android:layout_margin="10dp"
         android:text="机型" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="邀请好友安装亿动手机助手>"
+        android:id="@+id/textView2"
+        android:textColor="#ff07c2ab"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="10dp" />
 
 </RelativeLayout>

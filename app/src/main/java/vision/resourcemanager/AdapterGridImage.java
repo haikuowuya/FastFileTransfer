@@ -26,9 +26,11 @@ public class AdapterGridImage extends BaseAdapter {
     protected ContentResolver cr;
     private SparseArray<FileImage> fileImageSparseArray;
     private SelectedFilesQueue mSelectedList;
+    private FileFolder mFileFolder;
 
 
-    public AdapterGridImage(Context context, SelectedFilesQueue selectedList) {
+    public AdapterGridImage(Context context, FileFolder fileFolder, SelectedFilesQueue selectedList) {
+        mFileFolder = fileFolder;
         this.inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         cr = context.getContentResolver();
@@ -75,11 +77,21 @@ public class AdapterGridImage extends BaseAdapter {
             public void onClick(View v) {
                 if (file.isSelected) {
                     file.isSelected = false;
-                    mSelectedList.remove(file);
+                    if (mSelectedList.remove(file)) {
+                        mFileFolder.selected--;
+                        if (mFileFolder.isSelected) {
+                            mFileFolder.isSelected = false;
+                        }
+                    }
                     holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
                 } else {
                     file.isSelected = true;
-                    mSelectedList.add(file);
+                    if (mSelectedList.add(file)) {
+                        mFileFolder.selected++;
+                        if (mFileFolder.selected == mFileFolder.mImages.size()) {
+                            mFileFolder.isSelected = true;
+                        }
+                    }
                     holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
                 }
             }

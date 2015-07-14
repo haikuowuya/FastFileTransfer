@@ -1,10 +1,10 @@
 package vision.fastfiletransfer;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +19,7 @@ import vis.UserDevice;
 import vis.net.protocol.ShareServer;
 import vis.net.wifi.APHelper;
 import vision.resourcemanager.File;
+import vision.resourcemanager.FileFolder;
 import vision.resourcemanager.GridImageFragment;
 import vision.resourcemanager.ResourceManagerInterface;
 
@@ -28,6 +29,7 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
 
     private APHelper mAPHelper;
     public ShareServer mShareServer;
+    private SparseArray<FileFolder> mImagesFolder;
     /**
      * 文件选择队列
      */
@@ -66,7 +68,6 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
         tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
         tvTitle.setText("我要分享");
 
-        mSelectedFilesQueue = new SelectedFilesQueue<File>();
         mDevicesList = new DevicesList<UserDevice>();
 
         mAPHelper = new APHelper(this);
@@ -81,7 +82,7 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
                 Toast.makeText(ShareActivity.this, "打开热点失败", Toast.LENGTH_SHORT).show();
             }
         }
-        jumpToFragment(RM_FRAGMENT, null);
+        jumpToFragment(RM_FRAGMENT, 0);
     }
 
 
@@ -118,13 +119,13 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
     }
 
     @Override
-    public void jumpToFragment(int fragmentType, @Nullable String bucket) {
+    public void jumpToFragment(int fragmentType, int indexOfFolder) {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         switch (fragmentType) {
             case RM_FRAGMENT: {
                 mRMFragment = RMFragment.newInstance(
-                        RMFragment.TYPE_FILE_TRANSFER,
+                        ResourceManagerInterface.TYPE_FILE_TRANSFER,
                         /*RMFragment.TYPE_RESOURCE_MANAGER,*/
                         RMFragment.PAGE_AUDIO | RMFragment.PAGE_IMAGE | RMFragment.PAGE_APP | RMFragment.PAGE_VIDEO | RMFragment.PAGE_TEXT);
 
@@ -141,7 +142,7 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
                 break;
             }
             case RM_IMAGE_GRID: {
-                GridImageFragment gridImageFragment = GridImageFragment.newInstance(bucket, null);
+                GridImageFragment gridImageFragment = GridImageFragment.newInstance(indexOfFolder, null);
                 fragmentTransaction.hide(mRMFragment);
                 fragmentTransaction.add(R.id.shareContain, gridImageFragment);
                 fragmentTransaction.addToBackStack(null);
@@ -155,12 +156,19 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
     }
 
     @Override
-    public void onFragmentInteraction(int arg1, String bucket) {
-        jumpToFragment(arg1, bucket);
+    public SelectedFilesQueue<File> getSelectedFilesQueue() {
+        if (null == mSelectedFilesQueue) {
+            mSelectedFilesQueue = new SelectedFilesQueue<File>();
+        }
+        return this.mSelectedFilesQueue;
     }
 
     @Override
-    public SelectedFilesQueue<File> getSelectedFilesQueue() {
-        return this.mSelectedFilesQueue;
+    public SparseArray<FileFolder> getImageFolder() {
+        if (null == mImagesFolder) {
+            mImagesFolder = new SparseArray<FileFolder>();
+        }
+        return mImagesFolder;
     }
+
 }

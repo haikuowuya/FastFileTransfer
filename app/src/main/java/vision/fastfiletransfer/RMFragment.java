@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,12 +34,13 @@ import vis.SelectedFilesQueue;
 import vis.UserFile;
 import vision.resourcemanager.AdapterApp;
 import vision.resourcemanager.AdapterAudio;
-import vision.resourcemanager.AdapterImage;
+import vision.resourcemanager.AdapterFolderImage;
 import vision.resourcemanager.AdapterList;
 import vision.resourcemanager.AdapterText;
 import vision.resourcemanager.AdapterVideo;
 import vision.resourcemanager.FileApp;
 import vision.resourcemanager.FileAudio;
+import vision.resourcemanager.FileFolder;
 import vision.resourcemanager.FileImage;
 import vision.resourcemanager.FileText;
 import vision.resourcemanager.FileVideo;
@@ -47,9 +49,6 @@ import vision.resourcemanager.ResourceManagerInterface;
 public class RMFragment extends Fragment {
     private static final String ARG_PARAM1 = "type";
     private static final String ARG_PARAM2 = "page";
-
-    public static final byte TYPE_RESOURCE_MANAGER = 1;
-    public static final byte TYPE_FILE_TRANSFER = 2;
 
     public static final int PAGE_IMAGE = 0x01;
     public static final int PAGE_AUDIO = 0x02;
@@ -65,7 +64,6 @@ public class RMFragment extends Fragment {
 
     private ListFragment[] mFragments;
     private AdapterList[] mAdapterLists;
-    private SparseArray<FileImage> mFileImage;
     private SparseArray<FileAudio> mFileAudio;
     private SparseArray<FileVideo> mFileVideo;
     private SparseArray<FileText> mFileText;
@@ -150,14 +148,14 @@ public class RMFragment extends Fragment {
 
         mSelectedList = mListener.getSelectedFilesQueue();
 
-        if (TYPE_FILE_TRANSFER == type) {
+        if (ResourceManagerInterface.TYPE_FILE_TRANSFER == type) {
             mShareListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mListener.onFragmentInteraction(ResourceManagerInterface.SHARE_FRAGMENT, null);
+                    mListener.jumpToFragment(ResourceManagerInterface.SHARE_FRAGMENT, 0);
                 }
             };
-        } else if (TYPE_RESOURCE_MANAGER == type) {
+        } else if (ResourceManagerInterface.TYPE_RESOURCE_MANAGER == type) {
             mOpenFileListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -183,7 +181,8 @@ public class RMFragment extends Fragment {
                                         if (trueFile.exists() && trueFile.delete()) {
                                             switch (file.type) {
                                                 case UserFile.TYPE_IMAGE: {
-                                                    mFileImage.remove(file.id);
+                                                    mListener.getImageFolder().valueAt(((FileImage) file).fatherID).mImages.remove(file.id);
+                                                    mListener.getImageFolder().valueAt(((FileImage) file).fatherID).selected--;
                                                     break;
                                                 }
                                                 case UserFile.TYPE_AUDIO: {
@@ -248,14 +247,18 @@ public class RMFragment extends Fragment {
             tab[i].setOnClickListener(new TxListener(i));
             tab[i].setVisibility(View.VISIBLE);
         }
+        View botBut = inflater.inflate(R.layout.bottom_rm_buttom, container, false);
+        btnLinearLayout = (LinearLayout)
+                botBut.findViewById(R.id.btnLinearLayout);
+        btnLeft = (Button)
+                botBut.findViewById(R.id.btnLeft);
+        btnRight = (Button)
+                botBut.findViewById(R.id.btnRight);
+        RelativeLayout relativeLayout = (RelativeLayout)
+                rootView.findViewById(R.id.fragment_manager);
+        relativeLayout.addView(botBut);
         vp = (ViewPager)
                 rootView.findViewById(R.id.vp);
-        btnLinearLayout = (LinearLayout)
-                rootView.findViewById(R.id.btnLinearLayout);
-        btnLeft = (Button)
-                rootView.findViewById(R.id.btnLeft);
-        btnRight = (Button)
-                rootView.findViewById(R.id.btnRight);
         return rootView;
     }
 
@@ -275,10 +278,10 @@ public class RMFragment extends Fragment {
             pageIndex++;
         }
         if ((page & PAGE_IMAGE) != 0) {
-            mAdapterLists[pageIndex] = new AdapterImage(getActivity(), mSelectedList);
+            mAdapterLists[pageIndex] = new AdapterFolderImage(getActivity(), mSelectedList);
             tab[pageIndex].setText("图片");
             mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
-            new RefreshImageList(mAdapterLists[pageIndex]).execute();
+            new RefreshImageDirList(mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_AUDIO) != 0) {
@@ -307,9 +310,7 @@ public class RMFragment extends Fragment {
 
         vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
             @Override
             public void onPageSelected(int position) {
@@ -320,15 +321,14 @@ public class RMFragment extends Fragment {
             }
 
             @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
+            public void onPageScrollStateChanged(int state) {}
         });
 
-        if (TYPE_FILE_TRANSFER == type) {
+        if (ResourceManagerInterface.TYPE_FILE_TRANSFER == type) {
             btnLeft.setOnClickListener(mShareListener);
             btnRight.setOnClickListener(mCancelListener);
-        } else if (TYPE_RESOURCE_MANAGER == type) {
+        } else if (ResourceManagerInterface.TYPE_RESOURCE_MANAGER == type) {
+            //这边始终是删除
             btnRight.setOnClickListener(mDeleteFileListener);
         }
 
@@ -336,9 +336,9 @@ public class RMFragment extends Fragment {
             @Override
             public void onAddedListener(int size) {
                 btnLinearLayout.setVisibility(View.VISIBLE);
-                if (TYPE_FILE_TRANSFER == type) {
+                if (ResourceManagerInterface.TYPE_FILE_TRANSFER == type) {
                     btnLeft.setText("分享(" + size + ")");
-                } else if (TYPE_RESOURCE_MANAGER == type) {
+                } else if (ResourceManagerInterface.TYPE_RESOURCE_MANAGER == type) {
                     if (size == 1) {
                         btnLeft.setText("打开");
                         btnLeft.setOnClickListener(mOpenFileListener);
@@ -356,9 +356,9 @@ public class RMFragment extends Fragment {
                     btnLinearLayout.setVisibility(View.GONE);
                     return;
                 }
-                if (type == TYPE_FILE_TRANSFER) {
+                if (type == ResourceManagerInterface.TYPE_FILE_TRANSFER) {
                     btnLeft.setText("分享(" + mSelectedList.size() + ")");
-                } else if (TYPE_RESOURCE_MANAGER == type) {
+                } else if (ResourceManagerInterface.TYPE_RESOURCE_MANAGER == type) {
                     if (size == 1) {
                         btnLeft.setText("打开");
                         btnLeft.setOnClickListener(mOpenFileListener);
@@ -377,7 +377,12 @@ public class RMFragment extends Fragment {
         for (vision.resourcemanager.File file : mSelectedList.data) {
             file.isSelected = false;
         }
-        mSelectedList.removeAll();
+        SparseArray<FileFolder> fileFolderSparseArray = mListener.getImageFolder();
+        for (int i = 0, nsize = fileFolderSparseArray.size(); i < nsize; i++) {
+            fileFolderSparseArray.valueAt(i).selected = 0;
+            fileFolderSparseArray.valueAt(i).isSelected = false;
+        }
+        mSelectedList.clear();
         btnLinearLayout.setVisibility(View.GONE);
         refreshAll();
     }
@@ -388,16 +393,16 @@ public class RMFragment extends Fragment {
         }
     }
 
-    private class RefreshImageList extends AsyncTask<Void, Void, SparseArray<?>> {
-        SparseArray<FileImage> images;
+    private class RefreshImageDirList extends AsyncTask<Void, Void, SparseArray<?>> {
+        public SparseArray<FileFolder> imagesFolder;
         private AdapterList mAdapterList;
 
-        public RefreshImageList(AdapterList adapterList) {
+        public RefreshImageDirList(AdapterList adapterList) {
             this.mAdapterList = adapterList;
         }
 
         protected SparseArray<?> doInBackground(Void... params) {
-            images = new SparseArray<FileImage>();
+
             Cursor curImage = getActivity().getContentResolver().query(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     new String[]{
@@ -407,33 +412,66 @@ public class RMFragment extends Fragment {
                             MediaStore.Images.ImageColumns.DISPLAY_NAME,
                             MediaStore.Images.ImageColumns.DATE_MODIFIED,
                             MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-                            "COUNT(*) AS files_count"
+//                            "COUNT(*) AS files_count"
                     },
-                    "0==0) GROUP BY (" + MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+//                    "0==0) GROUP BY (" + MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+                    null,
                     null,
                     MediaStore.Images.Media.DATE_MODIFIED + " DESC");
+
             if (curImage.moveToFirst()) {
+
+                imagesFolder = mListener.getImageFolder();
+                FileFolder folder;
                 FileImage file;
-                int i = 0;
+                int folderID = 0;
+//                int fileID = 0;
+                String folderName;
+
                 do {
                     file = new FileImage();
-                    file.oid = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media._ID));
-                    file.id = i;
                     file.data = curImage.getString(curImage.getColumnIndex(MediaStore.Images.Media.DATA));
-                    if (!new File(file.data).exists()) {
+                    if (!new java.io.File(file.data).exists()) {
                         continue;
                     }
+                    file.oid = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media._ID));
                     file.type = UserFile.TYPE_IMAGE;
-                    file.strSize = String.valueOf(curImage.getInt(curImage.getColumnIndex("files_count"))) + "个";
+                    file.size = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.SIZE));
+                    file.strSize = UserFile.bytes2kb(file.size);
                     file.name = curImage.getString(curImage.getColumnIndex(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME));
                     file.date = curImage.getLong(curImage.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED));
                     file.strDate = UserFile.dateFormat(file.date);
-                    this.images.put(i++, file);
+
+                    folderName = curImage.getString(curImage.getColumnIndex(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME));
+                    folder = null;
+                    for (int i = 0, nsize = imagesFolder.size(); i < nsize; i++) {
+                        FileFolder fileFolder = imagesFolder.valueAt(i);
+                        if (fileFolder.name.equals(folderName)) {
+                            folder = fileFolder;
+                            break;
+                        }
+                    }
+
+                    if (null == folder) {
+                        folder = new FileFolder();
+                        folder.id = folderID;
+                        folder.name = folderName;
+                        folder.mImages = new SparseArray<FileImage>();
+                        imagesFolder.put(folderID++, folder);
+                    }
+
+                    file.id = folder.mImages.size();
+                    file.fatherID = folder.id;
+                    folder.mImages.put(file.id, file);
+                    if (folder.oid == 0) {
+                        folder.oid = folder.mImages.valueAt(0).oid;
+                    }
+
                 } while (curImage.moveToNext());
             }
+
             curImage.close();
-            mFileImage = images;
-            return images;
+            return imagesFolder;
         }
 
 

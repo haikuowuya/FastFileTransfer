@@ -49,8 +49,8 @@ public class SelectedFilesQueue<T> {
         return strings;
     }
 
-    public void removeAll() {
-        data.removeAll(data);
+    public void clear() {
+        data.clear();
     }
 
     public int size() {
