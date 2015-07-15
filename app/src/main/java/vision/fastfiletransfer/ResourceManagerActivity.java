@@ -20,6 +20,10 @@ import vision.resourcemanager.ResourceManagerInterface;
 
 
 public class ResourceManagerActivity extends FragmentActivity implements ResourceManagerInterface {
+
+    private TextView tvTitle;
+    private Button btnTitleBarRight;
+
     private FragmentManager fragmentManager;
     private RMFragment mRMFragment;
     private SparseArray<FileFolder> mImagesFolder;
@@ -38,6 +42,8 @@ public class ResourceManagerActivity extends FragmentActivity implements Resourc
                 R.layout.activity_titlebar
         );
         fragmentManager = getSupportFragmentManager();
+        jumpToFragment(ResourceManagerInterface.RM_FRAGMENT, 0);
+
         Button btnTitleBarLeft = (Button) findViewById(R.id.titlebar_btnLeft);
         btnTitleBarLeft.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -49,10 +55,11 @@ public class ResourceManagerActivity extends FragmentActivity implements Resourc
                 }
             }
         });
-        TextView tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
+        tvTitle = (TextView) findViewById(R.id.titlebar_tvtitle);
         tvTitle.setText("资源管理");
 
-        jumpToFragment(ResourceManagerInterface.RM_FRAGMENT, 0);
+        btnTitleBarRight = (Button) findViewById(R.id.titlebar_btnRight);
+
     }
 
     @Override
@@ -118,5 +125,20 @@ public class ResourceManagerActivity extends FragmentActivity implements Resourc
             mImagesFolder = new SparseArray<FileFolder>();
         }
         return mImagesFolder;
+    }
+
+    @Override
+    public void setTitleText(String string) {
+        this.tvTitle.setText(string);
+    }
+
+    @Override
+    public String getTitleText() {
+        return this.tvTitle.getText().toString();
+    }
+
+    @Override
+    public Button getTitleRightBtn() {
+        return this.btnTitleBarRight;
     }
 }

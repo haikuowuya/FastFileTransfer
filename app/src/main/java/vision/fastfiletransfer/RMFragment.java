@@ -44,6 +44,7 @@ import vision.resourcemanager.FileFolder;
 import vision.resourcemanager.FileImage;
 import vision.resourcemanager.FileText;
 import vision.resourcemanager.FileVideo;
+import vision.resourcemanager.RMListFragment;
 import vision.resourcemanager.ResourceManagerInterface;
 
 public class RMFragment extends Fragment {
@@ -62,7 +63,7 @@ public class RMFragment extends Fragment {
 
     private SelectedFilesQueue<vision.resourcemanager.File> mSelectedList;
 
-    private ListFragment[] mFragments;
+    private RMListFragment[] mFragments;
     private AdapterList[] mAdapterLists;
     private SparseArray<FileAudio> mFileAudio;
     private SparseArray<FileVideo> mFileVideo;
@@ -139,12 +140,8 @@ public class RMFragment extends Fragment {
 
         this.pageCount = NumCount2(page);
 
-        mFragments = new ListFragment[this.pageCount];
+        mFragments = new RMListFragment[this.pageCount];
         mAdapterLists = new AdapterList[this.pageCount];
-
-        for (int i = 0; i < this.pageCount; i++) {
-            mFragments[i] = new ListFragment();
-        }
 
         mSelectedList = mListener.getSelectedFilesQueue();
 
@@ -240,6 +237,7 @@ public class RMFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+
         View rootView = inflater.inflate(R.layout.fragment_manager, container, false);
         tab = new TextView[this.pageCount];
         for (int i = 0; i < this.pageCount; i++) {
@@ -266,6 +264,10 @@ public class RMFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        for (int i = 0; i < this.pageCount; i++) {
+            mFragments[i] = new RMListFragment();
+        }
+
         mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
         vp.setAdapter(mViewPagerAdapter);
 
@@ -273,36 +275,31 @@ public class RMFragment extends Fragment {
         if ((page & PAGE_APP) != 0) {
             mAdapterLists[pageIndex] = new AdapterApp(getActivity(), mSelectedList);
             tab[pageIndex].setText("应用");
-            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
-            new RefreshAppList(mAdapterLists[pageIndex]).execute();
+            new RefreshAppList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_IMAGE) != 0) {
             mAdapterLists[pageIndex] = new AdapterFolderImage(getActivity(), mSelectedList);
             tab[pageIndex].setText("图片");
-            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
-            new RefreshImageDirList(mAdapterLists[pageIndex]).execute();
+            new RefreshImageDirList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_AUDIO) != 0) {
             mAdapterLists[pageIndex] = new AdapterAudio(getActivity(), mSelectedList);
             tab[pageIndex].setText("音乐");
-            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
-            new RefreshAudioList(mAdapterLists[pageIndex]).execute();
+            new RefreshAudioList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_VIDEO) != 0) {
             mAdapterLists[pageIndex] = new AdapterVideo(getActivity(), mSelectedList);
             tab[pageIndex].setText("视频");
-            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
-            new RefreshVideoList(mAdapterLists[pageIndex]).execute();
+            new RefreshVideoList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_TEXT) != 0) {
             mAdapterLists[pageIndex] = new AdapterText(getActivity(), mSelectedList);
             tab[pageIndex].setText("文档");
-            mFragments[pageIndex].setListAdapter(mAdapterLists[pageIndex]);
-            new RefreshTextList(mAdapterLists[pageIndex]).execute();
+            new RefreshTextList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
         }
 
         vp.setCurrentItem(0);
@@ -310,7 +307,8 @@ public class RMFragment extends Fragment {
 
         vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
 
             @Override
             public void onPageSelected(int position) {
@@ -318,15 +316,18 @@ public class RMFragment extends Fragment {
                     tab[i].setTextColor(Color.parseColor("#000000"));
                 }
                 tab[position].setTextColor(Color.parseColor("#ffffff"));
+                //todo
             }
 
             @Override
-            public void onPageScrollStateChanged(int state) {}
+            public void onPageScrollStateChanged(int state) {
+            }
         });
 
         if (ResourceManagerInterface.TYPE_FILE_TRANSFER == type) {
             btnLeft.setOnClickListener(mShareListener);
             btnRight.setOnClickListener(mCancelListener);
+            btnRight.setText("取消");
         } else if (ResourceManagerInterface.TYPE_RESOURCE_MANAGER == type) {
             //这边始终是删除
             btnRight.setOnClickListener(mDeleteFileListener);
@@ -395,9 +396,11 @@ public class RMFragment extends Fragment {
 
     private class RefreshImageDirList extends AsyncTask<Void, Void, SparseArray<?>> {
         public SparseArray<FileFolder> imagesFolder;
+        private ListFragment mFragment;
         private AdapterList mAdapterList;
 
-        public RefreshImageDirList(AdapterList adapterList) {
+        public RefreshImageDirList(ListFragment mFragment, AdapterList adapterList) {
+            this.mFragment = mFragment;
             this.mAdapterList = adapterList;
         }
 
@@ -478,14 +481,17 @@ public class RMFragment extends Fragment {
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
             mAdapterList.setData(sparseArray);
+            mFragment.setListAdapter(mAdapterList);
         }
     }
 
     private class RefreshAudioList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileAudio> audios;
+        private ListFragment mFragment;
         private AdapterList mAdapterList;
 
-        public RefreshAudioList(AdapterList adapterList) {
+        public RefreshAudioList(ListFragment mFragment, AdapterList adapterList) {
+            this.mFragment = mFragment;
             this.mAdapterList = adapterList;
         }
 
@@ -532,14 +538,17 @@ public class RMFragment extends Fragment {
         protected void onPostExecute(SparseArray<?> sparseArray) {
 //            super.onPostExecute(sparseArray);
             mAdapterList.setData(sparseArray);
+            mFragment.setListAdapter(mAdapterList);
         }
     }
 
     private class RefreshVideoList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileVideo> videos;
+        private ListFragment mFragment;
         private AdapterList mAdapterList;
 
-        public RefreshVideoList(AdapterList adapterList) {
+        public RefreshVideoList(ListFragment mFragment, AdapterList adapterList) {
+            this.mFragment = mFragment;
             mAdapterList = adapterList;
         }
 
@@ -587,6 +596,15 @@ public class RMFragment extends Fragment {
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
             mAdapterList.setData(sparseArray);
+            mFragment.setListAdapter(mAdapterList);
+            //todo
+//                mFragment.
+//                mFragment.setListShown(false);
+//                mFragment.setEmptyText("没有数据");
+//            mFragment.getListView().setEmptyView(mEmptyView);
+//            ((ViewGroup) mFragments[position].getListView().getParent()).addView(mEmptyView);
+//            mFragments[position].getListView().setEmptyView(mEmptyView);
+
         }
 
     }
@@ -596,9 +614,11 @@ public class RMFragment extends Fragment {
      */
     private class RefreshTextList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileText> texts;
+        private ListFragment mFragment;
         private AdapterList mAdapterList;
 
-        public RefreshTextList(AdapterList adapterList) {
+        public RefreshTextList(ListFragment mFragment, AdapterList adapterList) {
+            this.mFragment = mFragment;
             mAdapterList = adapterList;
         }
 
@@ -645,15 +665,18 @@ public class RMFragment extends Fragment {
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
             mAdapterList.setData(sparseArray);
+            mFragment.setListAdapter(mAdapterList);
         }
 
     }
 
     private class RefreshAppList extends AsyncTask<Void, Void, SparseArray<?>> {
         SparseArray<FileApp> apps;
+        private ListFragment mFragment;
         private AdapterList mAdapterList;
 
-        public RefreshAppList(AdapterList adapterList) {
+        public RefreshAppList(ListFragment mFragment, AdapterList adapterList) {
+            this.mFragment = mFragment;
             mAdapterList = adapterList;
         }
 
@@ -700,6 +723,7 @@ public class RMFragment extends Fragment {
         @Override
         protected void onPostExecute(SparseArray<?> sparseArray) {
             mAdapterList.setData(sparseArray);
+            mFragment.setListAdapter(mAdapterList);
         }
 
     }

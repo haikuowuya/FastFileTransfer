@@ -1,6 +1,7 @@
 package vision.resourcemanager;
 
 import android.util.SparseArray;
+import android.widget.Button;
 
 import vis.SelectedFilesQueue;
 
@@ -28,7 +29,33 @@ public interface ResourceManagerInterface {
      */
     SelectedFilesQueue<File> getSelectedFilesQueue();
 
+    /**
+     * 获取图片文件夹数据
+     *
+     * @return 图片文件夹数据
+     */
     SparseArray<FileFolder> getImageFolder();
+
+    /**
+     * 设置标题栏的文字
+     *
+     * @param string 要让标题栏显示的文字
+     */
+    void setTitleText(String string);
+
+    /**
+     * 获取标题栏的文字
+     *
+     * @return 标题栏的文字
+     */
+    String getTitleText();
+
+    /**
+     * 获取标题栏右边的按钮
+     *
+     * @return 标题栏右边的按钮
+     */
+    Button getTitleRightBtn();
 
     /**
      * @param fragment      要跳转到的fragment

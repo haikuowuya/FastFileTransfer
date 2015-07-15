@@ -10,7 +10,8 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:id="@+id/Title">
+        android:id="@+id/Title"
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"

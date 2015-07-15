@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,7 +27,6 @@ import vision.resourcemanager.ResourceManagerInterface;
 
 public class ShareActivity extends FragmentActivity implements ResourceManagerInterface {
 
-
     private APHelper mAPHelper;
     public ShareServer mShareServer;
     private SparseArray<FileFolder> mImagesFolder;
@@ -42,10 +42,13 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
     private FragmentManager fragmentManager;
     private RMFragment mRMFragment;
     private TextView tvTitle;
+    private Button btnTitleBarRight;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
         setContentView(R.layout.activity_share);
         getWindow().setFeatureInt(
@@ -82,9 +85,23 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
                 Toast.makeText(ShareActivity.this, "打开热点失败", Toast.LENGTH_SHORT).show();
             }
         }
+
+        btnTitleBarRight = (Button) findViewById(R.id.titlebar_btnRight);
+
         jumpToFragment(RM_FRAGMENT, 0);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
 
     @Override
     protected void onDestroy() {
@@ -169,6 +186,21 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
             mImagesFolder = new SparseArray<FileFolder>();
         }
         return mImagesFolder;
+    }
+
+    @Override
+    public void setTitleText(String string) {
+        this.tvTitle.setText(string);
+    }
+
+    @Override
+    public String getTitleText() {
+        return this.tvTitle.getText().toString();
+    }
+
+    @Override
+    public Button getTitleRightBtn() {
+        return this.btnTitleBarRight;
     }
 
 }

@@ -11,7 +11,7 @@ import android.support.v4.app.ListFragment;
  */
 public class RMAdapter extends FragmentPagerAdapter {
 
-    private Fragment[] mFragments;
+    private ListFragment[] mFragments;
 
     public RMAdapter(FragmentManager fm, ListFragment[] listFragments) {
         super(fm);
@@ -20,7 +20,6 @@ public class RMAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-
         try {
             return mFragments[position];
         } catch (ArrayIndexOutOfBoundsException e) {

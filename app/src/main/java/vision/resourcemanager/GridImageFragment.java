@@ -10,9 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import vis.SelectedFilesQueue;
 import vision.fastfiletransfer.R;
@@ -29,18 +26,18 @@ public class GridImageFragment extends Fragment {
     private static int INDEXOFFOLDER;
     private SelectedFilesQueue<vision.resourcemanager.File> mSelectedList;
 
-    private String mParam1;
+    private String oldTitleName;
+    private Button btnTitleRight;
+    //    private String mParam1;
     //    private String mParam2;
     private GridView imageGrid;
     private AdapterGridImage mAdapterGridImage;
     private SparseArray<FileImage> mFileImage;
-    private TextView tvTitle;
-    private TextView tvSelectAll;
 
     private ResourceManagerInterface mListener;
-    private LinearLayout btnLinearLayout;
-    private Button btnLeft;
-    private Button btnRight;
+//    private LinearLayout btnLinearLayout;
+//    private Button btnLeft;
+//    private Button btnRight;
 
     /**
      * Use this factory method to create a new instance of
@@ -85,7 +82,7 @@ public class GridImageFragment extends Fragment {
 ////            mParam2 = getArguments().getString(ARG_PARAM2);
 //        }
         mSelectedList = mListener.getSelectedFilesQueue();
-
+        btnTitleRight = mListener.getTitleRightBtn();
     }
 
     @Override
@@ -93,20 +90,19 @@ public class GridImageFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_grid_image, container, false);
-        tvTitle = (TextView) rootView.findViewById(R.id.tvGridTitle);
-        tvSelectAll = (TextView) rootView.findViewById(R.id.tvSelectAll);
+//        tvSelectAll = (TextView) rootView.findViewById(R.id.tvSelectAll);
         imageGrid = (GridView) rootView.findViewById(R.id.imageGrid);
-        View botBut = inflater.inflate(R.layout.bottom_rm_buttom, container, false);
-        btnLinearLayout = (LinearLayout)
-                botBut.findViewById(R.id.btnLinearLayout);
+//        View botBut = inflater.inflate(R.layout.bottom_rm_buttom, container, false);
+//        btnLinearLayout = (LinearLayout)
+//                botBut.findViewById(R.id.btnLinearLayout);
 //        btnLinearLayout.setVisibility(View.VISIBLE);
-        btnLeft = (Button)
-                botBut.findViewById(R.id.btnLeft);
-        btnRight = (Button)
-                botBut.findViewById(R.id.btnRight);
-        RelativeLayout relativeLayout = (RelativeLayout)
-                rootView.findViewById(R.id.fragment_grid_image);
-        relativeLayout.addView(botBut);
+//        btnLeft = (Button)
+//                botBut.findViewById(R.id.btnLeft);
+//        btnRight = (Button)
+//                botBut.findViewById(R.id.btnRight);
+//        RelativeLayout relativeLayout = (RelativeLayout)
+//                rootView.findViewById(R.id.fragment_grid_image);
+//        relativeLayout.addView(botBut);
         return rootView;
     }
 
@@ -116,12 +112,16 @@ public class GridImageFragment extends Fragment {
 
         final FileFolder fileFolder = mListener.getImageFolder().valueAt(INDEXOFFOLDER);
         SparseArray<FileImage> fileImage = fileFolder.mImages;
-        tvTitle.setText(fileFolder.name);
+
+//        tvTitle.setText(fileFolder.name);
+        oldTitleName = mListener.getTitleText();
+        mListener.setTitleText(fileFolder.name);
         mAdapterGridImage = new AdapterGridImage(getActivity(), fileFolder, mListener.getSelectedFilesQueue());
         mAdapterGridImage.setData(fileImage);
+
         imageGrid.setAdapter(mAdapterGridImage);
 
-        tvSelectAll.setOnClickListener(new View.OnClickListener() {
+        btnTitleRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (fileFolder.isSelected) {
@@ -132,6 +132,15 @@ public class GridImageFragment extends Fragment {
                 mAdapterGridImage.notifyDataSetChanged();
             }
         });
+        btnTitleRight.setText("全选");
+        btnTitleRight.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mListener.setTitleText(oldTitleName);
+        btnTitleRight.setVisibility(View.GONE);
     }
 
 }
