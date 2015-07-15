@@ -6,7 +6,9 @@
     <ImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:id="@+id/grid_item_iv" />
+        android:id="@+id/grid_item_iv"
+        android:src="@mipmap/listitem_icon_image"
+        android:layout_centerHorizontal="true" />
 
     <ImageView
         android:layout_width="22dp"

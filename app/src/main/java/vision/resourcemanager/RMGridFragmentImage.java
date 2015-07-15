@@ -16,10 +16,10 @@ import vision.fastfiletransfer.R;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link GridImageFragment#newInstance} factory method to
+ * Use the {@link RMGridFragmentImage#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class GridImageFragment extends Fragment {
+public class RMGridFragmentImage extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 //    private static final String ARG_PARAM1 = "param1";
     //    private static final String ARG_PARAM2 = "param2";
@@ -46,10 +46,10 @@ public class GridImageFragment extends Fragment {
      * //     * @param param1 Parameter 1.
      * //     * @param param2 Parameter 2.
      *
-     * @return A new instance of fragment GridImageFragment.
+     * @return A new instance of fragment RMGridFragmentImage.
      */
-    public static GridImageFragment newInstance(int indexOfFolder, String param2) {
-        GridImageFragment fragment = new GridImageFragment();
+    public static RMGridFragmentImage newInstance(int indexOfFolder, String param2) {
+        RMGridFragmentImage fragment = new RMGridFragmentImage();
         INDEXOFFOLDER = indexOfFolder;
 //        Log.d("", String.valueOf(indexOfFolder));
 //        Bundle args = new Bundle(); //ArrayMap<String, Object> mMap = null;
@@ -59,7 +59,7 @@ public class GridImageFragment extends Fragment {
         return fragment;
     }
 
-    public GridImageFragment() {
+    public RMGridFragmentImage() {
         // Required empty public constructor
     }
 
@@ -103,6 +103,7 @@ public class GridImageFragment extends Fragment {
 //        RelativeLayout relativeLayout = (RelativeLayout)
 //                rootView.findViewById(R.id.fragment_grid_image);
 //        relativeLayout.addView(botBut);
+        //TODO 要在文件里显示按钮
         return rootView;
     }
 

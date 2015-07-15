@@ -3,7 +3,6 @@ package vision.fastfiletransfer;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.ListFragment;
 
 /**
  * Created by Vision on 15/6/30.<br>
@@ -11,9 +10,9 @@ import android.support.v4.app.ListFragment;
  */
 public class RMAdapter extends FragmentPagerAdapter {
 
-    private ListFragment[] mFragments;
+    private Fragment[] mFragments;
 
-    public RMAdapter(FragmentManager fm, ListFragment[] listFragments) {
+    public RMAdapter(FragmentManager fm, Fragment[] listFragments) {
         super(fm);
         this.mFragments = listFragments;
     }

@@ -21,7 +21,7 @@ import vis.net.protocol.ShareServer;
 import vis.net.wifi.APHelper;
 import vision.resourcemanager.File;
 import vision.resourcemanager.FileFolder;
-import vision.resourcemanager.GridImageFragment;
+import vision.resourcemanager.RMGridFragmentImage;
 import vision.resourcemanager.ResourceManagerInterface;
 
 
@@ -159,9 +159,9 @@ public class ShareActivity extends FragmentActivity implements ResourceManagerIn
                 break;
             }
             case RM_IMAGE_GRID: {
-                GridImageFragment gridImageFragment = GridImageFragment.newInstance(indexOfFolder, null);
+                RMGridFragmentImage rmGridFragmentImage = RMGridFragmentImage.newInstance(indexOfFolder, null);
                 fragmentTransaction.hide(mRMFragment);
-                fragmentTransaction.add(R.id.shareContain, gridImageFragment);
+                fragmentTransaction.add(R.id.shareContain, rmGridFragmentImage);
                 fragmentTransaction.addToBackStack(null);
                 break;
             }

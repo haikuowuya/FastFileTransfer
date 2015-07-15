@@ -15,7 +15,7 @@ import android.widget.TextView;
 import vis.SelectedFilesQueue;
 import vision.resourcemanager.File;
 import vision.resourcemanager.FileFolder;
-import vision.resourcemanager.GridImageFragment;
+import vision.resourcemanager.RMGridFragmentImage;
 import vision.resourcemanager.ResourceManagerInterface;
 
 
@@ -98,9 +98,9 @@ public class ResourceManagerActivity extends FragmentActivity implements Resourc
                 break;
             }
             case RM_IMAGE_GRID: {
-                GridImageFragment gridImageFragment = GridImageFragment.newInstance(indexOfFolder, null);
+                RMGridFragmentImage rmGridFragmentImage = RMGridFragmentImage.newInstance(indexOfFolder, null);
                 fragmentTransaction.hide(mRMFragment);
-                fragmentTransaction.add(R.id.rmContain, gridImageFragment);
+                fragmentTransaction.add(R.id.rmContain, rmGridFragmentImage);
                 fragmentTransaction.addToBackStack(null);
                 break;
             }

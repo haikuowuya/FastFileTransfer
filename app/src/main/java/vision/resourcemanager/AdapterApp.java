@@ -5,7 +5,7 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import vis.SelectedFilesQueue;
@@ -55,13 +55,12 @@ public class AdapterApp extends AdapterList {
         final ViewHolder holder;
         if (null == convertView) {
             holder = new ViewHolder();
-            convertView = inflater.inflate(R.layout.listitem_app, null);
-            holder.layout = (LinearLayout) convertView
+            convertView = inflater.inflate(R.layout.griditem_app, null);
+            holder.layout = (RelativeLayout) convertView
                     .findViewById(R.id.list_item_layout);
             holder.icon = (ImageView) convertView.findViewById(R.id.image);
             holder.name = (TextView) convertView.findViewById(R.id.name);
             holder.size = (TextView) convertView.findViewById(R.id.tvSize);
-            holder.date = (TextView) convertView.findViewById(R.id.tvDate);
             holder.ivCheckBox = (ImageView) convertView.findViewById(R.id.ivCheckBox);
             convertView.setTag(holder);
         } else {
@@ -85,7 +84,6 @@ public class AdapterApp extends AdapterList {
         holder.icon.setImageDrawable(fileApp.icon);
         holder.name.setText(fileApp.name);
         holder.size.setText(fileApp.strSize);
-        holder.date.setText(fileApp.strDate);
         if (fileApp.isSelected) {
             holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
         } else {
@@ -98,11 +96,10 @@ public class AdapterApp extends AdapterList {
      * 暂存变量类
      */
     static class ViewHolder {
-        LinearLayout layout;
+        RelativeLayout layout;
         ImageView icon;
         TextView name;
         TextView size;
-        TextView date;
         ImageView ivCheckBox;
     }
 
