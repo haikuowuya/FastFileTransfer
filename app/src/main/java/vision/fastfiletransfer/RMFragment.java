@@ -307,6 +307,7 @@ public class RMFragment extends Fragment {
 
         mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
         vp.setAdapter(mViewPagerAdapter);
+        vp.setOffscreenPageLimit(4);
 
         vp.setCurrentItem(0);
         tab[0].setTextColor(Color.parseColor("#ffffff"));
