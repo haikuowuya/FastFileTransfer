@@ -86,10 +86,10 @@ public class AdapterFolderImage extends AdapterList {
             public void onClick(View v) {
                 if (file.isSelected) {
                     file.cancelAll(mSelectedList);
-                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off);
                 } else {
                     file.selectAll(mSelectedList);
-                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on);
                 }
                 notifyDataSetChanged();
             }
@@ -109,9 +109,9 @@ public class AdapterFolderImage extends AdapterList {
             holder.date.setText("");
         }
         if (file.isSelected) {
-            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on);
         } else {
-            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off);
         }
 
         holder.image.setTag(file.oid);

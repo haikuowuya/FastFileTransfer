@@ -73,11 +73,11 @@ public class AdapterApp extends AdapterList {
                 if (fileApp.isSelected) {
                     fileApp.isSelected = false;
                     mSelectedList.remove(fileApp);
-                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off);
                 } else {
                     fileApp.isSelected = true;
                     mSelectedList.add(fileApp);
-                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on);
                 }
             }
         });
@@ -85,9 +85,9 @@ public class AdapterApp extends AdapterList {
         holder.name.setText(fileApp.name);
         holder.size.setText(fileApp.strSize);
         if (fileApp.isSelected) {
-            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on);
         } else {
-            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off);
         }
         return convertView;
     }

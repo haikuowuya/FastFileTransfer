@@ -83,7 +83,7 @@ public class AdapterGridImage extends BaseAdapter {
                             mFileFolder.isSelected = false;
                         }
                     }
-                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off);
                 } else {
                     file.isSelected = true;
                     if (mSelectedList.add(file)) {
@@ -92,15 +92,15 @@ public class AdapterGridImage extends BaseAdapter {
                             mFileFolder.isSelected = true;
                         }
                     }
-                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
+                    holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on);
                 }
             }
         });
 
         if (file.isSelected) {
-            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_on);
         } else {
-            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off_normal);
+            holder.ivCheckBox.setImageResource(R.mipmap.listitem_checkbox_off);
         }
         holder.image.setImageResource(R.mipmap.listitem_icon_image);
         holder.image.setTag(file.oid);

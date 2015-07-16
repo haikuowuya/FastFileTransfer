@@ -23,7 +23,6 @@ public class RMGridFragmentApp extends Fragment {
         // Required empty public constructor
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -33,6 +32,13 @@ public class RMGridFragmentApp extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (null != mAdapterList && null != appGrid) {
+            appGrid.setAdapter(mAdapterList);
+        }
+    }
 
     public void setGridAdapter(AdapterList adapterList) {
         mAdapterList = adapterList;

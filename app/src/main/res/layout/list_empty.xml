@@ -23,5 +23,6 @@
         android:layout_alignParentLeft="false"
         android:layout_alignParentTop="false"
         android:layout_alignParentStart="false"
-        android:textSize="20dp" />
+        android:textSize="20dp"
+        android:textColor="@color/item_text_color_normal" />
 </RelativeLayout>

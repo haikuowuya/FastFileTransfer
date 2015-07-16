@@ -9,8 +9,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/imageView"
-        android:src="@mipmap/activity_main_banner_2"
-        android:scaleType="fitStart" />
+        android:src="@mipmap/activity_main_banner_3"
+        android:scaleType="fitStart"
+        android:layout_above="@+id/tvModel" />
 
     <Button
         android:layout_width="wrap_content"

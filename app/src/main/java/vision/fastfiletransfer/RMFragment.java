@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -272,45 +271,44 @@ public class RMFragment extends Fragment {
         int pageIndex = 0;
         if ((page & PAGE_APP) != 0) {
             mAdapterLists[pageIndex] = new AdapterApp(getActivity(), mSelectedList);
-            tab[pageIndex].setText("应用");
+            tab[pageIndex].setText(R.string.apk);
             mFragments[pageIndex] = new RMGridFragmentApp();
             new RefreshAppList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_IMAGE) != 0) {
             mAdapterLists[pageIndex] = new AdapterFolderImage(getActivity(), mSelectedList);
-            tab[pageIndex].setText("图片");
-//            mFragments[pageIndex] = new RMListFragment();
+            tab[pageIndex].setText(R.string.img);
             new RefreshImageDirList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_AUDIO) != 0) {
             mAdapterLists[pageIndex] = new AdapterAudio(getActivity(), mSelectedList);
-            tab[pageIndex].setText("音乐");
-//            mFragments[pageIndex] = new RMListFragment();
+            tab[pageIndex].setText(R.string.audio);
             new RefreshAudioList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_VIDEO) != 0) {
             mAdapterLists[pageIndex] = new AdapterVideo(getActivity(), mSelectedList);
-            tab[pageIndex].setText("视频");
-//            mFragments[pageIndex] = new RMListFragment();
+            tab[pageIndex].setText(R.string.video);
             new RefreshVideoList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
             pageIndex++;
         }
         if ((page & PAGE_TEXT) != 0) {
             mAdapterLists[pageIndex] = new AdapterText(getActivity(), mSelectedList);
-            tab[pageIndex].setText("文档");
-//            mFragments[pageIndex] = new RMListFragment();
+            tab[pageIndex].setText(R.string.text);
             new RefreshTextList(mFragments[pageIndex], mAdapterLists[pageIndex]).execute();
         }
 
+        //---------------------------------------------------------------------
+
         mViewPagerAdapter = new RMAdapter(getFragmentManager(), mFragments);
         vp.setAdapter(mViewPagerAdapter);
-        vp.setOffscreenPageLimit(4);
 
         vp.setCurrentItem(0);
-        tab[0].setTextColor(Color.parseColor("#ffffff"));
+        tab[0].setTextColor(getResources().getColor(R.color.tab_text_color_selected));
+
+        //---------------------------------------------------------------------
 
         vp.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -320,9 +318,9 @@ public class RMFragment extends Fragment {
             @Override
             public void onPageSelected(int position) {
                 for (int i = 0; i < mViewPagerAdapter.getCount(); i++) {
-                    tab[i].setTextColor(Color.parseColor("#000000"));
+                    tab[i].setTextColor(getResources().getColor(R.color.tab_text_color_normal));
                 }
-                tab[position].setTextColor(Color.parseColor("#ffffff"));
+                tab[position].setTextColor(getResources().getColor(R.color.tab_text_color_selected));
             }
 
             @Override
@@ -344,16 +342,16 @@ public class RMFragment extends Fragment {
             public void onAddedListener(int size) {
                 btnLinearLayout.setVisibility(View.VISIBLE);
                 if (ResourceManagerInterface.TYPE_FILE_TRANSFER == type) {
-                    btnLeft.setText("分享(" + size + ")");
+                    btnLeft.setText(getText(R.string.share) + "(" + size + ")");
                 } else if (ResourceManagerInterface.TYPE_RESOURCE_MANAGER == type) {
                     if (size == 1) {
-                        btnLeft.setText("打开");
+                        btnLeft.setText(R.string.open);
                         btnLeft.setOnClickListener(mOpenFileListener);
                     } else {
-                        btnLeft.setText("取消");
+                        btnLeft.setText(R.string.cancel);
                         btnLeft.setOnClickListener(mCancelListener);
                     }
-                    btnRight.setText("删除(" + size + ")");
+                    btnRight.setText(getText(R.string.delete) + "(" + size + ")");
                 }
             }
 

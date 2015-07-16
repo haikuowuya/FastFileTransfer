@@ -31,6 +31,7 @@ public class RMListFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         ListView list = getListView();
+        list.setVerticalScrollBarEnabled(false);
         if (null != mEmptyView) {
             mEmptyView.setVisibility(View.GONE);
             ((ViewGroup) list.getParent()).addView(mEmptyView);
